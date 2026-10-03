@@ -1,0 +1,23 @@
+{
+  "name": "پارسیس — حسابداری",
+  "short_name": "پارسیس",
+  "description": "نرم‌افزار حسابداری پارسیس",
+  "start_url": "./parsis.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#eef4fb",
+  "theme_color": "#4a90e2",
+  "lang": "fa",
+  "dir": "rtl",
+  "share_target": {
+    "action": "./parsis.html",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}
