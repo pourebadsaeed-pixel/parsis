@@ -26,13 +26,13 @@ body { font-family:var(--app-font); background:var(--bg); color:var(--text); lin
 .topbar { display:flex; align-items:center; gap:6px; padding:8px 10px; background:linear-gradient(135deg,var(--topbar-from),var(--topbar-to)); color:#fff; box-shadow:0 3px 10px rgba(0,0,0,0.1); position:sticky; top:0; z-index:50; }
 .topbar-title { font-size:1rem; font-weight:bold; }
 .icon-btn { background:rgba(255,255,255,0.2); color:#fff; border:none; width:36px; height:36px; border-radius:9px; font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; }
-.period-badge { background:rgba(255,255,255,0.22); color:#fff; padding:5px 10px; border-radius:9px; font-size:0.72rem; font-weight:bold; white-space:nowrap; max-width:180px; overflow:hidden; text-overflow:ellipsis; }
-@media (max-width:520px) { .period-badge { max-width:100px; font-size:0.66rem; } }
-.date-info { flex:1; min-width:0; text-align:center; background:rgba(255,255,255,0.13); border-radius:9px; padding:3px 6px; }
-.date-line { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:0.7rem; }
-.date-line.jalali { font-weight:bold; font-size:0.8rem; }
-.date-line.greg { opacity:0.85; direction:ltr; font-size:0.66rem; }
-@media (max-width:520px) { .date-line.greg { display:none; } }
+.period-badge { background:rgba(255,255,255,0.28); color:#fff; padding:6px 12px; border-radius:9px; font-size:0.78rem; font-weight:900; white-space:nowrap; max-width:200px; overflow:hidden; text-overflow:ellipsis; letter-spacing:0.2px; }
+@media (max-width:520px) { .period-badge { max-width:110px; font-size:0.68rem; padding:5px 8px; } }
+.date-info { flex:1; min-width:0; display:flex; flex-direction:row; gap:10px; align-items:center; justify-content:center; background:rgba(255,255,255,0.13); border-radius:9px; padding:4px 10px; }
+.date-line { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.date-line.jalali { font-weight:bold; font-size:0.82rem; }
+.date-line.greg { opacity:0.88; direction:ltr; font-size:0.68rem; }
+@media (max-width:520px) { .date-line.greg { display:none; } .date-info { gap:6px; padding:3px 6px; } }
 .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); opacity:0; visibility:hidden; transition:0.25s; z-index:90; }
 .overlay.show { opacity:1; visibility:visible; }
 .sidebar { position:fixed; top:0; right:-300px; width:280px; max-width:85vw; height:100vh; background:#fff; transition:right 0.3s; z-index:100; display:flex; flex-direction:column; box-shadow:-4px 0 20px rgba(0,0,0,0.15); }
@@ -292,6 +292,9 @@ body { font-family:var(--app-font); background:var(--bg); color:var(--text); lin
 .install-banner { background:linear-gradient(135deg,#4a90e2,#357abd); color:#fff; padding:12px 14px; border-radius:12px; margin-bottom:12px; display:flex; align-items:center; gap:10px; }
 .install-banner .txt { flex:1; font-size:0.85rem; }
 .install-banner button { background:#fff; color:#4a90e2; border:none; padding:8px 14px; border-radius:8px; font-family:inherit; font-weight:bold; font-size:0.82rem; cursor:pointer; }
+.issue-row { padding:8px 10px; border-radius:8px; background:#fff5f5; border-right:3px solid #d33; margin-bottom:6px; font-size:0.82rem; }
+.issue-list { margin:0; padding-right:16px; color:#c0392b; font-size:0.82rem; }
+.issue-list li { margin-bottom:2px; }
 </style>
 </head>
 <body class="theme-sky font-tahoma">
@@ -300,11 +303,11 @@ body { font-family:var(--app-font); background:var(--bg); color:var(--text); lin
 <header class="topbar">
     <button id="menu-btn" class="icon-btn">☰</button>
     <h1 class="topbar-title">پارسیس</h1>
-    <div class="period-badge" id="topbar-period">—</div>
     <div class="date-info">
         <div class="date-line jalali" id="date-jalali">—</div>
         <div class="date-line greg" id="date-gregorian">—</div>
     </div>
+    <div class="period-badge" id="topbar-period">—</div>
     <button id="settings-btn" class="icon-btn">⚙</button>
 </header>
 <div id="overlay" class="overlay"></div>
@@ -355,6 +358,7 @@ body { font-family:var(--app-font); background:var(--bg); color:var(--text); lin
             <div class="nav-group-items">
                 <button data-page="report-account">📒 مرور حساب‌ها</button>
                 <button data-page="report-trial">⚖️ تراز آزمایشی</button>
+                <button data-page="report-incomplete">🔍 تراکنش‌های تکمیل نشده</button>
                 <button data-page="report-facility">🏦 خلاصه تسهیلات</button>
             </div>
         </div>
@@ -432,7 +436,7 @@ body { font-family:var(--app-font); background:var(--bg); color:var(--text); lin
     <div class="tabs"><button class="tab-btn active" data-tab="ba-list">📋 فهرست</button><button class="tab-btn" data-tab="ba-add">✏️ تعریف</button></div>
     <div id="tab-ba-list" class="tab-content active"><div class="card">
         <div class="list-header"><span class="count-badge" id="ba-count">۰</span><input type="text" class="filter-input" id="ba-filter" placeholder="🔍"><button class="export-btn" data-export="bankAccounts">📊 اکسل</button></div>
-        <div class="table-wrap"><table class="data-table" id="ba-table"><thead><tr><th>ترتیب</th><th>بانک</th><th>شعبه</th><th>حساب</th><th>عملیات</th></tr></thead><tbody id="ba-list-body"></tbody></table></div>
+        <div class="table-wrap"><table class="data-table" id="ba-table"><thead><tr><th>ترتیب</th><th>بانک</th><th>شعبه</th><th>حساب</th><th>حداقل موجودی</th><th>عملیات</th></tr></thead><tbody id="ba-list-body"></tbody></table></div>
     </div></div>
     <div id="tab-ba-add" class="tab-content"><div class="card">
         <input type="hidden" id="ba-id">
@@ -440,7 +444,7 @@ body { font-family:var(--app-font); background:var(--bg); color:var(--text); lin
         <div class="grid-2"><div class="field"><label>کد شعبه</label><input type="text" id="ba-branch-code" dir="ltr"></div><div class="field"><label>نام شعبه</label><input type="text" id="ba-branch-name"></div></div>
         <div class="field"><label>شماره حساب</label><input type="text" id="ba-account" dir="ltr"></div>
         <div class="grid-2"><div class="field"><label>شبا</label><input type="text" id="ba-iban" dir="ltr"></div><div class="field"><label>کارت</label><input type="text" id="ba-card" dir="ltr"></div></div>
-        <div class="field"><label>ترتیب</label><input type="text" id="ba-order" inputmode="numeric" dir="ltr"></div>
+        <div class="grid-2"><div class="field"><label>ترتیب</label><input type="text" id="ba-order" inputmode="numeric" dir="ltr"></div><div class="field"><label>حداقل موجودی ریالی</label><input type="text" id="ba-min-balance" class="money-input" inputmode="numeric" dir="ltr"></div></div>
         <div class="form-buttons"><button id="save-ba" class="btn-primary">💾</button><button id="new-ba" class="btn-secondary">جدید</button></div>
     </div></div>
 </section>
@@ -551,7 +555,7 @@ body { font-family:var(--app-font); background:var(--bg); color:var(--text); lin
         <h3 style="margin-bottom:10px;color:var(--primary-dark);font-size:0.95rem">اقلام سند</h3>
         <div id="voucher-lines"></div>
         <div class="voucher-total"><span>بدهکار: <span id="v-total-debit">۰</span></span><span>بستانکار: <span id="v-total-credit">۰</span></span><span id="v-balance-status"></span></div>
-        <div class="form-buttons" style="margin-top:12px"><button id="add-line" class="btn-secondary">+ افزودن</button><button id="save-voucher" class="btn-primary">💾 ذخیره</button><button id="new-voucher" class="btn-secondary">جدید</button></div>
+        <div class="form-buttons" style="margin-top:12px"><button id="add-line" class="btn-secondary">+ افزودن</button><button id="save-voucher" class="btn-primary">💾 ذخیره پیش‌نویس</button><button id="save-voucher-approve" class="btn-primary" style="background:#1e9e6a">✅ ذخیره و تأیید</button><button id="new-voucher" class="btn-secondary">جدید</button></div>
     </div>
 </section>
 
@@ -580,16 +584,13 @@ body { font-family:var(--app-font); background:var(--bg); color:var(--text); lin
 <section id="page-sms" class="page"><h2>📱 پیامک بانکی</h2>
     <div class="card">
         <h3 style="margin-bottom:12px;color:var(--primary-dark);font-size:0.95rem">📡 روش‌های دریافت</h3>
-        <div class="method-card recommended">
-            <h4><span class="method-num">۱</span> اشتراک‌گذاری از اپ پیامک <span class="method-status ok" id="share-status">—</span></h4>
-            <p>در اپ پیامک، روی پیامک بانکی نگهدار → Share → پارسیس را انتخاب کن.</p>
-        </div>
         <div class="method-card">
-            <h4><span class="method-num">۲</span> پیست دستی <span class="method-status ok">همیشه</span></h4>
+            <h4><span class="method-num">۱</span> پیست دستی <span class="method-status ok">همیشه</span></h4>
             <p>پیامک را کپی کن و در کادر زیر پیست کن.</p>
         </div>
         <div class="method-card" id="method-clip">
-            <h4><span class="method-num">۳</span> کلیپ‌بورد <span class="method-status no" id="clip-status">—</span></h4>
+            <h4><span class="method-num">۲</span> کلیپ‌بورد <span class="method-status no" id="clip-status">—</span></h4>
+            <p style="font-size:0.78rem">⚠️ فقط متن‌هایی که شامل <b>شماره حساب‌های بانکی شما</b> باشند خوانده می‌شوند.</p>
             <label class="checkbox-item" style="cursor:pointer;margin-bottom:8px"><input type="checkbox" id="sms-auto-read"> <span>خواندن خودکار از کلیپ‌بورد</span></label>
             <div class="form-buttons"><button id="sms-read-clip" class="btn-primary btn-mini">📋 خواندن</button></div>
         </div>
@@ -621,6 +622,15 @@ body { font-family:var(--app-font); background:var(--bg); color:var(--text); lin
         <div class="form-buttons"><button id="rt-run" class="btn-primary">🔍 اجرا</button><button id="rt-print" class="btn-secondary">🖨 چاپ</button><button id="rt-export" class="btn-secondary">📊 اکسل</button><label class="checkbox-item" style="display:inline-flex;width:auto"><input type="checkbox" id="rt-hide"> <span>مخفی</span></label></div>
     </div>
     <div class="card"><div class="list-header"><span class="count-badge" id="rt-count">۰</span><span class="unit-chip" id="rt-unit"></span></div><div id="rt-result"></div></div>
+</section>
+
+<section id="page-report-incomplete" class="page"><h2>🔍 تراکنش‌های تکمیل نشده</h2>
+    <div class="card">
+        <div class="grid-2"><div class="field"><label>وضعیت</label><select id="ri-status"><option value="">همه</option><option value="draft">پیش‌نویس</option><option value="approved">تأیید شده</option></select></div><div class="field"><label>دوره</label><select id="ri-period"><option value="">همه</option></select></div></div>
+        <div class="form-buttons"><button id="ri-run" class="btn-primary">🔍 اجرا</button><button id="ri-print" class="btn-secondary">🖨 چاپ</button><button id="ri-export" class="btn-secondary">📊 اکسل</button></div>
+        <p class="muted" style="margin-top:8px;font-size:0.78rem">سندهایی که معین یا تفصیلی مرتبط در آن‌ها پر نشده، شرح قلم خالی است، یا سند متوازن نیست.</p>
+    </div>
+    <div class="card"><div class="list-header"><span class="count-badge" id="ri-count">۰</span><span class="unit-chip" id="ri-unit"></span></div><div id="ri-result"></div></div>
 </section>
 
 <section id="page-report-facility" class="page"><h2>🏦 خلاصه تسهیلات</h2>
@@ -686,7 +696,7 @@ body { font-family:var(--app-font); background:var(--bg); color:var(--text); lin
 </div>
 
 <script>
-console.log('✅ پارسیس PWA v2');
+console.log('✅ پارسیس PWA v3');
 var LS_PREFIX = 'parsis.';
 var DB = {
     load: function(k, f) { try { var r = localStorage.getItem(LS_PREFIX + k); return r ? JSON.parse(r) : f; } catch(e) { return f; } },
@@ -929,6 +939,79 @@ function buildOptionsInto(sel, items, labelFn, selectedId, placeholder) {
     for (var i = 0; i < items.length; i++) { var o = document.createElement('option'); o.value = items[i].id; o.textContent = labelFn(items[i]); if (selectedId === items[i].id) o.selected = true; sel.appendChild(o); }
 }
 
+/* ===== Voucher validation ===== */
+function getVoucherIssues(v) {
+    var issues = [];
+    if (!v) return ['سند نامعتبر'];
+    var accounts = DB.load('accounts', []);
+    var lines = v.lines || [];
+    if (!v.number) issues.push('شماره سند خالی است');
+    if (!v.date) issues.push('تاریخ سند خالی است');
+    if (!v.desc || !String(v.desc).trim()) issues.push('شرح سند خالی است');
+    var valid = lines.filter(function(l) { return (Number(l.debit) || 0) > 0 || (Number(l.credit) || 0) > 0; });
+    if (valid.length < 2) issues.push('حداقل دو ردیف با مبلغ لازم است');
+    var lineIssues = [];
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        var d = Number(line.debit) || 0;
+        var c = Number(line.credit) || 0;
+        if (d === 0 && c === 0) continue;
+        var ln = toFa(i + 1);
+        if (!line.account) { lineIssues.push('ردیف ' + ln + ': حساب معین تعیین نشده'); continue; }
+        var acc = accounts.find(function(a) { return a.id === line.account; });
+        if (!acc) { lineIssues.push('ردیف ' + ln + ': حساب معین نامعتبر'); continue; }
+        if (acc.links && acc.links.length > 0) {
+            for (var li = 0; li < acc.links.length; li++) {
+                var lt = acc.links[li];
+                var items = getLinkedItems(lt);
+                if (items.length === 0) continue;
+                if (!line.details || !line.details[lt]) {
+                    lineIssues.push('ردیف ' + ln + ': تفصیلی ' + linkTypeName(lt) + ' تعیین نشده');
+                }
+            }
+        }
+        if (!line.description || !String(line.description).trim()) {
+            lineIssues.push('ردیف ' + ln + ': شرح قلم خالی است');
+        }
+    }
+    var td = 0, tc = 0;
+    lines.forEach(function(l) { td += Number(l.debit) || 0; tc += Number(l.credit) || 0; });
+    var balanceIssues = [];
+    if (td !== tc) balanceIssues.push('سند متوازن نیست (اختلاف: ' + formatMoney(Math.abs(td - tc)) + ' ' + currencyLabel() + ')');
+    return issues.concat(lineIssues).concat(balanceIssues);
+}
+
+/* ===== SMS clipboard filter ===== */
+function findMatchingBankAccount(text) {
+    if (!text) return null;
+    var t = normalizeDigits(text).replace(/\D/g, '');
+    if (t.length < 6) return null;
+    var ba = DB.load('bankAccounts', []);
+    var best = null, bestScore = 0;
+    for (var i = 0; i < ba.length; i++) {
+        var b = ba[i];
+        var cands = [
+            { v: (b.account || '').replace(/\D/g, ''), w: 3, name: 'حساب' },
+            { v: (b.card || '').replace(/\D/g, ''), w: 2, name: 'کارت' },
+            { v: (b.iban || '').replace(/\D/g, ''), w: 2, name: 'شبا' }
+        ];
+        for (var j = 0; j < cands.length; j++) {
+            var n = cands[j].v;
+            if (n.length < 6) continue;
+            var maxLen = Math.min(n.length, 16);
+            for (var len = maxLen; len >= 6; len--) {
+                var sub = n.slice(-len);
+                if (t.indexOf(sub) !== -1) {
+                    var score = len * cands[j].w;
+                    if (score > bestScore) { bestScore = score; best = b; }
+                    break;
+                }
+            }
+        }
+    }
+    return best;
+}
+
 /* ===== SMS Parser ===== */
 function parseBankSms(text) {
     var result = { amount: 0, direction: '', balance: 0, accountCandidates: [], matchedAccount: null, bankName: '', raw: text };
@@ -1089,41 +1172,18 @@ function readClipboardAndAdd(auto) {
     navigator.clipboard.readText().then(function(text) {
         var t = String(text || '').trim(); if (!t) { if (!auto) alert('کلیپ‌بورد خالی.'); return; }
         if (auto && t === _lastClipboardText) return;
-        var looksBank = /(بانک|حساب|کارت|واریز|برداشت|مانده|شبا|انتقال|خرید|بستانکار|بدهکار|سپرده|چک)/.test(t);
-        if (!looksBank) { if (!auto) alert('شبیه پیامک بانکی نیست.'); return; }
+        // فقط اگر متن شامل یکی از شماره حساب‌های بانکی کاربر باشد
+        var matched = findMatchingBankAccount(t);
+        if (!matched) {
+            if (!auto) alert('❌ این متن شامل شماره حساب‌های بانکی شما نیست.');
+            return;
+        }
         var res = addSmsToInbox(t, auto ? 'auto' : 'clipboard');
         if (res.ok) { _lastClipboardText = t; renderSmsInbox(); updateSmsBadge(); showToast(auto ? '📱 پیامک اضافه شد' : '✅ اضافه شد.'); }
         else if (res.reason === 'duplicate' && !auto) showToast('قبلاً ثبت شده.');
         else if (!auto) alert('قابل تشخیص نبود.');
     }).catch(function() { if (!auto) alert('دسترسی به کلیپ‌بورد داده نشد.'); });
 }
-function setupAndroidBridge() {
-    window.ParsisSMS = {
-        receive: function(text) { var res = addSmsToInbox(text, 'share'); if (res.ok) { renderSmsInbox(); updateSmsBadge(); showToast('📱 پیامک دریافت شد.'); return 'ok'; } return res.reason || 'error'; },
-        receiveMany: function(textsJson) {
-            try { var texts = JSON.parse(textsJson); var added = 0;
-                texts.forEach(function(t) { var res = addSmsToInbox(t, 'share'); if (res.ok) added++; });
-                renderSmsInbox(); updateSmsBadge(); if (added > 0) showToast('📱 ' + added + ' پیامک.'); return String(added);
-            } catch(e) { return 'error'; }
-        },
-        ping: function() { return 'ok'; }
-    };
-}
-function handleSharedContentFromUrl() {
-    try {
-        var params = new URLSearchParams(location.search);
-        var sharedText = params.get('text') || params.get('title') || params.get('url');
-        if (sharedText) {
-            var decoded = decodeURIComponent(sharedText);
-            var res = addSmsToInbox(decoded, 'share');
-            if (res.ok) { renderSmsInbox(); updateSmsBadge(); showToast('📱 پیامک از اشتراک‌گذاری.'); setTimeout(function() { goToPage('sms'); }, 300); }
-            if (history.replaceState) history.replaceState({}, document.title, location.pathname);
-        }
-    } catch(e) { console.error(e); }
-}
-function checkShareTargetSupport() { var el = document.getElementById('share-status'); if (!el) return;
-    var isStandalone = (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone === true);
-    if (isStandalone) { el.textContent = 'آماده'; el.className = 'method-status ok'; } else { el.textContent = 'نیاز به نصب'; el.className = 'method-status recommended'; } }
 function checkClipboardSupport() { var el = document.getElementById('clip-status'); if (!el) return;
     if (navigator.clipboard && navigator.clipboard.readText) { el.textContent = 'در دسترس'; el.className = 'method-status ok'; }
     else { el.textContent = 'ندارد'; el.className = 'method-status no'; } }
@@ -1183,7 +1243,6 @@ function exportToCsv(key, filename) {
     a.click(); URL.revokeObjectURL(url);
 }
 
-/* ===== خروجی اکسل گزارش‌ها (پشتیبانی از جدول و درخت) ===== */
 function exportReportTable(selector, filename) {
     var el = document.querySelector(selector);
     if (!el) { alert('ابتدا گزارش را اجرا کن.'); return; }
@@ -1577,7 +1636,7 @@ function goToPage(name) {
     if (name === 'voucher-list') { refreshPeriodFilters(); renderVoucherList(); }
     if (name === 'voucher-new') { refreshVPeriodSelect(); refreshTemplateSelect(); if (voucherLines.length === 0) newVoucherForm(); else renderVoucherLines(); }
     if (name === 'templates') { renderTemplateList(); renderTemplateLines(); renderStdDescChips(); refreshStdDescDatalist(); }
-    if (name === 'sms') { renderSmsInbox(); updateSmsBadge(); checkShareTargetSupport(); checkClipboardSupport(); }
+    if (name === 'sms') { renderSmsInbox(); updateSmsBadge(); checkClipboardSupport(); }
     if (name === 'fiscal') renderFiscalList();
     if (name === 'persons') renderPersonsList();
     if (name === 'companies') renderCompaniesList();
@@ -1587,11 +1646,12 @@ function goToPage(name) {
     if (name === 'facilities') { renderFacilitiesList(); refreshFacBankSelect(); }
     if (name === 'report-account') { refreshReportPeriodSelects(); updateUnitChips(); }
     if (name === 'report-trial') { refreshReportPeriodSelects(); updateUnitChips(); }
+    if (name === 'report-incomplete') { refreshReportPeriodSelects(); updateUnitChips(); runIncompleteReport(); }
     if (name === 'report-facility') { runFacilityReport(); }
     if (name === 'home') { updateHomeWidgets(); }
     attachDatePickers(); updateTopbarPeriod(); applyColVisibilityAll();
 }
-function updateUnitChips() { ['ra-unit','rt-unit','rf-unit'].forEach(function(id) { var el = document.getElementById(id); if (el) el.textContent = 'واحد: ' + currencyLabel(); }); }
+function updateUnitChips() { ['ra-unit','rt-unit','rf-unit','ri-unit'].forEach(function(id) { var el = document.getElementById(id); if (el) el.textContent = 'واحد: ' + currencyLabel(); }); }
 function applyTheme(theme) { document.body.classList.remove('theme-sky','theme-beige','theme-jade'); document.body.classList.add('theme-' + theme);
     var c = document.querySelectorAll('.theme-card'); for (var i = 0; i < c.length; i++) c[i].classList.toggle('active', c[i].getAttribute('data-theme') === theme); }
 function applyFont(font) { document.body.classList.remove('font-bnazanin','font-bsans','font-tahoma'); document.body.classList.add('font-' + font);
@@ -1678,7 +1738,7 @@ function renderFiscalList() {
     for (var i = 0; i < list.length; i++) { var p = list[i]; if (filter && (p.title || '').toLowerCase().indexOf(filter) === -1) continue; shown++;
         var tr = document.createElement('tr'); var isA = state.activePeriodId === p.id;
         var ab = isA ? '<span class="badge badge-approved">✓ فعال</span>' : '<button class="row-btn approve" data-id="' + p.id + '">فعال</button>';
-        tr.innerHTML = '<td>' + esc(p.title) + '</td><td dir="ltr">' + toFa(esc(p.from)) + '</td><td dir="ltr">' + toFa(esc(p.to)) + '</td><td>' + ab + '</td><td><div class="row-actions"><button class="row-btn edit" data-id="' + p.id + '">✎</button><button class="row-btn del" data-id="' + p.id + '">×</button></div></td>';
+        tr.innerHTML = '<td><strong>' + esc(p.title) + '</strong></td><td dir="ltr">' + toFa(esc(p.from)) + '</td><td dir="ltr">' + toFa(esc(p.to)) + '</td><td>' + ab + '</td><td><div class="row-actions"><button class="row-btn edit" data-id="' + p.id + '">✎</button><button class="row-btn del" data-id="' + p.id + '">×</button></div></td>';
         tb.appendChild(tr); }
     if (shown === 0) tb.innerHTML = '<tr><td colspan="5" class="empty-row">یافت نشد.</td></tr>';
     document.getElementById('fiscal-count').textContent = toFa(shown);
@@ -1748,8 +1808,9 @@ function renderBankAccountsList() {
     var list = DB.load('bankAccounts', []); var filter = (document.getElementById('ba-filter').value || '').toLowerCase();
     var tb = document.getElementById('ba-list-body'); if (!tb) return; tb.innerHTML = ''; var shown = 0;
     for (var i = 0; i < list.length; i++) { var b = list[i]; if (filter && ((b.bank || '') + ' ' + (b.account || '') + ' ' + (b.branchName || '')).toLowerCase().indexOf(filter) === -1) continue; shown++;
-        var tr = document.createElement('tr'); tr.innerHTML = '<td dir="ltr">' + (b.order != null ? toFa(esc(b.order)) : '—') + '</td><td>' + esc(b.bank) + '</td><td>' + esc(b.branchName) + '</td><td dir="ltr">' + toFa(esc(b.account)) + '</td><td><div class="row-actions"><button class="row-btn edit" data-id="' + b.id + '">✎</button><button class="row-btn del" data-id="' + b.id + '">×</button></div></td>'; tb.appendChild(tr); }
-    if (shown === 0) tb.innerHTML = '<tr><td colspan="5" class="empty-row">یافت نشد.</td></tr>';
+        var mb = b.minBalance ? formatMoney(b.minBalance) + ' ' + currencyLabel() : '—';
+        var tr = document.createElement('tr'); tr.innerHTML = '<td dir="ltr">' + (b.order != null ? toFa(esc(b.order)) : '—') + '</td><td>' + esc(b.bank) + '</td><td>' + esc(b.branchName) + '</td><td dir="ltr">' + toFa(esc(b.account)) + '</td><td dir="ltr">' + mb + '</td><td><div class="row-actions"><button class="row-btn edit" data-id="' + b.id + '">✎</button><button class="row-btn del" data-id="' + b.id + '">×</button></div></td>'; tb.appendChild(tr); }
+    if (shown === 0) tb.innerHTML = '<tr><td colspan="6" class="empty-row">یافت نشد.</td></tr>';
     document.getElementById('ba-count').textContent = toFa(shown);
     attachRowActions(tb, 'bankAccounts', renderBankAccountsList, function(b) {
         document.getElementById('ba-id').value = b.id; document.getElementById('ba-bank').value = b.bank || '';
@@ -1757,6 +1818,7 @@ function renderBankAccountsList() {
         document.getElementById('ba-branch-name').value = b.branchName || ''; document.getElementById('ba-account').value = b.account || '';
         document.getElementById('ba-iban').value = b.iban || ''; document.getElementById('ba-card').value = b.card || '';
         document.getElementById('ba-order').value = (b.order != null ? b.order : '');
+        document.getElementById('ba-min-balance').value = b.minBalance ? formatRaw(b.minBalance) : '';
         document.querySelector('[data-tab="ba-add"]').click();
     });
     applyColVisibility('ba-table');
@@ -1984,9 +2046,9 @@ function renderVoucherList() {
         var c = compareVals(va, vb); return st.dir === 'asc' ? c : -c; });
     var tb = document.getElementById('voucher-list-body'); if (!tb) return; tb.innerHTML = ''; var shown = 0;
     for (var i = 0; i < vouchers.length; i++) { var v = vouchers[i]; shown++; var status = v.status || 'draft';
-        var balanced = isVoucherBalanced(v); var badge;
+        var balanced = isVoucherBalanced(v); var issues = getVoucherIssues(v); var badge;
         if (status === 'approved') badge = '<span class="badge badge-approved">✓ تأیید</span>';
-        else if (!balanced) badge = '<span class="badge badge-draft">پیش‌نویس (نامتوازن)</span>';
+        else if (issues.length > 0) badge = '<span class="badge badge-draft" title="ناقص">پیش‌نویس ⚠️</span>';
         else badge = '<span class="badge badge-draft">پیش‌نویس</span>';
         var tB = '<span class="badge badge-type">' + voucherTypeName(v.type) + '</span>'; var pN = pM[v.periodId] || '—'; var amt = getVoucherAmount(v);
         var aC = '<td class="num" style="font-weight:bold;color:var(--primary-dark)">' + formatMoney(amt) + '</td>';
@@ -2004,8 +2066,16 @@ function renderVoucherList() {
         var id = this.getAttribute('data-id'); var action = this.getAttribute('data-action'); var v = findVoucherById(id); if (!v) return;
         if (action === 'preview') { openVoucherPreview(v); return; }
         if (action === 'edit') { loadVoucherForEdit(v); return; }
-        if (action === 'approve') { if (!isVoucherBalanced(v)) { alert('⚠️ سند متوازن نیست.'); return; }
-            var l = DB.load('vouchers', []); for (var x = 0; x < l.length; x++) if (l[x].id === id) l[x].status = 'approved'; DB.save('vouchers', l); renderVoucherList(); return; }
+        if (action === 'approve') {
+            var issues = getVoucherIssues(v);
+            if (issues.length > 0) {
+                alert('⚠️ سند قابل تأیید نیست:\n\n• ' + issues.join('\n• '));
+                return;
+            }
+            var l = DB.load('vouchers', []); for (var x = 0; x < l.length; x++) if (l[x].id === id) l[x].status = 'approved'; DB.save('vouchers', l); renderVoucherList();
+            showToast('✅ سند تأیید شد.');
+            return;
+        }
         if (action === 'unapprove') { if (!confirm('برگشت؟')) return;
             var l2 = DB.load('vouchers', []); for (var y = 0; y < l2.length; y++) if (l2[y].id === id) l2[y].status = 'draft'; DB.save('vouchers', l2); renderVoucherList(); return; }
         if (action === 'delete') { if (!confirm('حذف شود؟')) return;
@@ -2031,6 +2101,36 @@ function newVoucherForm() {
     currentVoucherStatus = 'draft'; refreshVPeriodSelect();
     voucherLines = [{ id: uid(), account: '', details: {}, debit: 0, credit: 0, trackingNumber: '', trackingDate: '', description: '' }];
     renderVoucherLines();
+}
+function persistVoucher(approve) {
+    if (currentVoucherStatus === 'approved' && !approve) { alert('سند تأیید شده قابل ذخیره به‌عنوان پیش‌نویس نیست.'); return; }
+    var num = normalizeDigits(document.getElementById('v-number').value.trim()); var d = normalizeDigits(document.getElementById('v-date').value.trim());
+    var ty = document.getElementById('v-type').value; var pid = document.getElementById('v-period').value; var ds = document.getElementById('v-desc').value.trim();
+    if (!num || !d) { alert('شماره و تاریخ اجباری.'); return; }
+    if (!ds) { alert('⚠️ شرح سند اجباری.'); return; }
+    var valid = voucherLines.filter(function(l) { return (Number(l.debit) || 0) > 0 || (Number(l.credit) || 0) > 0; });
+    if (valid.length < 2) { alert('حداقل دو ردیف با مبلغ.'); return; }
+    var id = document.getElementById('v-id').value;
+    var status = approve ? 'approved' : 'draft';
+    var vch = { id: id || uid(), number: num, date: d, type: ty, periodId: pid, desc: ds, lines: valid, status: status };
+    if (approve) {
+        var issues = getVoucherIssues(vch);
+        if (issues.length > 0) {
+            alert('⚠️ سند قابل تأیید نیست:\n\n• ' + issues.join('\n• '));
+            return;
+        }
+    }
+    var l = DB.load('vouchers', []);
+    if (id) { for (var kk = 0; kk < l.length; kk++) if (l[kk].id === id) l[kk] = vch; } else l.push(vch);
+    DB.save('vouchers', l);
+    if (approve) {
+        showToast('✅ سند تأیید شد.');
+        goToPage('voucher-list');
+    } else {
+        showToast('✅ پیش‌نویس ذخیره شد.');
+        newVoucherForm();
+    }
+    updateHomeWidgets();
 }
 var currentFacilityId = null; var currentInstallments = [];
 function refreshFacBankSelect() { var sel = document.getElementById('fc-bank'); if (!sel) return; var b = DB.load('bankAccounts', []);
@@ -2129,7 +2229,7 @@ function autoGenerateInstallments() {
 }
 function refreshReportPeriodSelects() {
     var ps = DB.load('fiscalPeriods', []);
-    ['ra-period','rt-period'].forEach(function(id) { var sel = document.getElementById(id); if (!sel) return; var v = sel.value;
+    ['ra-period','rt-period','ri-period'].forEach(function(id) { var sel = document.getElementById(id); if (!sel) return; var v = sel.value;
         sel.innerHTML = '<option value="">همه</option>'; for (var i = 0; i < ps.length; i++) { var o = document.createElement('option'); o.value = ps[i].id; o.textContent = ps[i].title; sel.appendChild(o); } sel.value = v; });
 }
 function filterVouchers(opts) { var l = DB.load('vouchers', []);
@@ -2224,6 +2324,36 @@ function runTrialBalance() {
     document.getElementById('rt-result').innerHTML = html; document.getElementById('rt-count').textContent = toFa(rows.length);
     makeTableResizable(document.getElementById('rt-table')); applyColVisibility('rt-table');
 }
+function runIncompleteReport() {
+    var statusF = (document.getElementById('ri-status').value || '');
+    var periodF = (document.getElementById('ri-period').value || '');
+    var vouchers = DB.load('vouchers', []);
+    var rows = [];
+    vouchers.forEach(function(v) {
+        var st = v.status || 'draft';
+        if (statusF && st !== statusF) return;
+        if (periodF && v.periodId !== periodF) return;
+        var issues = getVoucherIssues(v);
+        if (issues.length === 0) return;
+        rows.push({ v: v, issues: issues });
+    });
+    rows.sort(function(a, b) { return compareVals(a.v.number, b.v.number); });
+    var periods = DB.load('fiscalPeriods', []); var pM = {}; periods.forEach(function(p) { pM[p.id] = p.title; });
+    var html = '<div class="table-wrap"><table class="report-table" id="ri-table"><thead><tr><th>#</th><th>شماره</th><th>تاریخ</th><th>دوره</th><th>شرح</th><th>وضعیت</th><th>مشکلات</th></tr></thead><tbody>';
+    var td = 0;
+    for (var i = 0; i < rows.length; i++) {
+        var r = rows[i]; var v = r.v; td += getVoucherAmount(v);
+        var stB = v.status === 'approved' ? '<span class="badge badge-approved">✓</span>' : '<span class="badge badge-draft">پیش‌نویس</span>';
+        var iss = '<ul class="issue-list">' + r.issues.map(function(x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>';
+        html += '<tr><td class="num">' + toFa(i + 1) + '</td><td dir="ltr">' + toFa(esc(v.number)) + '</td><td dir="ltr">' + toFa(esc(v.date)) + '</td><td>' + esc(pM[v.periodId] || '—') + '</td><td>' + esc(v.desc || '') + '</td><td>' + stB + '</td><td>' + iss + '</td></tr>';
+    }
+    if (rows.length === 0) html += '<tr><td colspan="7" class="empty-row">✅ سند ناقصی وجود ندارد.</td></tr>';
+    html += '</tbody></table></div>';
+    document.getElementById('ri-result').innerHTML = html;
+    document.getElementById('ri-count').textContent = toFa(rows.length);
+    var unitEl = document.getElementById('ri-unit'); if (unitEl) unitEl.textContent = 'واحد: ' + currencyLabel();
+    makeTableResizable(document.getElementById('ri-table'));
+}
 function runFacilityReport() {
     var facilities = DB.load('facilities', []); var cf = document.getElementById('rf-category').value; var sf = document.getElementById('rf-status').value;
     var st = sortState.rf; var rows = [];
@@ -2257,7 +2387,7 @@ function runFacilityReport() {
 }
 function clearPersonForm() { var ids = ['pr-id','pr-first','pr-last','pr-father','pr-birth','pr-mobile','pr-phone','pr-bank-title','pr-acc','pr-iban','pr-card','pr-address']; for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = ''; }
 function clearCompanyForm() { var ids = ['co-id','co-name','co-phone','co-address']; for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = ''; }
-function clearBAForm() { var ids = ['ba-id','ba-bank','ba-branch-code','ba-branch-name','ba-account','ba-iban','ba-card','ba-order']; for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = ''; document.getElementById('ba-type').value = ''; }
+function clearBAForm() { var ids = ['ba-id','ba-bank','ba-branch-code','ba-branch-name','ba-account','ba-iban','ba-card','ba-order','ba-min-balance']; for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = ''; document.getElementById('ba-type').value = ''; }
 function clearCBForm() { var ids = ['cb-id','cb-title','cb-unit','cb-order']; for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = ''; document.getElementById('cb-type').value = ''; }
 function clearFiscalForm() { ['fiscal-id','fiscal-title','fiscal-from','fiscal-to'].forEach(function(x) { document.getElementById(x).value = ''; }); }
 function clearFacForm() { ['fc-id','fc-name','fc-date','fc-initial','fc-paid'].forEach(function(x) { document.getElementById(x).value = ''; }); document.getElementById('fc-category').value = 'facility'; document.getElementById('fc-bank').value = ''; document.getElementById('fac-installments-card').style.display = 'none'; currentFacilityId = null; currentInstallments = []; }
@@ -2391,10 +2521,11 @@ function init() {
     document.getElementById('save-ba').addEventListener('click', function() { var id = document.getElementById('ba-id').value; var b = document.getElementById('ba-bank').value.trim();
         if (!b) { alert('نام بانک اجباری.'); return; }
         var oR = normalizeDigits(document.getElementById('ba-order').value.trim()); var o = oR === '' ? null : Number(oR);
+        var mb = parseMoney(normalizeDigits(document.getElementById('ba-min-balance').value));
         var o2 = { id: id || uid(), bank: b, type: document.getElementById('ba-type').value,
             branchCode: normalizeDigits(document.getElementById('ba-branch-code').value.trim()), branchName: document.getElementById('ba-branch-name').value.trim(),
             account: normalizeDigits(document.getElementById('ba-account').value.trim()), iban: document.getElementById('ba-iban').value.trim(),
-            card: normalizeDigits(document.getElementById('ba-card').value.trim()), order: o };
+            card: normalizeDigits(document.getElementById('ba-card').value.trim()), order: o, minBalance: mb };
         var l = DB.load('bankAccounts', []);
         if (id) { for (var i = 0; i < l.length; i++) if (l[i].id === id) l[i] = o2; } else l.push(o2);
         DB.save('bankAccounts', l); alert('✅'); clearBAForm(); renderBankAccountsList(); updateHomeWidgets(); document.querySelector('[data-tab="ba-list"]').click(); });
@@ -2433,26 +2564,8 @@ function init() {
         document.getElementById('load-default-chart').disabled = true; refreshTemplateSelect(); });
     document.getElementById('cancel-chart').addEventListener('click', function() { document.getElementById('chart-form-card').style.display = 'none'; });
     document.getElementById('add-line').addEventListener('click', function() { voucherLines.push({ id: uid(), account: '', details: {}, debit: 0, credit: 0, trackingNumber: '', trackingDate: '', description: '' }); renderVoucherLines(); });
-    document.getElementById('save-voucher').addEventListener('click', function() {
-        if (currentVoucherStatus === 'approved') { alert('سند تأیید شده قابل ویرایش نیست.'); return; }
-        var num = normalizeDigits(document.getElementById('v-number').value.trim()); var d = normalizeDigits(document.getElementById('v-date').value.trim());
-        var ty = document.getElementById('v-type').value; var pid = document.getElementById('v-period').value; var ds = document.getElementById('v-desc').value.trim();
-        if (!num || !d) { alert('شماره و تاریخ اجباری.'); return; }
-        if (!ds) { alert('⚠️ شرح سند اجباری.'); return; }
-        var valid = voucherLines.filter(function(l) { return (Number(l.debit) || 0) > 0 || (Number(l.credit) || 0) > 0; });
-        if (valid.length < 2) { alert('حداقل دو ردیف با مبلغ.'); return; }
-        var accounts = DB.load('accounts', []);
-        for (var vi = 0; vi < valid.length; vi++) { var line = valid[vi];
-            if (!line.account) { alert('⚠️ معین ردیف ' + toFa(vi + 1) + ' اجباری.'); return; }
-            var acc = accounts.find(function(a) { return a.id === line.account; });
-            if (acc && acc.links && acc.links.length > 0) { for (var li = 0; li < acc.links.length; li++) { var lt = acc.links[li]; var items = getLinkedItems(lt); if (items.length === 0) continue;
-                if (!line.details || !line.details[lt]) { alert('⚠️ تفصیلی ' + linkTypeName(lt) + ' ردیف ' + toFa(vi + 1) + ' اجباری.'); return; } } }
-            if (!line.description || !line.description.trim()) { alert('⚠️ شرح قلم ردیف ' + toFa(vi + 1) + ' اجباری.'); return; } }
-        var id = document.getElementById('v-id').value;
-        var vch = { id: id || uid(), number: num, date: d, type: ty, periodId: pid, desc: ds, lines: valid, status: currentVoucherStatus };
-        var l = DB.load('vouchers', []);
-        if (id) { for (var kk = 0; kk < l.length; kk++) if (l[kk].id === id) l[kk] = vch; } else l.push(vch);
-        DB.save('vouchers', l); alert('✅ پیش‌نویس ذخیره شد.'); newVoucherForm(); updateHomeWidgets(); });
+    document.getElementById('save-voucher').addEventListener('click', function() { persistVoucher(false); });
+    document.getElementById('save-voucher-approve').addEventListener('click', function() { persistVoucher(true); });
     document.getElementById('new-voucher').addEventListener('click', newVoucherForm);
     document.getElementById('vl-period-filter').addEventListener('change', renderVoucherList);
     document.getElementById('save-fac').addEventListener('click', function() { var id = document.getElementById('fc-id').value; var name = document.getElementById('fc-name').value.trim();
@@ -2477,6 +2590,7 @@ function init() {
         l[idx].installments = JSON.parse(JSON.stringify(currentInstallments)); l[idx].paid = tp; l[idx].status = ap ? 'settled' : 'active';
         DB.save('facilities', l); alert('✅'); renderFacilitiesList(); updateHomeWidgets(); });
     attachMoneyInput(document.getElementById('fc-initial'), function(v) { renderInstallmentsTotals(); });
+    attachMoneyInput(document.getElementById('ba-min-balance'));
     document.getElementById('apply-template').addEventListener('click', function() { var id = document.getElementById('v-template').value; if (!id) { alert('الگو انتخاب کن.'); return; } applyTemplate(id); });
     document.getElementById('save-as-template').addEventListener('click', saveVoucherAsTemplate);
     document.getElementById('goto-templates').addEventListener('click', function() { goToPage('templates'); });
@@ -2499,20 +2613,22 @@ function init() {
         l.push(v); DB.save('standardDescriptions', l); inp.value = ''; renderStdDescChips(); refreshStdDescDatalist(); });
     document.getElementById('ra-run').addEventListener('click', runAccountReport);
     document.getElementById('rt-run').addEventListener('click', runTrialBalance);
+    document.getElementById('ri-run').addEventListener('click', runIncompleteReport);
     document.getElementById('rf-run').addEventListener('click', runFacilityReport);
     document.getElementById('ra-print').addEventListener('click', function() { printHtmlReport('#ra-result', 'مرور حساب‌ها'); });
     document.getElementById('rt-print').addEventListener('click', function() { printHtmlReport('#rt-result', 'تراز آزمایشی'); });
+    document.getElementById('ri-print').addEventListener('click', function() { printHtmlReport('#ri-result', 'تراکنش‌های تکمیل نشده'); });
     document.getElementById('rf-print').addEventListener('click', function() { printHtmlReport('#rf-result', 'خلاصه تسهیلات'); });
     document.getElementById('ra-export').addEventListener('click', function() { exportReportTable('#ra-result', 'account-report'); });
     document.getElementById('rt-export').addEventListener('click', function() { exportReportTable('#rt-result', 'trial-balance'); });
+    document.getElementById('ri-export').addEventListener('click', function() { exportReportTable('#ri-result', 'incomplete-transactions'); });
     document.getElementById('rf-export').addEventListener('click', function() { exportReportTable('#rf-result', 'facility-summary'); });
     document.getElementById('rf-category').addEventListener('change', runFacilityReport);
     document.getElementById('rf-status').addEventListener('change', runFacilityReport);
     updateDateDisplay(); updateTopbarPeriod(); updateHomeWidgets();
     setInterval(function() { updateDateDisplay(); updateTopbarPeriod(); updateHomeWidgets(); }, 60000);
     newVoucherForm(); applyColVisibilityAll(); attachDatePickers();
-    setupAndroidBridge(); checkShareTargetSupport(); checkClipboardSupport();
-    handleSharedContentFromUrl();
+    checkClipboardSupport();
     function autoRead() { if (!state.smsAutoRead) return; setTimeout(function() { readClipboardAndAdd(true); }, 700); }
     window.addEventListener('focus', autoRead);
     document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'visible') autoRead(); });
