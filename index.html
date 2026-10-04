@@ -443,7 +443,6 @@ body.col-resizing * { cursor:col-resize !important; }
 .ai-setup { padding:20px; text-align:center; color:var(--text-muted); }
 .ai-setup h3 { color:var(--primary-dark); margin-bottom:10px; font-size:1rem; }
 .ai-setup p { font-size:0.85rem; margin-bottom:14px; line-height:1.7; }
-/* ✅ اصلاح: مودال و اوورلی تنظیمات AI باید بالاتر از مودال AI قرار گیرند */
 #ai-settings-overlay { z-index:600 !important; }
 #ai-settings-modal { z-index:610 !important; }
 </style>
@@ -983,23 +982,28 @@ body.col-resizing * { cursor:col-resize !important; }
 
 <!-- تنظیمات AI -->
 <div id="ai-settings-overlay" class="overlay"></div>
-<div id="ai-settings-modal" class="modal" style="max-width:480px">
+<div id="ai-settings-modal" class="modal" style="max-width:520px">
     <div class="modal-head"><h2>🤖 تنظیمات دستیار</h2><button id="ai-settings-close" class="close-btn">×</button></div>
     <div class="modal-body">
         <div class="modal-section">
             <h3>سرویس‌دهنده</h3>
             <div class="field">
                 <select id="ai-provider-select">
-                    <option value="groq">Groq (رایگان و فوق‌سریع ⭐)</option>
-                    <option value="openai">OpenAI (پرداختی)</option>
-                    <option value="anthropic">Anthropic (پرداختی)</option>
+                    <option value="avalai">AvalAI — اول AI (ایرانی، بدون فیلترشکن ⭐)</option>
+                    <option value="chatanywhere">ChatAnywhere (رایگان، بدون فیلترشکن)</option>
+                    <option value="deepseek">DeepSeek (نیاز به پروکسی)</option>
+                    <option value="groq">Groq (نیاز به فیلترشکن)</option>
                 </select>
             </div>
+            <p class="muted" style="font-size:0.72rem;line-height:1.7;margin-top:6px">
+                <b>AvalAI (اول AI):</b> سرویس ایرانی، بدون فیلترشکن، با دسترسی به مدل‌های <code>gpt-4o-mini</code>، <code>gpt-4o</code>، <code>deepseek-chat</code>، <code>claude-3-5-sonnet</code> و ... . برای دریافت کلید API به 
+                <a href="https://avalai.ir" target="_blank" style="color:var(--primary)">avalai.ir</a> بروید و ثبت‌نام کنید.
+            </p>
         </div>
         <div class="modal-section">
             <h3>کلید API</h3>
             <div class="field">
-                <input type="password" id="ai-apikey-input" placeholder="gsk_..." dir="ltr">
+                <input type="password" id="ai-apikey-input" placeholder="sk-..." dir="ltr">
             </div>
             <p class="muted" style="font-size:0.75rem;line-height:1.7">
                 کلید در مرورگر شما ذخیره می‌شود و مستقیم به سرویس‌دهنده ارسال می‌گردد. هیچ سروری در میان نیست.
@@ -1008,11 +1012,12 @@ body.col-resizing * { cursor:col-resize !important; }
         <div class="modal-section">
             <h3>مدل</h3>
             <div class="field">
-                <input type="text" id="ai-model-input" dir="ltr" placeholder="openai/gpt-oss-120b">
+                <input type="text" id="ai-model-input" dir="ltr" placeholder="gpt-4o-mini">
             </div>
-            <p class="muted" style="font-size:0.72rem">
-                <b>Groq (رایگان):</b> <code>openai/gpt-oss-120b</code> یا <code>qwen/qwen3.6-27b</code><br>
-                OpenAI: <code>gpt-4o-mini</code> — Anthropic: <code>claude-3-5-haiku-20241022</code>
+            <p class="muted" style="font-size:0.72rem;line-height:1.7">
+                <b>AvalAI:</b> <code>gpt-4o-mini</code> (ارزان و سریع)، <code>gpt-4o</code>، <code>gpt-4.1-mini</code>، <code>deepseek-chat</code>، <code>claude-3-5-sonnet</code><br>
+                <b>ChatAnywhere:</b> <code>deepseek-chat</code>، <code>gpt-3.5-turbo</code>، <code>gpt-4o-mini</code><br>
+                <b>DeepSeek:</b> <code>deepseek-chat</code> یا <code>deepseek-reasoner</code> — <b>Groq:</b> <code>openai/gpt-oss-120b</code>
             </p>
         </div>
         <div class="form-buttons">
@@ -1030,7 +1035,7 @@ body.col-resizing * { cursor:col-resize !important; }
 </div>
 
 <script>
-console.log('✅ پارسیس PWA v11 — Groq Ready (Model Fixed + Role Filter)');
+console.log('✅ پارسیس PWA v13 — AvalAI (اول AI) Edition');
 var LS_PREFIX = 'parsis.';
 var DB = {
     load: function(k, f) { try { var r = localStorage.getItem(LS_PREFIX + k); return r ? JSON.parse(r) : f; } catch(e) { return f; } },
@@ -3230,11 +3235,11 @@ function refreshReportPeriodSelects() {
         sel.innerHTML = '<option value="">همه</option>'; for (var i = 0; i < ps.length; i++) { var o = document.createElement('option'); o.value = ps[i].id; o.textContent = ps[i].title; sel.appendChild(o); } sel.value = v; });
 }
 
-/* ==================== دستیار هوشمند (Groq) ==================== */
+/* ==================== دستیار هوشمند — AvalAI (اول AI) ==================== */
 var AI = {
-    provider: DB.load('ai.provider', 'groq'),
+    provider: DB.load('ai.provider', 'avalai'),
     apiKey: DB.load('ai.apiKey', ''),
-    model: DB.load('ai.model', 'openai/gpt-oss-120b'), // ✅ مدل پیش‌فرض جدید
+    model: DB.load('ai.model', 'gpt-4o-mini'),
     history: DB.load('ai.history', []),
     MAX_HISTORY: 20,
     isThinking: false
@@ -3317,46 +3322,52 @@ function aiBuildSystemPrompt() {
 }
 async function aiCallAPI(userMessage) {
     var sys = aiBuildSystemPrompt();
-    // ✅ اصلاح: فیلتر کردن نقش‌های نامعتبر (مثل error) قبل از ارسال به API
     var messages = AI.history.slice(-AI.MAX_HISTORY)
         .filter(function(m) { return m.role === 'user' || m.role === 'assistant'; })
         .map(function(m) { return { role: m.role, content: m.content }; });
     messages.push({ role: 'user', content: userMessage });
 
-    if (AI.provider === 'groq') {
-        var msgs = [{ role: 'system', content: sys }].concat(messages);
-        var res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    if (AI.provider === 'avalai') {
+        // AvalAI (اول AI) — سرویس ایرانی، OpenAI-compatible
+        var msgsA = [{ role: 'system', content: sys }].concat(messages);
+        var resA = await fetch('https://api.avalai.ir/v1/chat/completions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.apiKey },
-            body: JSON.stringify({
-                model: AI.model || 'openai/gpt-oss-120b',
-                messages: msgs,
-                temperature: 0.3,
-                max_tokens: 800
-            })
+            body: JSON.stringify({ model: AI.model || 'gpt-4o-mini', messages: msgsA, temperature: 0.3, max_tokens: 800 })
         });
-        if (!res.ok) { var t = await res.text(); throw new Error('Groq ' + res.status + ': ' + t.substring(0, 200)); }
+        if (!resA.ok) { var tA = await resA.text(); throw new Error('AvalAI ' + resA.status + ': ' + tA.substring(0, 250)); }
+        var dataA = await resA.json();
+        return dataA.choices[0].message.content;
+    } else if (AI.provider === 'chatanywhere') {
+        var msgs = [{ role: 'system', content: sys }].concat(messages);
+        var res = await fetch('https://api.chatanywhere.tech/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.apiKey },
+            body: JSON.stringify({ model: AI.model || 'deepseek-chat', messages: msgs, temperature: 0.3, max_tokens: 800 })
+        });
+        if (!res.ok) { var t = await res.text(); throw new Error('ChatAnywhere ' + res.status + ': ' + t.substring(0, 200)); }
         var data = await res.json();
         return data.choices[0].message.content;
-    } else if (AI.provider === 'openai') {
+    } else if (AI.provider === 'deepseek') {
         var msgs2 = [{ role: 'system', content: sys }].concat(messages);
-        var res2 = await fetch('https://api.openai.com/v1/chat/completions', {
+        var res2 = await fetch('https://api.deepseek.com/v1/chat/completions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.apiKey },
-            body: JSON.stringify({ model: AI.model || 'gpt-4o-mini', messages: msgs2, temperature: 0.3, max_tokens: 800 })
+            body: JSON.stringify({ model: AI.model || 'deepseek-chat', messages: msgs2, temperature: 0.3, max_tokens: 800 })
         });
-        if (!res2.ok) { var t2 = await res2.text(); throw new Error('OpenAI ' + res2.status + ': ' + t2.substring(0, 200)); }
+        if (!res2.ok) { var t2 = await res2.text(); throw new Error('DeepSeek ' + res2.status + ': ' + t2.substring(0, 200)); }
         var data2 = await res2.json();
         return data2.choices[0].message.content;
-    } else if (AI.provider === 'anthropic') {
-        var res3 = await fetch('https://api.anthropic.com/v1/messages', {
+    } else if (AI.provider === 'groq') {
+        var msgs3 = [{ role: 'system', content: sys }].concat(messages);
+        var res3 = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-api-key': AI.apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-            body: JSON.stringify({ model: AI.model || 'claude-3-5-haiku-20241022', max_tokens: 800, system: sys, messages: messages })
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.apiKey },
+            body: JSON.stringify({ model: AI.model || 'openai/gpt-oss-120b', messages: msgs3, temperature: 0.3, max_tokens: 800 })
         });
-        if (!res3.ok) { var t3 = await res3.text(); throw new Error('Anthropic ' + res3.status + ': ' + t3.substring(0, 200)); }
+        if (!res3.ok) { var t3 = await res3.text(); throw new Error('Groq ' + res3.status + ': ' + t3.substring(0, 200)); }
         var data3 = await res3.json();
-        return data3.content[0].text;
+        return data3.choices[0].message.content;
     }
     throw new Error('سرویس نامعتبر');
 }
@@ -3364,7 +3375,7 @@ function aiRender() {
     var box = document.getElementById('ai-messages');
     if (!box) return;
     if (!AI.apiKey) {
-        box.innerHTML = '<div class="ai-setup"><h3>🤖 به پارسیس یار خوش آمدید</h3><p>برای فعال‌سازی، از تنظیمات (⚙) کلید API خود را وارد کنید.<br>سرویس Groq رایگان و فوق‌سریع است — کلید از <code>console.groq.com/keys</code></p><button class="btn-primary" onclick="document.getElementById(\'ai-settings-btn\').click()">تنظیمات</button></div>';
+        box.innerHTML = '<div class="ai-setup"><h3>🤖 به پارسیس یار خوش آمدید</h3><p>برای فعال‌سازی، از تنظیمات (⚙) کلید API خود را وارد کنید.<br>سرویس <b>اول AI (AvalAI)</b> پیش‌فرض است — ایرانی، بدون فیلترشکن و با پشتیبانی از GPT-4o، DeepSeek و Claude.<br>برای دریافت Key به <a href="https://avalai.ir" target="_blank">avalai.ir</a> بروید و ثبت‌نام کنید.</p><button class="btn-primary" onclick="document.getElementById(\'ai-settings-btn\').click()">تنظیمات</button></div>';
         return;
     }
     if (AI.history.length === 0) {
@@ -3405,7 +3416,6 @@ async function aiSend() {
         var reply = await aiCallAPI(text);
         AI.history.push({ role: 'assistant', content: reply });
     } catch (e) {
-        // ✅ اصلاح: خطا با نقش 'error' ذخیره می‌شود اما در aiCallAPI فیلتر خواهد شد
         AI.history.push({ role: 'error', content: '⚠️ ' + (e.message || 'خطا در ارتباط') });
     } finally {
         AI.isThinking = false;
@@ -3433,10 +3443,22 @@ function aiInit() {
     document.getElementById('ai-settings-close').addEventListener('click', aiCloseSettings);
     document.getElementById('ai-settings-cancel').addEventListener('click', aiCloseSettings);
     document.getElementById('ai-settings-overlay').addEventListener('click', aiCloseSettings);
+    // تغییر پروژه/مدل: به‌روزرسانی placeholder
+    document.getElementById('ai-provider-select').addEventListener('change', function() {
+        var p = this.value;
+        var inp = document.getElementById('ai-model-input');
+        if (p === 'avalai') inp.placeholder = 'gpt-4o-mini';
+        else if (p === 'chatanywhere') inp.placeholder = 'deepseek-chat';
+        else if (p === 'deepseek') inp.placeholder = 'deepseek-chat';
+        else if (p === 'groq') inp.placeholder = 'openai/gpt-oss-120b';
+    });
     document.getElementById('ai-settings-save').addEventListener('click', function() {
         AI.provider = document.getElementById('ai-provider-select').value;
         AI.apiKey = document.getElementById('ai-apikey-input').value.trim();
-        var defModel = AI.provider === 'groq' ? 'openai/gpt-oss-120b' : (AI.provider === 'openai' ? 'gpt-4o-mini' : 'claude-3-5-haiku-20241022');
+        var defModel = AI.provider === 'avalai' ? 'gpt-4o-mini'
+                     : AI.provider === 'chatanywhere' ? 'deepseek-chat'
+                     : AI.provider === 'deepseek' ? 'deepseek-chat'
+                     : 'openai/gpt-oss-120b';
         AI.model = document.getElementById('ai-model-input').value.trim() || defModel;
         aiSaveSettings();
         aiCloseSettings();
@@ -3739,7 +3761,7 @@ function init() {
     document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'visible') autoRead(); });
     aiInit();
     aiRender();
-    console.log('🎉 آماده — Groq Edition + Model & Role Fixed');
+    console.log('🎉 آماده — AvalAI (اول AI) Edition');
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
