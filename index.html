@@ -232,6 +232,9 @@ body.col-resizing * { cursor:col-resize !important; }
 .voucher-line .ln-search { font-size:0.78rem; padding:6px 8px; background:#fff; }
 .voucher-line.focus-highlight { background:#fff8e6; border-color:#f0c14b; }
 @media (max-width:600px) { .voucher-line .ln-row.r4 { grid-template-columns:1fr 1fr; } }
+.desc-row { display:grid; grid-template-columns:1fr auto; gap:6px; align-items:center; }
+.desc-add-btn { background:var(--primary-light); color:var(--primary-dark); border:none; border-radius:8px; width:36px; height:36px; font-size:1.1rem; font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:background 0.15s; }
+.desc-add-btn:hover { background:var(--primary); color:#fff; }
 .voucher-total { display:flex; justify-content:space-between; padding:12px 14px; background:var(--primary-soft); border-radius:12px; margin-top:10px; font-size:0.88rem; font-weight:bold; color:var(--primary-dark); flex-wrap:wrap; gap:8px; border:1px solid var(--primary-light); }
 .voucher-total .ok { color:var(--accent); }
 .voucher-total .err { color:var(--danger); }
@@ -355,6 +358,40 @@ body.col-resizing * { cursor:col-resize !important; }
 .ri-issues { display:flex; flex-direction:column; gap:4px; padding:4px 0; }
 .ri-issue-item { display:flex; align-items:center; gap:6px; padding:4px 8px; background:#fef2f2; border-radius:7px; font-size:0.78rem; color:#b91c1c; }
 .ri-issue-item::before { content:'⚠'; color:#dc2626; }
+
+/* گزارش جامع تسهیلات — حالت جزئیات */
+.rff-detail-list { display:flex; flex-direction:column; gap:14px; }
+.rff-fac-card { background:#fff; border-radius:14px; border:1px solid var(--border); box-shadow:var(--shadow-sm); overflow:hidden; }
+.rff-fac-head { padding:14px 16px; background:linear-gradient(135deg, var(--primary-soft), #fff); border-right:4px solid var(--primary); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+.rff-fac-head.sch { border-right-color:var(--warning); }
+.rff-fac-title { font-size:1.05rem; font-weight:900; color:var(--primary-dark); }
+.rff-fac-meta { display:flex; gap:8px; flex-wrap:wrap; font-size:0.75rem; color:var(--text-muted); margin-top:4px; }
+.rff-fac-meta .chip-m { background:var(--bg); padding:2px 8px; border-radius:10px; font-weight:bold; color:var(--text); }
+.rff-fac-stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(110px,1fr)); gap:6px; padding:10px 16px; background:#fafcff; border-bottom:1px solid var(--border); }
+.rff-fac-stats .item { text-align:center; padding:6px; border-radius:8px; background:#fff; }
+.rff-fac-stats .item .lbl { font-size:0.68rem; color:var(--text-muted); }
+.rff-fac-stats .item .val { font-size:0.85rem; font-weight:bold; }
+.rff-inst-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+.rff-inst-table th { background:var(--primary-soft); color:var(--primary-dark); padding:8px 10px; text-align:right; font-weight:bold; font-size:0.75rem; border-bottom:1px solid var(--border-strong); }
+.rff-inst-table td { padding:7px 10px; border-bottom:1px solid var(--border); }
+.rff-inst-table tbody tr:nth-child(even) { background:rgba(0,0,0,0.012); }
+.rff-inst-table tr.paid-row { background:#f0fdf4; }
+.rff-inst-table tr.overdue-row { background:#fef2f2; }
+.rff-inst-table .num { text-align:center; }
+.rff-empty { padding:12px; text-align:center; color:var(--text-muted); font-size:0.85rem; }
+
+/* فرم صدور سند — چیدمان جدید */
+.voucher-head-row { display:grid; grid-template-columns:130px 150px 1fr; gap:8px; align-items:end; }
+@media (max-width:640px) { .voucher-head-row { grid-template-columns:1fr 1fr; } .voucher-head-row .v-type-field { grid-column:1 / -1; } }
+.voucher-head-row .field { margin-bottom:0; }
+.voucher-head-row input { text-align:center; }
+
+/* چاپ */
+@media print {
+    .topbar, .sidebar, .overlay, .install-banner, .tabs, .form-buttons, .list-header, .col-toggle-btn, .export-btn { display:none !important; }
+    .content { padding:0 !important; max-width:100% !important; }
+    .card { box-shadow:none !important; border:none !important; padding:0 !important; margin-bottom:8px !important; }
+}
 </style>
 </head>
 <body class="theme-sky font-tahoma">
@@ -637,9 +674,12 @@ body.col-resizing * { cursor:col-resize !important; }
     </div>
     <div class="card">
         <input type="hidden" id="v-id">
-        <div class="grid-3"><div class="field"><label>شماره</label><input type="text" id="v-number" dir="ltr"></div><div class="field"><label>تاریخ</label><input type="text" id="v-date" class="date-picker" dir="ltr"></div><div class="field"><label>نوع</label><select id="v-type"><option value="general">عمومی</option><option value="opening">افتتاحیه</option><option value="establishment">افتتاحیه استقرار</option><option value="closing">بستن حساب</option><option value="final">اختتامیه</option></select></div></div>
-        <div class="grid-2"><div class="field"><label>دوره مالی</label><select id="v-period"></select></div><div class="field"><label>شرح سند *</label><input type="text" id="v-desc" list="std-desc-list"></div></div>
-        <div class="field"><label>وضعیت</label><input type="text" id="v-status" readonly style="background:var(--primary-soft);color:var(--primary-dark);font-weight:bold"></div>
+        <div class="voucher-head-row">
+            <div class="field"><label>شماره</label><input type="text" id="v-number" dir="ltr"></div>
+            <div class="field"><label>تاریخ</label><input type="text" id="v-date" class="date-picker" dir="ltr"></div>
+            <div class="field v-type-field"><label>نوع سند</label><select id="v-type"><option value="general">عمومی</option><option value="opening">افتتاحیه</option><option value="establishment">افتتاحیه استقرار</option><option value="closing">بستن حساب</option><option value="final">اختتامیه</option></select></div>
+        </div>
+        <div class="field" style="margin-top:10px"><label>شرح سند *</label><input type="text" id="v-desc" list="std-desc-list"></div>
     </div>
     <div class="card">
         <h3 style="margin-bottom:10px;color:var(--primary-dark);font-size:0.95rem">اقلام سند</h3>
@@ -733,6 +773,10 @@ body.col-resizing * { cursor:col-resize !important; }
 
 <section id="page-report-facility-full" class="page"><h2>📊 گزارش جامع تسهیلات</h2>
     <div class="card">
+        <div class="tabs">
+            <button class="tab-btn active" data-rff-view="summary">📋 کلی</button>
+            <button class="tab-btn" data-rff-view="detail">📖 جزئیات</button>
+        </div>
         <div class="grid-3">
             <div class="field"><label>دسته</label><select id="rff-category"><option value="">همه</option><option value="facility">تسهیلات</option><option value="scheduled">زمانبندی</option></select></div>
             <div class="field"><label>وضعیت تسویه</label><select id="rff-status"><option value="">همه</option><option value="active">در جریان</option><option value="settled">تسویه شده</option></select></div>
@@ -812,7 +856,7 @@ body.col-resizing * { cursor:col-resize !important; }
 </div>
 
 <script>
-console.log('✅ پارسیس PWA v5');
+console.log('✅ پارسیس PWA v6');
 var LS_PREFIX = 'parsis.';
 var DB = {
     load: function(k, f) { try { var r = localStorage.getItem(LS_PREFIX + k); return r ? JSON.parse(r) : f; } catch(e) { return f; } },
@@ -866,7 +910,8 @@ var state = {
     expandedNodes: DB.load('expandedNodes', {}),
     reportExpandedNodes: {},
     widgets: DB.load('widgets', { bankTotal: true, bankBalances: true, cashBalances: true, upcomingInstallments: true, birthdays: true }),
-    smsAutoRead: DB.load('smsAutoRead', false)
+    smsAutoRead: DB.load('smsAutoRead', false),
+    rffView: DB.load('rffView', 'summary')
 };
 function saveState(k) { DB.save(k, state[k]); }
 (function() {
@@ -1097,22 +1142,58 @@ function getVoucherIssues(v) {
     return issues.concat(lineIssues).concat(balanceIssues);
 }
 
-/* ===== فیلتر هوشمند کلیپ‌بورد — شماره حساب یا نام بانک ===== */
-function findMatchingBankAccount(text) {
+/* ===== اعتبارسنجی تاریخ در دوره مالی فعال ===== */
+function validateDateInActivePeriod(dateStr) {
+    if (!dateStr) return { ok: false, msg: 'تاریخ خالی است' };
+    var periods = DB.load('fiscalPeriods', []);
+    if (!state.activePeriodId) return { ok: true };
+    var ap = periods.find(function(p) { return p.id === state.activePeriodId; });
+    if (!ap) return { ok: true };
+    if (dateStr < ap.from || dateStr > ap.to) {
+        return { ok: false, msg: 'تاریخ باید در بازه دوره فعال («' + ap.from + ' تا ' + ap.to + '») باشد' };
+    }
+    return { ok: true };
+}
+
+/* ===== تشخیص حساب بانکی بر اساس نام ===== */
+function matchBankAccountByBankName(text) {
     if (!text) return null;
-    var rawText = String(text);
+    var t = String(text);
     var ba = DB.load('bankAccounts', []);
-    // ۱) تطبیق بر اساس نام بانک / نام شعبه
+    var best = null, bestScore = 0;
     for (var i = 0; i < ba.length; i++) {
         var b = ba[i];
         var bankName = String(b.bank || '').trim();
-        if (bankName.length >= 3 && rawText.indexOf(bankName) !== -1) return b;
-        var bn = String(b.branchName || '').trim();
-        if (bn.length >= 4 && rawText.indexOf(bn) !== -1) return b;
+        if (bankName.length < 3) continue;
+        // تطبیق کامل
+        if (t.indexOf(bankName) !== -1) {
+            var score = bankName.length * 2;
+            if (score > bestScore) { bestScore = score; best = b; }
+            continue;
+        }
+        // تطبیق بخشی از نام (کلمه‌های با طول ≥ ۳)
+        var parts = bankName.split(/\s+/).filter(function(w) { return w.length >= 3; });
+        for (var p = 0; p < parts.length; p++) {
+            if (t.indexOf(parts[p]) !== -1) {
+                var sc = parts[p].length;
+                if (sc > bestScore) { bestScore = sc; best = b; }
+            }
+        }
     }
-    // ۲) تطبیق بر اساس ارقام حساب/کارت/شبا
+    return bestScore >= 3 ? best : null;
+}
+
+/* ===== فیلتر هوشمند کلیپ‌بورد ===== */
+function findMatchingBankAccount(text) {
+    if (!text) return null;
+    var rawText = String(text);
+    // ۱) اول با نام بانک/شعبه
+    var byName = matchBankAccountByBankName(rawText);
+    if (byName) return byName;
+    // ۲) با ارقام
     var t = normalizeDigits(rawText).replace(/\D/g, '');
     if (t.length < 6) return null;
+    var ba = DB.load('bankAccounts', []);
     var best = null, bestScore = 0;
     for (var j = 0; j < ba.length; j++) {
         var bj = ba[j];
@@ -1143,9 +1224,12 @@ function parseBankSms(text) {
     var result = { amount: 0, direction: '', balance: 0, accountCandidates: [], matchedAccount: null, bankName: '', raw: text };
     if (!text) return result;
     var t = normalizeDigits(text);
-    var knownBanks = ['ملی','پاسارگاد','صادرات','تجارت','ملت','سپه','کشاورزی','مسکن','پارسیان','سامان','رفاه','اقتصاد نوین','آینده','شهر','دی','سینا','گردشگری','صنعت و معدن','توسعه صادرات','قوامین','حکمت','ایران زمین','مهر ایران','خاورمیانه','کارآفرین','پست بانک','رسالت','بلو','سرمایه','مفید','کارگزاری'];
-    for (var b = 0; b < knownBanks.length; b++) if (t.indexOf(knownBanks[b]) !== -1) { result.bankName = (knownBanks[b] === 'مفید' || knownBanks[b] === 'کارگزاری') ? 'کارگزاری مفید' : 'بانک ' + knownBanks[b]; break; }
-    if (!result.bankName) { var bm2 = t.match(/بانک\s+([آ-ی\u200c]{2,20})/); if (bm2) result.bankName = 'بانک ' + bm2[1]; }
+    var knownBanks = ['ملی','پاسارگاد','صادرات','تجارت','ملت','سپه','کشاورزی','مسکن','پارسیان','سامان','رفاه','اقتصاد نوین','آینده','شهر','دی','سینا','گردشگری','صنعت و معدن','توسعه صادرات','قوامین','حکمت','ایران زمین','مهر ایران','خاورمیانه','کارآفرین','پست بانک','رسالت','بلو','سرمایه'];
+    for (var b = 0; b < knownBanks.length; b++) if (t.indexOf(knownBanks[b]) !== -1) { result.bankName = 'بانک ' + knownBanks[b]; break; }
+    if (!result.bankName) {
+        var bm2 = t.match(/(?:بانک|کارگزاری|مؤسسه|صرافی)\s+([آ-ی\u200c]{2,25})/);
+        if (bm2) result.bankName = bm2[0].trim();
+    }
     var bm = t.match(/مانده\s*(?:حساب)?\s*[:ـ]?\s*([\d,]+)/);
     if (bm) result.balance = Number(bm[1].replace(/,/g, '')) || 0;
     if (!result.balance) { var mo = t.match(/موجودی\s*(?:قابل\s*استفاده)?\s*[:ـ]?\s*([\d,]+)/); if (mo) result.balance = Number(mo[1].replace(/,/g, '')) || 0; }
@@ -1184,27 +1268,30 @@ function parseBankSms(text) {
     var allD = t.match(/\d{5,25}/g) || [];
     for (var ad = 0; ad < allD.length; ad++) { var v2 = allD[ad]; if (Number(v2) === result.balance) continue; if (Number(v2) === result.amount) continue; addC(v2); }
     result.accountCandidates = candidates;
-    var ba = DB.load('bankAccounts', []); var best = null, bestMS = 0;
-    // نام بانک → تطبیق
-    for (var nb = 0; nb < ba.length; nb++) {
-        var bankNm = String(ba[nb].bank || '').trim();
-        if (bankNm.length >= 3 && t.indexOf(bankNm) !== -1) { best = { account: ba[nb], matchedField: 'نام بانک' }; bestMS = 9999; break; }
+
+    // تطبیق با نام بانک (اولویت اول)
+    var byName = matchBankAccountByBankName(text);
+    if (byName) {
+        result.matchedAccount = byName;
+        result.matchedField = 'نام بانک';
+        return result;
     }
-    if (!best) {
-        for (var bi = 0; bi < ba.length; bi++) {
-            var bak = ba[bi];
-            var fields = [{ v: (bak.account || '').replace(/\D/g, ''), w: 10, name: 'حساب' }, { v: (bak.card || '').replace(/\D/g, ''), w: 7, name: 'کارت' }, { v: (bak.iban || '').replace(/\D/g, ''), w: 5, name: 'شبا' }];
-            for (var fi = 0; fi < fields.length; fi++) {
-                var fv = fields[fi].v, w = fields[fi].w; if (fv.length < 4) continue;
-                for (var ci2 = 0; ci2 < candidates.length; ci2++) {
-                    var cand = candidates[ci2].value; if (cand.length < 4) continue;
-                    var sc = 0;
-                    if (fv === cand) sc = 100 * w;
-                    else if (fv.indexOf(cand) !== -1) sc = (50 + cand.length * 3) * w;
-                    else if (cand.indexOf(fv) !== -1) sc = (50 + fv.length * 3) * w;
-                    else { var ml = Math.min(fv.length, cand.length, 10); for (var sl = ml; sl >= 4; sl--) if (fv.slice(-sl) === cand.slice(-sl)) { sc = (20 + sl * 8) * w; break; } }
-                    if (sc > bestMS) { bestMS = sc; best = { account: bak, matchedField: fields[fi].name }; }
-                }
+
+    // تطبیق با شماره حساب/کارت/شبا
+    var ba = DB.load('bankAccounts', []); var best = null, bestMS = 0;
+    for (var bi = 0; bi < ba.length; bi++) {
+        var bak = ba[bi];
+        var fields = [{ v: (bak.account || '').replace(/\D/g, ''), w: 10, name: 'حساب' }, { v: (bak.card || '').replace(/\D/g, ''), w: 7, name: 'کارت' }, { v: (bak.iban || '').replace(/\D/g, ''), w: 5, name: 'شبا' }];
+        for (var fi = 0; fi < fields.length; fi++) {
+            var fv = fields[fi].v, w = fields[fi].w; if (fv.length < 4) continue;
+            for (var ci2 = 0; ci2 < candidates.length; ci2++) {
+                var cand = candidates[ci2].value; if (cand.length < 4) continue;
+                var sc = 0;
+                if (fv === cand) sc = 100 * w;
+                else if (fv.indexOf(cand) !== -1) sc = (50 + cand.length * 3) * w;
+                else if (cand.indexOf(fv) !== -1) sc = (50 + fv.length * 3) * w;
+                else { var ml = Math.min(fv.length, cand.length, 10); for (var sl = ml; sl >= 4; sl--) if (fv.slice(-sl) === cand.slice(-sl)) { sc = (20 + sl * 8) * w; break; } }
+                if (sc > bestMS) { bestMS = sc; best = { account: bak, matchedField: fields[fi].name }; }
             }
         }
     }
@@ -1279,20 +1366,22 @@ function convertSmsToVoucher(smsId) {
     var list = getSmsInbox(); var item = list.find(function(s) { return s.id === smsId; }); if (!item) return;
     var p = item.parsed || {}; if (!p.amount || !p.direction) { alert('اطلاعات کافی نیست.'); return; }
     var bankMoein = getBankMoeinId(); if (!bankMoein) { alert('⚠️ معین بانک تعریف نشده.'); return; }
-    var matchedDetailId = p.matchedAccountId || ''; var lines = []; var descBase = 'از پیامک' + (p.bankName ? ' ' + p.bankName : '');
+    var matchedDetailId = p.matchedAccountId || '';
+    var lines = [];
+    // شرح‌ها خالی — کاربر خودش پر کند
     if (p.direction === 'out') {
-        lines.push({ id: uid(), account: '', details: {}, debit: p.amount, credit: 0, trackingNumber: '', trackingDate: '', description: descBase });
-        lines.push({ id: uid(), account: bankMoein, details: matchedDetailId ? { bank: matchedDetailId } : {}, debit: 0, credit: p.amount, trackingNumber: '', trackingDate: '', description: descBase, locked: true });
+        lines.push({ id: uid(), account: '', details: {}, debit: p.amount, credit: 0, trackingNumber: '', trackingDate: '', description: '' });
+        lines.push({ id: uid(), account: bankMoein, details: matchedDetailId ? { bank: matchedDetailId } : {}, debit: 0, credit: p.amount, trackingNumber: '', trackingDate: '', description: '', locked: true });
     } else {
-        lines.push({ id: uid(), account: bankMoein, details: matchedDetailId ? { bank: matchedDetailId } : {}, debit: p.amount, credit: 0, trackingNumber: '', trackingDate: '', description: descBase, locked: true });
-        lines.push({ id: uid(), account: '', details: {}, debit: 0, credit: p.amount, trackingNumber: '', trackingDate: '', description: descBase });
+        lines.push({ id: uid(), account: bankMoein, details: matchedDetailId ? { bank: matchedDetailId } : {}, debit: p.amount, credit: 0, trackingNumber: '', trackingDate: '', description: '', locked: true });
+        lines.push({ id: uid(), account: '', details: {}, debit: 0, credit: p.amount, trackingNumber: '', trackingDate: '', description: '' });
     }
-    var vl = DB.load('vouchers', []); var v = { id: uid(), number: String(vl.length + 1), date: todayJalaliStr(), type: 'general', periodId: state.activePeriodId || '',
-        desc: (p.bankName ? p.bankName + ' — ' : '') + (p.direction === 'in' ? 'واریز' : 'برداشت') + ' از پیامک', lines: lines, status: 'draft' };
+    var vl = DB.load('vouchers', []);
+    var v = { id: uid(), number: String(vl.length + 1), date: todayJalaliStr(), type: 'general', periodId: state.activePeriodId || '', desc: '', lines: lines, status: 'draft' };
     vl.push(v); DB.save('vouchers', vl);
     for (var i = 0; i < list.length; i++) if (list[i].id === smsId) { list[i].status = 'converted'; list[i].voucherId = v.id; }
     saveSmsInbox(list); renderSmsInbox(); updateSmsBadge();
-    loadVoucherForEdit(v); showToast('✅ پیش‌نویس ساخته شد.');
+    loadVoucherForEdit(v); showToast('✅ پیش‌نویس ساخته شد — شرح‌ها را خودت پر کن.');
 }
 var _lastClipboardText = '';
 function readClipboardAndAdd(auto) {
@@ -1301,10 +1390,7 @@ function readClipboardAndAdd(auto) {
         var t = String(text || '').trim(); if (!t) { if (!auto) alert('کلیپ‌بورد خالی.'); return; }
         if (auto && t === _lastClipboardText) return;
         var matched = findMatchingBankAccount(t);
-        if (!matched) {
-            if (!auto) alert('❌ این متن شامل شماره حساب یا نام بانک‌های شما نیست.');
-            return;
-        }
+        if (!matched) { if (!auto) alert('❌ این متن شامل شماره حساب یا نام بانک‌های شما نیست.'); return; }
         var res = addSmsToInbox(t, auto ? 'auto' : 'clipboard');
         if (res.ok) { _lastClipboardText = t; renderSmsInbox(); updateSmsBadge(); showToast(auto ? '📱 پیامک اضافه شد' : '✅ اضافه شد.'); }
         else if (res.reason === 'duplicate' && !auto) showToast('قبلاً ثبت شده.');
@@ -1374,21 +1460,46 @@ function exportReportTable(selector, filename) {
     var el = document.querySelector(selector);
     if (!el) { alert('ابتدا گزارش را اجرا کن.'); return; }
     var table = el.querySelector('table');
-    var treeContainer = el.querySelector('.report-tree') || (el.classList && el.classList.contains('report-tree') ? el : null);
+    var treeContainer = el.querySelector('.report-tree');
+    var detailList = el.querySelector('.rff-detail-list');
     var rows = [];
-
-    if (table) {
-        var trs = table.querySelectorAll('tr');
-        for (var i = 0; i < trs.length; i++) {
-            var cells = trs[i].querySelectorAll('th, td');
-            var row = [];
+    if (detailList) {
+        rows.push(['گزارش جامع تسهیلات — جزئیات']);
+        rows.push([]);
+        var cards = detailList.querySelectorAll('.rff-fac-card');
+        for (var c = 0; c < cards.length; c++) {
+            var card = cards[c];
+            var title = card.querySelector('.rff-fac-title');
+            rows.push(['عنوان تسهیلات:', title ? title.textContent.trim() : '']);
+            var stats = card.querySelectorAll('.rff-fac-stats .item');
+            var statRow = [];
+            for (var s = 0; s < stats.length; s++) {
+                statRow.push(stats[s].querySelector('.lbl').textContent.trim() + ': ' + stats[s].querySelector('.val').textContent.trim());
+            }
+            rows.push(statRow);
+            var tbl = card.querySelector('.rff-inst-table');
+            if (tbl) {
+                var trs = tbl.querySelectorAll('tr');
+                for (var t = 0; t < trs.length; t++) {
+                    var cells = trs[t].querySelectorAll('th, td');
+                    var rr = []; for (var cc = 0; cc < cells.length; cc++) rr.push(cells[cc].textContent.trim());
+                    rows.push(rr);
+                }
+            }
+            rows.push([]);
+        }
+    } else if (table) {
+        var trs2 = table.querySelectorAll('tr');
+        for (var i = 0; i < trs2.length; i++) {
+            var cells2 = trs2[i].querySelectorAll('th, td');
+            var row2 = [];
             var hasVisible = false;
-            for (var j = 0; j < cells.length; j++) {
-                if (cells[j].style.display === 'none') continue;
-                row.push(String(cells[j].textContent || '').trim());
+            for (var j = 0; j < cells2.length; j++) {
+                if (cells2[j].style.display === 'none') continue;
+                row2.push(String(cells2[j].textContent || '').trim());
                 hasVisible = true;
             }
-            if (hasVisible && row.length > 0) rows.push(row);
+            if (hasVisible && row2.length > 0) rows.push(row2);
         }
     } else if (treeContainer) {
         rows.push(['عنوان', 'سطح', 'بدهکار', 'بستانکار', 'مانده']);
@@ -1403,8 +1514,7 @@ function exportReportTable(selector, filename) {
             if (node.classList.contains('level-2')) indent = '  ';
             else if (node.classList.contains('level-3')) indent = '    ';
             else if (node.classList.contains('level-4')) indent = '      ';
-            var row2 = [indent + (nameEl ? nameEl.textContent.trim() : ''), badgeEl ? badgeEl.textContent.trim() : '', amtEls[0] ? amtEls[0].textContent.trim() : '', amtEls[1] ? amtEls[1].textContent.trim() : '', amtEls[2] ? amtEls[2].textContent.trim() : ''];
-            rows.push(row2);
+            rows.push([indent + (nameEl ? nameEl.textContent.trim() : ''), badgeEl ? badgeEl.textContent.trim() : '', amtEls[0] ? amtEls[0].textContent.trim() : '', amtEls[1] ? amtEls[1].textContent.trim() : '', amtEls[2] ? amtEls[2].textContent.trim() : '']);
         }
     } else { alert('ابتدا گزارش را اجرا کن.'); return; }
     if (rows.length === 0) { alert('داده‌ای برای خروجی نیست.'); return; }
@@ -1423,24 +1533,50 @@ function exportReportTable(selector, filename) {
 
 function getPrintFontFamily() { return state.font === 'bnazanin' ? "'B Nazanin',Tahoma,sans-serif" : state.font === 'bsans' ? "'B Sans',Tahoma,sans-serif" : 'Tahoma,sans-serif'; }
 function cleanOuterHtml(el) { var c = el.cloneNode(true); var grips = c.querySelectorAll('.col-resizer'); for (var i = 0; i < grips.length; i++) grips[i].parentNode.removeChild(grips[i]); return c.outerHTML; }
-function buildPrintCss() {
+
+/* ===== CSS چاپ — فیت در یک صفحه ===== */
+function buildPrintCss(numCols) {
+    numCols = numCols || 6;
     var ff = getPrintFontFamily();
-    return '@page { size: A4; margin: 12mm 10mm 16mm 10mm; }' +
-        'body { font-family:' + ff + '; padding:0; color:#222; direction:rtl; font-size:11px; }' +
-        '.print-page { page-break-after: always; } .print-page:last-child { page-break-after: auto; }' +
-        '.print-head { font-size:13px; font-weight:bold; color:#357abd; text-align:center; margin-bottom:4px; }' +
-        '.print-sub { text-align:center; font-size:9px; color:#666; margin-bottom:10px; }' +
-        'table { width:100%; border-collapse:collapse; font-size:10px; }' +
-        'th, td { border:1px solid #999; padding:4px 6px; text-align:right; }' +
-        'th { background:#e6f0fa; color:#357abd; } tfoot td { background:#e6f0fa; font-weight:bold; }' +
-        '.num { text-align:center; } .dr { color:#c0392b; } .cr { color:#1e9e6a; }' +
-        '.print-foot { margin-top:8px; text-align:center; font-size:9px; color:#666; border-top:1px solid #ccc; padding-top:4px; }' +
-        '.rt-node { border:1px solid #ccc; padding:4px 8px; margin-bottom:2px; border-radius:6px; display:flex; gap:6px; flex-wrap:wrap; font-size:10px; }' +
-        '.rt-node.level-1 { background:#eef5fd; } .rt-node.level-2 { background:#f5faff; margin-right:10px; }' +
-        '.rt-node.level-3 { background:#fafcff; margin-right:20px; } .rt-node.level-4 { background:#fafafa; margin-right:30px; }' +
-        '.rt-toggle { visibility:hidden; width:10px; } .rt-name { font-weight:bold; flex:1; }' +
-        '.rt-level-badge { font-size:8px; padding:1px 5px; border-radius:8px; background:#eee; }' +
-        '.rt-amounts .amt { padding:1px 5px; border-radius:4px; background:#f5f5f5; font-size:9px; }' +
+    var orientation = numCols > 8 ? 'landscape' : 'portrait';
+    var fontSize = numCols > 12 ? 7 : (numCols > 9 ? 8 : (numCols > 6 ? 9 : 10));
+    var padH = numCols > 10 ? 2 : 4;
+    var padV = numCols > 10 ? 2 : 3;
+    return '@page { size: A4 ' + orientation + '; margin: 6mm 5mm 8mm 5mm; }' +
+        '* { box-sizing: border-box; }' +
+        'body { font-family:' + ff + '; padding:0; margin:0; color:#222; direction:rtl; font-size:' + fontSize + 'px; line-height: 1.3; }' +
+        '.print-page { page-break-after: always; page-break-inside: avoid; display: flex; flex-direction: column; min-height: calc(297mm - 14mm); }' +
+        '.print-page:last-child { page-break-after: auto; }' +
+        '.print-head { font-size:' + (fontSize + 3) + 'px; font-weight:bold; color:#357abd; text-align:center; margin-bottom:3px; }' +
+        '.print-sub { text-align:center; font-size:' + (fontSize - 1) + 'px; color:#666; margin-bottom:6px; }' +
+        'table { width:100%; border-collapse:collapse; font-size:' + fontSize + 'px; table-layout:fixed; }' +
+        'th, td { border:1px solid #999; padding:' + padV + 'px ' + padH + 'px; text-align:right; word-wrap:break-word; overflow-wrap:break-word; word-break:break-word; }' +
+        'th { background:#e6f0fa; color:#357abd; font-weight:bold; }' +
+        'tfoot td { background:#e6f0fa; font-weight:bold; }' +
+        '.num { text-align:center; font-variant-numeric:tabular-nums; } .dr { color:#c0392b; } .cr { color:#1e9e6a; }' +
+        '.print-foot { margin-top:auto; text-align:center; font-size:' + (fontSize - 1) + 'px; color:#666; border-top:1px solid #ccc; padding-top:3px; }' +
+        '.report-tree { font-size:' + fontSize + 'px; }' +
+        '.rt-node { border:1px solid #ccc; padding:3px 6px; margin-bottom:2px; border-radius:4px; display:flex; gap:4px; flex-wrap:wrap; font-size:' + fontSize + 'px; }' +
+        '.rt-node.level-1 { background:#eef5fd; } .rt-node.level-2 { background:#f5faff; margin-right:6px; }' +
+        '.rt-node.level-3 { background:#fafcff; margin-right:12px; } .rt-node.level-4 { background:#fafafa; margin-right:18px; }' +
+        '.rt-toggle { visibility:hidden; width:8px; } .rt-name { font-weight:bold; flex:1; }' +
+        '.rt-level-badge { font-size:' + (fontSize - 2) + 'px; padding:0 4px; border-radius:6px; background:#eee; }' +
+        '.rt-amounts { display:flex; gap:4px; flex-wrap:wrap; font-size:' + (fontSize - 1) + 'px; }' +
+        '.rt-amounts .amt { padding:0 4px; border-radius:3px; background:#f5f5f5; }' +
+        '.rff-fac-card { border:1px solid #ccc; border-radius:6px; margin-bottom:8px; page-break-inside: avoid; overflow:hidden; }' +
+        '.rff-fac-head { padding:6px 8px; background:#eef5fd; border-right:3px solid #4a90e2; }' +
+        '.rff-fac-title { font-size:' + (fontSize + 2) + 'px; font-weight:bold; color:#357abd; }' +
+        '.rff-fac-meta { font-size:' + (fontSize - 1) + 'px; color:#555; margin-top:2px; }' +
+        '.rff-fac-meta .chip-m { display:inline-block; background:#fff; padding:0 5px; border-radius:6px; margin-left:3px; }' +
+        '.rff-fac-stats { display:grid; grid-template-columns:repeat(4, 1fr); gap:3px; padding:5px 8px; background:#f9fbfd; border-bottom:1px solid #ddd; }' +
+        '.rff-fac-stats .item { text-align:center; padding:2px; }' +
+        '.rff-fac-stats .item .lbl { font-size:' + (fontSize - 2) + 'px; color:#888; }' +
+        '.rff-fac-stats .item .val { font-size:' + fontSize + 'px; font-weight:bold; }' +
+        '.rff-inst-table { width:100%; border-collapse:collapse; font-size:' + (fontSize - 1) + 'px; }' +
+        '.rff-inst-table th { background:#eef5fd; padding:3px 5px; border-bottom:1px solid #999; }' +
+        '.rff-inst-table td { padding:2px 5px; border-bottom:1px solid #eee; }' +
+        '.rff-inst-table tr.paid-row { background:#eafaf0; }' +
+        '.rff-inst-table tr.overdue-row { background:#fdecec; }' +
         '.col-resizer { display:none !important; }';
 }
 function paginateUnitsFromTable(table, rowsPerPage) {
@@ -1450,28 +1586,42 @@ function paginateUnitsFromTable(table, rowsPerPage) {
     var pages = []; for (var j = 0; j < rows.length; j += rowsPerPage) pages.push(rows.slice(j, j + rowsPerPage));
     if (pages.length === 0) pages.push([]); return pages;
 }
-function paginateUnitsFromTree(container, unitsPerPage) {
-    var tree = container.querySelector('.report-tree') || container; var kids = [];
-    for (var i = 0; i < tree.children.length; i++) kids.push(tree.children[i]);
-    var units = [];
-    for (var k = 0; k < kids.length; k++) {
-        var el = kids[k];
-        if (el.classList && el.classList.contains('rt-node') && el.classList.contains('level-1')) {
-            var unit = [el]; if (kids[k+1] && kids[k+1].classList && kids[k+1].classList.contains('rt-children')) { unit.push(kids[k+1]); k++; } units.push(unit);
-        } else units.push([el]);
-    }
-    var pages = [], current = [], count = 0;
-    units.forEach(function(u) { var n = 0; u.forEach(function(el){ n += el.querySelectorAll ? el.querySelectorAll('.rt-node').length + (el.classList && el.classList.contains('rt-node') ? 1 : 0) : 0; }); if (count > 0 && count + n > unitsPerPage) { pages.push(current); current = []; count = 0; } current.push(u); count += n; });
-    if (current.length > 0) pages.push(current); if (pages.length === 0) pages.push([]); return pages;
-}
 function printHtmlReport(selector, title) {
     var el = document.querySelector(selector); if (!el) { alert('ابتدا گزارش را اجرا کن.'); return; }
     var table = el.querySelector('table');
-    var treeContainer = el.querySelector('.report-tree') || (el.classList && el.classList.contains('report-tree') ? el : null);
+    var treeContainer = el.querySelector('.report-tree');
+    var detailList = el.querySelector('.rff-detail-list');
     var win = window.open('', '_blank'); if (!win) { alert('پنجره چاپ باز نشد.'); return; }
-    win.document.write('<!DOCTYPE html><html dir="rtl" lang="fa"><head><meta charset="UTF-8"><title>' + esc(title) + '</title><style>' + buildPrintCss() + '</style></head><body>');
-    if (table) {
-        var thead = table.querySelector('thead'), tfoot = table.querySelector('tfoot'); var pages = paginateUnitsFromTable(table, 22);
+
+    // تشخیص تعداد ستون‌ها
+    var numCols = 6;
+    if (table) { var ths = table.querySelectorAll('thead th'); numCols = ths.length || 6; }
+    else if (detailList) { numCols = 5; }
+    else if (treeContainer) { numCols = 5; }
+
+    win.document.write('<!DOCTYPE html><html dir="rtl" lang="fa"><head><meta charset="UTF-8"><title>' + esc(title) + '</title><style>' + buildPrintCss(numCols) + '</style></head><body>');
+
+    if (detailList) {
+        // گزارش جامع تسهیلات — جزئیات
+        var cards = detailList.querySelectorAll('.rff-fac-card');
+        // تقسیم کارت‌ها به صفحات
+        var pages2 = [], current = [];
+        for (var c = 0; c < cards.length; c++) {
+            current.push(cards[c]);
+            // هر ۳ کارت یا بر اساس ارتفاع (تقریبی)
+            if (current.length >= 3) { pages2.push(current); current = []; }
+        }
+        if (current.length > 0) pages2.push(current);
+        if (pages2.length === 0) pages2.push([]);
+        for (var pp = 0; pp < pages2.length; pp++) {
+            win.document.write('<div class="print-page"><div class="print-head">' + esc(title) + '</div><div class="print-sub">واحد: ' + esc(currencyLabel()) + ' — ' + toFa(todayJalaliStr()) + '</div>');
+            pages2[pp].forEach(function(card) { win.document.write(cleanOuterHtml(card)); });
+            win.document.write('<div class="print-foot">صفحه ' + toFa(pp + 1) + ' از ' + toFa(pages2.length) + '</div></div>');
+        }
+    } else if (table) {
+        var thead = table.querySelector('thead'), tfoot = table.querySelector('tfoot');
+        var rowsPerPage = numCols > 10 ? 26 : 22;
+        var pages = paginateUnitsFromTable(table, rowsPerPage);
         for (var p = 0; p < pages.length; p++) {
             win.document.write('<div class="print-page"><div class="print-head">' + esc(title) + '</div><div class="print-sub">واحد: ' + esc(currencyLabel()) + ' — ' + toFa(todayJalaliStr()) + '</div><table>');
             if (thead) win.document.write(cleanOuterHtml(thead));
@@ -1480,11 +1630,19 @@ function printHtmlReport(selector, title) {
             win.document.write('</table><div class="print-foot">صفحه ' + toFa(p + 1) + ' از ' + toFa(pages.length) + '</div></div>');
         }
     } else if (treeContainer) {
-        var pages2 = paginateUnitsFromTree(treeContainer, 28);
-        for (var p2 = 0; p2 < pages2.length; p2++) {
+        var nodes = treeContainer.querySelectorAll('.rt-node');
+        var perPage = 30;
+        var pages3 = []; var curr = [];
+        for (var n = 0; n < nodes.length; n++) {
+            curr.push(nodes[n]);
+            if (curr.length >= perPage) { pages3.push(curr); curr = []; }
+        }
+        if (curr.length > 0) pages3.push(curr);
+        if (pages3.length === 0) pages3.push([]);
+        for (var p3 = 0; p3 < pages3.length; p3++) {
             win.document.write('<div class="print-page"><div class="print-head">' + esc(title) + '</div><div class="print-sub">واحد: ' + esc(currencyLabel()) + '</div><div class="report-tree">');
-            pages2[p2].forEach(function(unit) { unit.forEach(function(el2) { var clone = el2.cloneNode(true); var grips = clone.querySelectorAll('.col-resizer'); for (var g = 0; g < grips.length; g++) grips[g].parentNode.removeChild(grips[g]); win.document.write(clone.outerHTML); }); });
-            win.document.write('</div><div class="print-foot">صفحه ' + toFa(p2 + 1) + ' از ' + toFa(pages2.length) + '</div></div>');
+            pages3[p3].forEach(function(node) { win.document.write(cleanOuterHtml(node)); });
+            win.document.write('</div><div class="print-foot">صفحه ' + toFa(p3 + 1) + ' از ' + toFa(pages3.length) + '</div></div>');
         }
     } else {
         win.document.write('<div class="print-page"><div class="print-head">' + esc(title) + '</div><div class="print-sub">' + toFa(todayJalaliStr()) + '</div>' + cleanOuterHtml(el) + '<div class="print-foot">صفحه ۱ از ۱</div></div>');
@@ -1577,7 +1735,7 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { var
 
 function updateTopbarPeriod() { var el = document.getElementById('topbar-period'); if (!el) return;
     var list = DB.load('fiscalPeriods', []); var p = list.find(function(x) { return x.id === state.activePeriodId; });
-    el.textContent = p ? p.title : 'دوره: —'; el.title = p ? ('دوره: ' + p.title) : ''; }
+    el.textContent = p ? p.title : 'دوره: —'; el.title = p ? ('دوره: ' + p.title + ' (' + p.from + ' تا ' + p.to + ')') : ''; }
 function applyWidgetVisibility() {
     var cards = document.querySelectorAll('.widget-card');
     for (var i = 0; i < cards.length; i++) { var w = cards[i].getAttribute('data-widget'); cards[i].classList.toggle('widget-hidden', !state.widgets[w]); }
@@ -1701,6 +1859,19 @@ function saveVoucherAsTemplate() { var valid = voucherLines.filter(function(l) {
     var list = DB.load('voucherTemplates', []); list.push(tpl); DB.save('voucherTemplates', list);
     refreshTemplateSelect(); renderTemplateList(); showToast('✅ ذخیره شد.'); }
 var templateLines = [];
+
+/* ===== دکمه افزودن شرح به استاندارد ===== */
+function addDescriptionToStandard(desc, silent) {
+    if (!desc || !desc.trim()) { if (!silent) alert('شرح خالی است.'); return false; }
+    var v = desc.trim();
+    var l = DB.load('standardDescriptions', getDefaultStdDescriptions());
+    if (l.indexOf(v) !== -1) { if (!silent) showToast('قبلاً در لیست استاندارد است.'); return false; }
+    l.push(v); DB.save('standardDescriptions', l);
+    refreshStdDescDatalist(); renderStdDescChips();
+    if (!silent) showToast('✅ به شرح‌های استاندارد اضافه شد.');
+    return true;
+}
+
 function renderTemplateLines() {
     var box = document.getElementById('tpl-lines'); if (!box) return; box.innerHTML = '';
     if (templateLines.length === 0) templateLines.push({ side: 'debit', account: '', details: {}, desc: '', fixedAmount: 0 });
@@ -1730,9 +1901,14 @@ function renderTemplateLines() {
                 rE.appendChild(selD); wrap.appendChild(rE);
             }
         }
-        var row3 = document.createElement('div'); row3.className = 'ln-row';
+        var row3 = document.createElement('div'); row3.className = 'desc-row';
         var inpD = document.createElement('input'); inpD.type = 'text'; inpD.placeholder = 'شرح'; inpD.value = ln.desc || ''; inpD.setAttribute('list', 'std-desc-list');
-        inpD.addEventListener('input', function() { ln.desc = this.value; }); row3.appendChild(inpD); wrap.appendChild(row3);
+        inpD.addEventListener('input', function() { ln.desc = this.value; });
+        row3.appendChild(inpD);
+        var btnAdd = document.createElement('button'); btnAdd.type = 'button'; btnAdd.className = 'desc-add-btn'; btnAdd.title = 'افزودن به شرح‌های استاندارد';
+        btnAdd.textContent = '＋';
+        btnAdd.addEventListener('click', function() { addDescriptionToStandard(inpD.value); });
+        row3.appendChild(btnAdd); wrap.appendChild(row3);
         var actWrap = document.createElement('div'); actWrap.className = 'ln-actions';
         var bU = document.createElement('button'); bU.className = 'ln-btn'; bU.textContent = '↑'; if (idx === 0) bU.disabled = true;
         bU.addEventListener('click', function() { var tmp = templateLines[idx]; templateLines[idx] = templateLines[idx-1]; templateLines[idx-1] = tmp; renderTemplateLines(); });
@@ -1797,7 +1973,7 @@ function goToPage(name) {
     if (name === 'chart-list') renderChartTree('chart-list-tree', false);
     if (name === 'chart-define') renderChartTree('chart-tree', true);
     if (name === 'voucher-list') { refreshPeriodFilters(); renderVoucherList(); }
-    if (name === 'voucher-new') { refreshVPeriodSelect(); refreshTemplateSelect(); if (voucherLines.length === 0) newVoucherForm(); else renderVoucherLines(); }
+    if (name === 'voucher-new') { refreshTemplateSelect(); if (voucherLines.length === 0) newVoucherForm(); else renderVoucherLines(); }
     if (name === 'templates') { renderTemplateList(); renderTemplateLines(); renderStdDescChips(); refreshStdDescDatalist(); }
     if (name === 'sms') { renderSmsInbox(); updateSmsBadge(); checkClipboardSupport(); }
     if (name === 'fiscal') renderFiscalList();
@@ -1911,10 +2087,6 @@ function renderFiscalList() {
     for (var a = 0; a < acts.length; a++) acts[a].addEventListener('click', function() { state.activePeriodId = this.getAttribute('data-id'); saveState('activePeriodId'); renderFiscalList(); updateTopbarPeriod(); });
     applyColVisibility('fiscal-table'); makeTableResizable(document.getElementById('fiscal-table'));
 }
-function refreshVPeriodSelect() { var list = DB.load('fiscalPeriods', []); var sel = document.getElementById('v-period'); if (!sel) return;
-    sel.innerHTML = '<option value="">— بدون دوره —</option>';
-    for (var i = 0; i < list.length; i++) { var o = document.createElement('option'); o.value = list[i].id; o.textContent = list[i].title; sel.appendChild(o); }
-    if (state.activePeriodId) sel.value = state.activePeriodId; }
 function refreshPeriodFilters() { var list = DB.load('fiscalPeriods', []); var sel = document.getElementById('vl-period-filter'); if (!sel) return; var v = sel.value;
     sel.innerHTML = '<option value="">همه دوره‌ها</option>';
     for (var i = 0; i < list.length; i++) { var o = document.createElement('option'); o.value = list[i].id; o.textContent = list[i].title; sel.appendChild(o); } sel.value = v; }
@@ -2125,7 +2297,7 @@ function renderVoucherLines() {
     if (voucherLines.length === 0) voucherLines.push({ id: uid(), account: '', details: {}, debit: 0, credit: 0, trackingNumber: '', trackingDate: '', description: '' });
     var leaves = getLeafAccounts(); var accounts = DB.load('accounts', []);
     for (var i = 0; i < voucherLines.length; i++) (function(idx) {
-        var line = voucherLines[idx]; if (line.locked && !line.description) line.description = 'از پیامک'; if (!line.details) line.details = {};
+        var line = voucherLines[idx]; if (!line.details) line.details = {};
         var wrap = document.createElement('div'); wrap.className = 'voucher-line' + (line.locked ? ' locked' : ''); wrap.setAttribute('data-line-id', line.id);
         var numSpan = document.createElement('span'); numSpan.className = 'ln-num' + (line.locked ? ' locked-tag' : ''); numSpan.textContent = '#' + toFa(idx + 1) + (line.locked ? ' 🔒' : ''); wrap.appendChild(numSpan);
         var sA = document.createElement('input'); sA.type = 'text'; sA.className = 'ln-search'; sA.placeholder = '🔍 معین...'; sA.style.marginTop = '14px'; wrap.appendChild(sA);
@@ -2165,11 +2337,15 @@ function renderVoucherLines() {
         var iT = document.createElement('input'); iT.type = 'text'; iT.dir = 'ltr'; iT.placeholder = 'ش پیگیری'; iT.value = line.trackingNumber || ''; iT.addEventListener('input', function() { line.trackingNumber = this.value; }); r3.appendChild(iT);
         var iTD = document.createElement('input'); iTD.type = 'text'; iTD.dir = 'ltr'; iTD.placeholder = 'ت پیگیری'; iTD.value = line.trackingDate || ''; iTD.classList.add('date-picker'); iTD.addEventListener('input', function() { line.trackingDate = this.value; }); r3.appendChild(iTD);
         wrap.appendChild(r3);
-        var r4 = document.createElement('div'); r4.className = 'ln-row';
+        var r4 = document.createElement('div'); r4.className = 'desc-row';
         var iDsc = document.createElement('input'); iDsc.type = 'text'; iDsc.placeholder = 'شرح قلم *'; iDsc.value = line.description || ''; iDsc.setAttribute('list', 'std-desc-list');
         if (!line.description && (Number(line.debit) > 0 || Number(line.credit) > 0)) iDsc.classList.add('desc-required');
         iDsc.addEventListener('input', function() { line.description = this.value; this.classList.remove('desc-required'); });
-        r4.appendChild(iDsc); wrap.appendChild(r4);
+        r4.appendChild(iDsc);
+        var btnAddDesc = document.createElement('button'); btnAddDesc.type = 'button'; btnAddDesc.className = 'desc-add-btn'; btnAddDesc.title = 'افزودن به شرح‌های استاندارد';
+        btnAddDesc.textContent = '＋';
+        btnAddDesc.addEventListener('click', function() { addDescriptionToStandard(iDsc.value); });
+        r4.appendChild(btnAddDesc); wrap.appendChild(r4);
         var aW = document.createElement('div'); aW.className = 'ln-actions';
         var bU = document.createElement('button'); bU.className = 'ln-btn'; bU.textContent = '↑'; if (idx === 0) bU.disabled = true; bU.addEventListener('click', function() { moveLine(idx, -1); });
         var bD = document.createElement('button'); bD.className = 'ln-btn'; bD.textContent = '↓'; if (idx === voucherLines.length - 1) bD.disabled = true; bD.addEventListener('click', function() { moveLine(idx, 1); });
@@ -2243,25 +2419,29 @@ function loadVoucherForEdit(v) {
     document.getElementById('v-id').value = v.id; document.getElementById('v-number').value = v.number;
     document.getElementById('v-date').value = v.date; document.getElementById('v-type').value = v.type || 'general';
     document.getElementById('v-desc').value = v.desc || '';
-    var st = document.getElementById('v-status'); if (st) st.value = v.status === 'approved' ? 'تأیید شده' : 'پیش‌نویس';
     currentVoucherStatus = v.status || 'draft'; voucherLines = JSON.parse(JSON.stringify(v.lines));
-    refreshVPeriodSelect(); if (v.periodId) document.getElementById('v-period').value = v.periodId;
     renderVoucherLines(); goToPage('voucher-new');
 }
 function newVoucherForm() {
     document.getElementById('v-id').value = ''; var list = DB.load('vouchers', []);
     document.getElementById('v-number').value = String(list.length + 1); document.getElementById('v-date').value = todayJalaliStr();
     document.getElementById('v-type').value = 'general'; document.getElementById('v-desc').value = '';
-    var st = document.getElementById('v-status'); if (st) st.value = 'پیش‌نویس';
-    currentVoucherStatus = 'draft'; refreshVPeriodSelect();
+    currentVoucherStatus = 'draft';
     voucherLines = [{ id: uid(), account: '', details: {}, debit: 0, credit: 0, trackingNumber: '', trackingDate: '', description: '' }];
     renderVoucherLines();
 }
 function persistVoucher(approve) {
     if (currentVoucherStatus === 'approved' && !approve) { alert('سند تأیید شده قابل ذخیره به‌عنوان پیش‌نویس نیست.'); return; }
-    var num = normalizeDigits(document.getElementById('v-number').value.trim()); var d = normalizeDigits(document.getElementById('v-date').value.trim());
-    var ty = document.getElementById('v-type').value; var pid = document.getElementById('v-period').value; var ds = document.getElementById('v-desc').value.trim();
+    var num = normalizeDigits(document.getElementById('v-number').value.trim());
+    var d = normalizeDigits(document.getElementById('v-date').value.trim());
+    var ty = document.getElementById('v-type').value;
+    var ds = document.getElementById('v-desc').value.trim();
+    // استفاده از دوره فعال به جای فیلد
+    var pid = state.activePeriodId || '';
     if (!num || !d) { alert('شماره و تاریخ اجباری.'); return; }
+    // اعتبارسنجی تاریخ در بازه دوره فعال
+    var dv = validateDateInActivePeriod(d);
+    if (!dv.ok) { alert('⚠️ ' + dv.msg); return; }
     if (!ds) { alert('⚠️ شرح سند اجباری.'); return; }
     var valid = voucherLines.filter(function(l) { return (Number(l.debit) || 0) > 0 || (Number(l.credit) || 0) > 0; });
     if (valid.length < 2) { alert('حداقل دو ردیف با مبلغ.'); return; }
@@ -2282,8 +2462,10 @@ function refreshFacBankSelect() { var sel = document.getElementById('fc-bank'); 
     for (var i = 0; i < b.length; i++) { var o = document.createElement('option'); o.value = b[i].id; o.textContent = (b[i].bank || '') + (b[i].account ? ' - ' + b[i].account : ''); sel.appendChild(o); } }
 function refreshRffBankSelect() {
     var sel = document.getElementById('rff-bank'); if (!sel) return; var b = DB.load('bankAccounts', []);
+    var v = sel.value;
     sel.innerHTML = '<option value="">همه</option>';
     for (var i = 0; i < b.length; i++) { var o = document.createElement('option'); o.value = b[i].id; o.textContent = (b[i].bank || '') + (b[i].account ? ' - ' + b[i].account : ''); sel.appendChild(o); }
+    sel.value = v;
 }
 function renderFacilitiesList() {
     var list = DB.load('facilities', []); var filter = (document.getElementById('fac-filter').value || '').toLowerCase();
@@ -2520,7 +2702,6 @@ function runFacilityReport() {
         var ins = f.installments || []; var ri = ins.filter(function(x) { return x.status !== 'paid'; });
         var ra = ri.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
         var lD = ri.length > 0 ? ri[ri.length - 1].date : '—';
-        // اولین قسط پرداخت نشده
         var unpaidSorted = ri.slice().sort(function(a, b) { return compareVals(a.date, b.date); });
         var fU = unpaidSorted.length > 0 ? unpaidSorted[0].date : '—';
         var set = ri.length === 0 && ins.length > 0;
@@ -2550,8 +2731,8 @@ function runFacilityReport() {
     makeTableResizable(document.getElementById('rf-table')); applyColVisibility('rf-table');
 }
 
-/* ===== گزارش جامع تسهیلات ===== */
-function runFacilityFullReport() {
+/* ===== گزارش جامع تسهیلات (کلی + جزئیات) ===== */
+function computeFacilityRows() {
     var facilities = DB.load('facilities', []);
     var cf = document.getElementById('rff-category').value;
     var sf = document.getElementById('rff-status').value;
@@ -2560,12 +2741,10 @@ function runFacilityFullReport() {
     var fromD = document.getElementById('rff-from').value;
     var toD = document.getElementById('rff-to').value;
     var q = (document.getElementById('rff-search').value || '').toLowerCase();
-    var st = sortState.rff;
     var banks = DB.load('bankAccounts', []);
     var bankMap = {}; banks.forEach(function(b) { bankMap[b.id] = b; });
     var today = toJalali(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
     var tStr = today[0] + '/' + pad2(today[1]) + '/' + pad2(today[2]);
-
     var rows = [];
     facilities.forEach(function(f) {
         if (cf && (f.category || 'facility') !== cf) return;
@@ -2588,16 +2767,18 @@ function runFacilityFullReport() {
         var overdueCount = unpaidList.filter(function(x) { return x.date && x.date < tStr; }).length;
         var settled = unpaidList.length === 0 && ins.length > 0;
         var remainingToInit = Number(f.initial || 0) - paidAmt;
-        // فیلتر وضعیت تسویه
+        var lastInsDate = '—';
+        if (ins.length > 0) {
+            var sortedIns = ins.slice().sort(function(a, b) { return compareVals(b.date, a.date); });
+            lastInsDate = sortedIns[0].date || '—';
+        }
         if (sf === 'settled' && !settled) return;
         if (sf === 'active' && settled) return;
-        // فیلتر وضعیت اقساط
         if (inf === 'has-unpaid' && !(unpaidList.length > 0)) return;
         if (inf === 'has-paid' && !(paidCount > 0)) return;
         if (inf === 'all-paid' && !(ins.length > 0 && paidCount === ins.length)) return;
         if (inf === 'no-installments' && ins.length > 0) return;
         if (inf === 'overdue' && overdueCount === 0) return;
-        // جستجو
         if (q) {
             var bankObj = bankMap[f.bankId];
             var txt = ((f.name || '') + ' ' + (f.date || '') + ' ' + categoryName(f.category) + ' ' + (bankObj ? bankObj.bank : '')).toLowerCase();
@@ -2609,10 +2790,15 @@ function runFacilityFullReport() {
             totalAmt: totalAmt, paidAmt: paidAmt, unpaidAmt: unpaidAmt,
             unpaidCount: unpaidList.length, firstUnpaidDate: firstUnpaidDate,
             firstUnpaidAmount: firstUnpaidAmount, lastPaidDate: lastPaidDate,
-            overdueCount: overdueCount, settled: settled, remaining: remainingToInit
+            overdueCount: overdueCount, settled: settled, remaining: remainingToInit,
+            lastInsDate: lastInsDate
         });
     });
-
+    return rows;
+}
+function runFacilityFullReport() {
+    var rows = computeFacilityRows();
+    var st = sortState.rff;
     rows.sort(function(a, b) {
         var va, vb;
         switch (st.col) {
@@ -2634,7 +2820,14 @@ function runFacilityFullReport() {
         }
         return st.dir === 'asc' ? compareVals(va, vb) : -compareVals(va, vb);
     });
-
+    if (state.rffView === 'detail') {
+        renderFacilityFullDetail(rows);
+    } else {
+        renderFacilityFullSummary(rows);
+    }
+}
+function renderFacilityFullSummary(rows) {
+    var st = sortState.rff;
     var html = '<div class="table-wrap"><table class="report-table" id="rff-table"><thead><tr>' +
         '<th class="sortable" data-sort="name">عنوان <span class="sort-ind"></span></th>' +
         '<th class="sortable" data-sort="category">دسته <span class="sort-ind"></span></th>' +
@@ -2707,6 +2900,64 @@ function runFacilityFullReport() {
         if (act === 'rff-inst') loadFacilityForInstallments(f);
         else if (act === 'rff-edit') loadFacilityIntoForm(f);
     });
+}
+function renderFacilityFullDetail(rows) {
+    // مرتب‌سازی: تعداد اقساط صعودی، سپس آخرین تاریخ قسط صعودی
+    var sorted = rows.slice().sort(function(a, b) {
+        if (a.insCount !== b.insCount) return a.insCount - b.insCount;
+        return compareVals(a.lastInsDate || '9999/99/99', b.lastInsDate || '9999/99/99');
+    });
+    var today = toJalali(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
+    var tStr = today[0] + '/' + pad2(today[1]) + '/' + pad2(today[2]);
+    var html = '<div class="rff-detail-list">';
+    var totalAllAmt = 0;
+    for (var i = 0; i < sorted.length; i++) {
+        var r = sorted[i]; var f = r.f;
+        var ins = f.installments || [];
+        var paidCount = r.paidCount;
+        var unpaidCount = r.unpaidCount;
+        var catLabel = (f.category === 'scheduled') ? 'زمانبندی' : 'تسهیلات';
+        var cls = (f.category === 'scheduled') ? ' sch' : '';
+        html += '<div class="rff-fac-card">';
+        html += '<div class="rff-fac-head' + cls + '">';
+        html += '<div><div class="rff-fac-title">' + esc(f.name) + '</div><div class="rff-fac-meta">';
+        html += '<span class="chip-m">' + catLabel + '</span>';
+        if (r.bank) html += '<span class="chip-m">🏦 ' + esc(r.bank.bank || '') + '</span>';
+        if (f.date) html += '<span class="chip-m">📅 ' + toFa(f.date) + '</span>';
+        html += '</div></div>';
+        html += '<div>' + (r.settled ? '<span class="badge badge-settled">✓ تسویه</span>' : '<span class="badge badge-active">در جریان</span>') + '</div>';
+        html += '</div>';
+        html += '<div class="rff-fac-stats">';
+        html += '<div class="item"><div class="lbl">مبلغ اولیه</div><div class="val">' + formatMoney(f.initial || 0) + '</div></div>';
+        html += '<div class="item"><div class="lbl">پرداخت شده</div><div class="val" style="color:#1e9e6a">' + formatMoney(r.paidAmt) + '</div></div>';
+        html += '<div class="item"><div class="lbl">باقی‌مانده</div><div class="val" style="color:' + (r.unpaidAmt > 0 ? '#c0392b' : '#1e9e6a') + '">' + formatMoney(r.unpaidAmt) + '</div></div>';
+        html += '<div class="item"><div class="lbl">تعداد اقساط</div><div class="val">' + toFa(ins.length) + '</div></div>';
+        html += '<div class="item"><div class="lbl">پرداخت‌شده</div><div class="val" style="color:#1e9e6a">' + toFa(paidCount) + '</div></div>';
+        html += '<div class="item"><div class="lbl">باقی</div><div class="val" style="color:#c47c00">' + toFa(unpaidCount) + '</div></div>';
+        if (r.overdueCount > 0) html += '<div class="item"><div class="lbl">سررسید گذشته</div><div class="val" style="color:#c0392b">' + toFa(r.overdueCount) + '</div></div>';
+        html += '</div>';
+        if (ins.length === 0) {
+            html += '<div class="rff-empty">— دفترچه اقساطی برای این تسهیلات ثبت نشده —</div>';
+        } else {
+            html += '<table class="rff-inst-table"><thead><tr><th style="width:40px">#</th><th>تاریخ</th><th>مبلغ</th><th>وضعیت</th></tr></thead><tbody>';
+            var sortedIns = ins.slice().sort(function(a, b) { return compareVals(a.date, b.date); });
+            for (var j = 0; j < sortedIns.length; j++) {
+                var inx = sortedIns[j];
+                var isOverdue = (inx.status !== 'paid' && inx.date && inx.date < tStr);
+                var rowCls = (inx.status === 'paid') ? 'paid-row' : (isOverdue ? 'overdue-row' : '');
+                var stLabel = (inx.status === 'paid') ? '<span class="badge badge-paid">✓ پرداخت</span>' : (isOverdue ? '<span class="badge badge-overdue">سررسید گذشته</span>' : '<span class="badge badge-registered">ثبت</span>');
+                html += '<tr class="' + rowCls + '"><td class="num">' + toFa(j + 1) + '</td><td dir="ltr">' + toFa(esc(inx.date || '—')) + '</td><td class="num" style="font-weight:bold">' + formatMoney(inx.amount || 0) + '</td><td>' + stLabel + '</td></tr>';
+                totalAllAmt += Number(inx.amount) || 0;
+            }
+            html += '</tbody></table>';
+        }
+        html += '</div>';
+    }
+    if (rows.length === 0) html += '<div class="card"><p class="muted" style="text-align:center">موردی یافت نشد.</p></div>';
+    html += '</div>';
+    document.getElementById('rff-result').innerHTML = html;
+    document.getElementById('rff-count').textContent = toFa(rows.length);
+    var unitEl = document.getElementById('rff-unit'); if (unitEl) unitEl.textContent = 'واحد: ' + currencyLabel();
 }
 
 function clearPersonForm() { var ids = ['pr-id','pr-first','pr-last','pr-father','pr-birth','pr-mobile','pr-phone','pr-bank-title','pr-acc','pr-iban','pr-card','pr-address']; for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = ''; }
@@ -2965,6 +3216,16 @@ function init() {
     document.getElementById('rff-bank').addEventListener('change', runFacilityFullReport);
     document.getElementById('rff-search').addEventListener('input', runFacilityFullReport);
     ['rff-from','rff-to'].forEach(function(id) { var el = document.getElementById(id); if (el) el.addEventListener('input', runFacilityFullReport); });
+    // تب‌های نمایش کلی/جزئیات
+    var rffTabs = document.querySelectorAll('[data-rff-view]');
+    for (var ti = 0; ti < rffTabs.length; ti++) rffTabs[ti].addEventListener('click', function() {
+        var v = this.getAttribute('data-rff-view');
+        state.rffView = v; saveState('rffView');
+        for (var z = 0; z < rffTabs.length; z++) rffTabs[z].classList.toggle('active', rffTabs[z].getAttribute('data-rff-view') === v);
+        runFacilityFullReport();
+    });
+    // فعال‌سازی تب اولیه
+    for (var ti2 = 0; ti2 < rffTabs.length; ti2++) rffTabs[ti2].classList.toggle('active', rffTabs[ti2].getAttribute('data-rff-view') === state.rffView);
     updateDateDisplay(); updateTopbarPeriod(); updateHomeWidgets();
     setInterval(function() { updateDateDisplay(); updateTopbarPeriod(); updateHomeWidgets(); }, 60000);
     newVoucherForm(); attachDatePickers();
