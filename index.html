@@ -381,7 +381,6 @@ body.col-resizing * { cursor:col-resize !important; }
 @media (max-width:640px) { .voucher-head-row { grid-template-columns:1fr 1fr; } .voucher-head-row .v-type-field { grid-column:1 / -1; } }
 .voucher-head-row .field { margin-bottom:0; }
 .voucher-head-row input { text-align:center; }
-/* گزارش وضعیت نقدینگی */
 .cf-report { font-size:0.9rem; }
 .cf-table { width:100%; border-collapse:separate; border-spacing:0; background:#fff; border-radius:12px; overflow:hidden; border:1px solid var(--border); }
 .cf-table thead th { background:linear-gradient(180deg, var(--primary-light), var(--primary-soft)); color:var(--primary-dark); padding:11px 12px; text-align:right; font-weight:bold; font-size:0.82rem; border-bottom:2px solid var(--primary); white-space:nowrap; }
@@ -407,12 +406,43 @@ body.col-resizing * { cursor:col-resize !important; }
 .cf-legend .lg.source .dot { background:#22a06b; }
 .cf-legend .lg.fac .dot { background:#e5484d; }
 .cf-legend .lg.neg .dot { background:#c0392b; }
-/* End */
 @media print {
-    .topbar, .sidebar, .overlay, .install-banner, .tabs, .form-buttons, .list-header, .col-toggle-btn, .export-btn { display:none !important; }
+    .topbar, .sidebar, .overlay, .install-banner, .tabs, .form-buttons, .list-header, .col-toggle-btn, .export-btn, .ai-fab { display:none !important; }
     .content { padding:0 !important; max-width:100% !important; }
     .card { box-shadow:none !important; border:none !important; padding:0 !important; margin-bottom:8px !important; }
 }
+/* ============ دستیار AI ============ */
+.ai-fab { position:fixed; bottom:20px; left:20px; width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:#fff; border:none; font-size:1.6rem; cursor:pointer; z-index:80; box-shadow:var(--shadow-lg); display:flex; align-items:center; justify-content:center; transition:transform 0.2s; }
+.ai-fab:hover { transform:scale(1.08); }
+@media print { .ai-fab { display:none !important; } }
+.ai-overlay { position:fixed; inset:0; background:rgba(15,23,42,0.55); backdrop-filter:blur(2px); z-index:500; opacity:0; visibility:hidden; transition:0.2s; }
+.ai-overlay.show { opacity:1; visibility:visible; }
+.ai-modal { position:fixed; bottom:20px; left:20px; width:min(420px, 92vw); height:min(620px, 85vh); background:#fff; border-radius:16px; z-index:510; display:flex; flex-direction:column; box-shadow:var(--shadow-lg); opacity:0; visibility:hidden; transform:translateY(20px); transition:all 0.25s; }
+.ai-modal.show { opacity:1; visibility:visible; transform:translateY(0); }
+@media (max-width:520px) { .ai-modal { bottom:0; left:0; width:100vw; height:90vh; border-radius:16px 16px 0 0; } }
+.ai-head { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:linear-gradient(135deg,var(--topbar-from),var(--topbar-to)); color:#fff; border-radius:16px 16px 0 0; }
+.ai-head .ai-title { font-weight:bold; font-size:0.95rem; display:flex; align-items:center; gap:6px; }
+.ai-head .ai-actions { display:flex; gap:4px; }
+.ai-head button { background:rgba(255,255,255,0.18); color:#fff; border:none; width:30px; height:30px; border-radius:8px; cursor:pointer; font-size:1rem; }
+.ai-head button:hover { background:rgba(255,255,255,0.3); }
+.ai-messages { flex:1; overflow-y:auto; padding:14px; background:var(--bg); display:flex; flex-direction:column; gap:10px; }
+.ai-msg { max-width:88%; padding:10px 14px; border-radius:12px; font-size:0.88rem; line-height:1.7; word-wrap:break-word; white-space:pre-wrap; }
+.ai-msg.user { align-self:flex-end; background:var(--primary); color:#fff; border-bottom-right-radius:4px; }
+.ai-msg.assistant { align-self:flex-start; background:#fff; color:var(--text); border:1px solid var(--border); border-bottom-left-radius:4px; }
+.ai-msg.error { align-self:center; background:#fdeaea; color:var(--danger); border:1px solid #fca5a5; font-size:0.82rem; }
+.ai-msg.system { align-self:center; background:transparent; color:var(--text-muted); font-size:0.78rem; padding:4px; }
+.ai-msg.thinking { align-self:flex-start; color:var(--text-muted); font-style:italic; }
+.ai-suggestions { display:flex; flex-wrap:wrap; gap:6px; padding:10px 14px; background:var(--bg); border-top:1px solid var(--border); }
+.ai-suggestion { padding:6px 12px; background:#fff; color:var(--primary-dark); border:1px solid var(--primary-light); border-radius:18px; font-size:0.78rem; cursor:pointer; font-family:inherit; transition:all 0.15s; }
+.ai-suggestion:hover { background:var(--primary-soft); border-color:var(--primary); }
+.ai-input-row { display:flex; gap:6px; padding:10px; background:#fff; border-top:1px solid var(--border); border-radius:0 0 16px 16px; }
+.ai-input-row textarea { flex:1; resize:none; padding:8px 12px; border:1px solid var(--border); border-radius:10px; font-family:inherit; font-size:0.88rem; outline:none; }
+.ai-input-row textarea:focus { border-color:var(--primary); }
+.ai-send { padding:0 16px; background:var(--primary); color:#fff; border:none; border-radius:10px; font-size:1.1rem; cursor:pointer; }
+.ai-send:disabled { opacity:0.5; cursor:not-allowed; }
+.ai-setup { padding:20px; text-align:center; color:var(--text-muted); }
+.ai-setup h3 { color:var(--primary-dark); margin-bottom:10px; font-size:1rem; }
+.ai-setup p { font-size:0.85rem; margin-bottom:14px; line-height:1.7; }
 </style>
 </head>
 <body class="theme-sky font-tahoma">
@@ -923,6 +953,72 @@ body.col-resizing * { cursor:col-resize !important; }
     <div style="padding:10px 18px;border-top:1px solid var(--border);display:flex;gap:6px;justify-content:flex-end"><button id="vpreview-print" class="btn-secondary">🖨 چاپ</button><button id="vpreview-close-btn" class="btn-primary">بستن</button></div>
 </div>
 
+<!-- ============ دستیار هوشمند ============ -->
+<button id="ai-fab" class="ai-fab" title="دستیار هوشمند">🤖</button>
+<div id="ai-overlay" class="ai-overlay"></div>
+<div id="ai-modal" class="ai-modal">
+    <div class="ai-head">
+        <span class="ai-title">🤖 دستیار هوشمند</span>
+        <div class="ai-actions">
+            <button id="ai-settings-btn" title="تنظیمات">⚙</button>
+            <button id="ai-clear-btn" title="پاک کردن">🗑</button>
+            <button id="ai-close-btn" title="بستن">×</button>
+        </div>
+    </div>
+    <div id="ai-messages" class="ai-messages"></div>
+    <div id="ai-suggestions" class="ai-suggestions">
+        <button class="ai-suggestion" data-q="وضعیت نقدینگی من چطور است؟">💰 وضعیت نقدینگی</button>
+        <button class="ai-suggestion" data-q="این ماه چقدر درآمد داشتم؟">📈 درآمد این ماه</button>
+        <button class="ai-suggestion" data-q="اقساط پیش‌رو را خلاصه کن">⏰ اقساط پیش‌رو</button>
+        <button class="ai-suggestion" data-q="بیشترین هزینه‌ام در چه دسته‌ای است؟">📊 تحلیل هزینه</button>
+    </div>
+    <div class="ai-input-row">
+        <textarea id="ai-input" placeholder="سوال خود را بپرسید..." rows="2"></textarea>
+        <button id="ai-send-btn" class="ai-send">📤</button>
+    </div>
+</div>
+
+<!-- تنظیمات AI -->
+<div id="ai-settings-overlay" class="overlay"></div>
+<div id="ai-settings-modal" class="modal" style="max-width:480px">
+    <div class="modal-head"><h2>🤖 تنظیمات دستیار</h2><button id="ai-settings-close" class="close-btn">×</button></div>
+    <div class="modal-body">
+        <div class="modal-section">
+            <h3>سرویس‌دهنده</h3>
+            <div class="field">
+                <select id="ai-provider-select">
+                    <option value="groq">Groq (رایگان و فوق‌سریع ⭐)</option>
+                    <option value="openai">OpenAI (پرداختی)</option>
+                    <option value="anthropic">Anthropic (پرداختی)</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-section">
+            <h3>کلید API</h3>
+            <div class="field">
+                <input type="password" id="ai-apikey-input" placeholder="gsk_..." dir="ltr">
+            </div>
+            <p class="muted" style="font-size:0.75rem;line-height:1.7">
+                کلید در مرورگر شما ذخیره می‌شود و مستقیم به سرویس‌دهنده ارسال می‌گردد. هیچ سروری در میان نیست.
+            </p>
+        </div>
+        <div class="modal-section">
+            <h3>مدل</h3>
+            <div class="field">
+                <input type="text" id="ai-model-input" dir="ltr" placeholder="llama-3.3-70b-versatile">
+            </div>
+            <p class="muted" style="font-size:0.72rem">
+                <b>Groq (رایگان):</b> <code>llama-3.3-70b-versatile</code> یا <code>llama-3.1-8b-instant</code> یا <code>mixtral-8x7b-32768</code><br>
+                OpenAI: <code>gpt-4o-mini</code> — Anthropic: <code>claude-3-5-haiku-20241022</code>
+            </p>
+        </div>
+        <div class="form-buttons">
+            <button id="ai-settings-save" class="btn-primary">💾 ذخیره</button>
+            <button id="ai-settings-cancel" class="btn-secondary">انصراف</button>
+        </div>
+    </div>
+</div>
+
 <div id="cal-overlay" class="cal-overlay"></div>
 <div id="cal-popup" class="cal-popup">
     <div class="cal-head"><button id="cal-prev">‹</button><div class="cal-title" id="cal-title">—</div><button id="cal-next">›</button></div>
@@ -931,7 +1027,7 @@ body.col-resizing * { cursor:col-resize !important; }
 </div>
 
 <script>
-console.log('✅ پارسیس PWA v7');
+console.log('✅ پارسیس PWA v9 — Groq Ready');
 var LS_PREFIX = 'parsis.';
 var DB = {
     load: function(k, f) { try { var r = localStorage.getItem(LS_PREFIX + k); return r ? JSON.parse(r) : f; } catch(e) { return f; } },
@@ -1184,8 +1280,6 @@ function buildOptionsInto(sel, items, labelFn, selectedId, placeholder) {
     sel.innerHTML = ''; var ph = document.createElement('option'); ph.value = ''; ph.textContent = placeholder || '—'; sel.appendChild(ph);
     for (var i = 0; i < items.length; i++) { var o = document.createElement('option'); o.value = items[i].id; o.textContent = labelFn(items[i]); if (selectedId === items[i].id) o.selected = true; sel.appendChild(o); }
 }
-
-/* ===== اعتبارسنجی سند ===== */
 function getVoucherIssues(v) {
     var issues = [];
     if (!v) return ['سند نامعتبر'];
@@ -1211,14 +1305,10 @@ function getVoucherIssues(v) {
                 var lt = acc.links[li];
                 var items = getLinkedItems(lt);
                 if (items.length === 0) continue;
-                if (!line.details || !line.details[lt]) {
-                    lineIssues.push('ردیف ' + ln + ': تفصیلی ' + linkTypeName(lt) + ' تعیین نشده');
-                }
+                if (!line.details || !line.details[lt]) { lineIssues.push('ردیف ' + ln + ': تفصیلی ' + linkTypeName(lt) + ' تعیین نشده'); }
             }
         }
-        if (!line.description || !String(line.description).trim()) {
-            lineIssues.push('ردیف ' + ln + ': شرح قلم خالی است');
-        }
+        if (!line.description || !String(line.description).trim()) { lineIssues.push('ردیف ' + ln + ': شرح قلم خالی است'); }
     }
     var td = 0, tc = 0;
     lines.forEach(function(l) { td += Number(l.debit) || 0; tc += Number(l.credit) || 0; });
@@ -1232,9 +1322,7 @@ function validateDateInActivePeriod(dateStr) {
     if (!state.activePeriodId) return { ok: true };
     var ap = periods.find(function(p) { return p.id === state.activePeriodId; });
     if (!ap) return { ok: true };
-    if (dateStr < ap.from || dateStr > ap.to) {
-        return { ok: false, msg: 'تاریخ باید در بازه دوره فعال («' + ap.from + ' تا ' + ap.to + '») باشد' };
-    }
+    if (dateStr < ap.from || dateStr > ap.to) { return { ok: false, msg: 'تاریخ باید در بازه دوره فعال («' + ap.from + ' تا ' + ap.to + '») باشد' }; }
     return { ok: true };
 }
 function matchBankAccountByBankName(text) {
@@ -1246,18 +1334,9 @@ function matchBankAccountByBankName(text) {
         var b = ba[i];
         var bankName = String(b.bank || '').trim();
         if (bankName.length < 3) continue;
-        if (t.indexOf(bankName) !== -1) {
-            var score = bankName.length * 2;
-            if (score > bestScore) { bestScore = score; best = b; }
-            continue;
-        }
+        if (t.indexOf(bankName) !== -1) { var score = bankName.length * 2; if (score > bestScore) { bestScore = score; best = b; } continue; }
         var parts = bankName.split(/\s+/).filter(function(w) { return w.length >= 3; });
-        for (var p = 0; p < parts.length; p++) {
-            if (t.indexOf(parts[p]) !== -1) {
-                var sc = parts[p].length;
-                if (sc > bestScore) { bestScore = sc; best = b; }
-            }
-        }
+        for (var p = 0; p < parts.length; p++) { if (t.indexOf(parts[p]) !== -1) { var sc = parts[p].length; if (sc > bestScore) { bestScore = sc; best = b; } } }
     }
     return bestScore >= 3 ? best : null;
 }
@@ -1272,22 +1351,14 @@ function findMatchingBankAccount(text) {
     var best = null, bestScore = 0;
     for (var j = 0; j < ba.length; j++) {
         var bj = ba[j];
-        var cands = [
-            { v: (bj.account || '').replace(/\D/g, ''), w: 3 },
-            { v: (bj.card || '').replace(/\D/g, ''), w: 2 },
-            { v: (bj.iban || '').replace(/\D/g, ''), w: 2 }
-        ];
+        var cands = [{ v: (bj.account || '').replace(/\D/g, ''), w: 3 }, { v: (bj.card || '').replace(/\D/g, ''), w: 2 }, { v: (bj.iban || '').replace(/\D/g, ''), w: 2 }];
         for (var k = 0; k < cands.length; k++) {
             var n = cands[k].v;
             if (n.length < 6) continue;
             var maxLen = Math.min(n.length, 16);
             for (var len = maxLen; len >= 6; len--) {
                 var sub = n.slice(-len);
-                if (t.indexOf(sub) !== -1) {
-                    var score = len * cands[k].w;
-                    if (score > bestScore) { bestScore = score; best = bj; }
-                    break;
-                }
+                if (t.indexOf(sub) !== -1) { var score = len * cands[k].w; if (score > bestScore) { bestScore = score; best = bj; } break; }
             }
         }
     }
@@ -1299,10 +1370,7 @@ function parseBankSms(text) {
     var t = normalizeDigits(text);
     var knownBanks = ['ملی','پاسارگاد','صادرات','تجارت','ملت','سپه','کشاورزی','مسکن','پارسیان','سامان','رفاه','اقتصاد نوین','آینده','شهر','دی','سینا','گردشگری','صنعت و معدن','توسعه صادرات','قوامین','حکمت','ایران زمین','مهر ایران','خاورمیانه','کارآفرین','پست بانک','رسالت','بلو','سرمایه'];
     for (var b = 0; b < knownBanks.length; b++) if (t.indexOf(knownBanks[b]) !== -1) { result.bankName = 'بانک ' + knownBanks[b]; break; }
-    if (!result.bankName) {
-        var bm2 = t.match(/(?:بانک|کارگزاری|مؤسسه|صرافی)\s+([آ-ی\u200c]{2,25})/);
-        if (bm2) result.bankName = bm2[0].trim();
-    }
+    if (!result.bankName) { var bm2 = t.match(/(?:بانک|کارگزاری|مؤسسه|صرافی)\s+([آ-ی\u200c]{2,25})/); if (bm2) result.bankName = bm2[0].trim(); }
     var bm = t.match(/مانده\s*(?:حساب)?\s*[:ـ]?\s*([\d,]+)/);
     if (bm) result.balance = Number(bm[1].replace(/,/g, '')) || 0;
     if (!result.balance) { var mo = t.match(/موجودی\s*(?:قابل\s*استفاده)?\s*[:ـ]?\s*([\d,]+)/); if (mo) result.balance = Number(mo[1].replace(/,/g, '')) || 0; }
@@ -1366,8 +1434,7 @@ function parseBankSms(text) {
 function getSmsInbox() { return DB.load('smsInbox', []); }
 function saveSmsInbox(list) { DB.save('smsInbox', list); }
 function getUnreadSmsCount() { var l = getSmsInbox(); var c = 0; l.forEach(function(s) { if (s.status === 'new') c++; }); return c; }
-function updateSmsBadge() { var c = getUnreadSmsCount(); var b = document.getElementById('sms-nav-badge'); if (!b) return;
-    if (c > 0) { b.textContent = toFa(c); b.classList.remove('hidden'); } else b.classList.add('hidden'); }
+function updateSmsBadge() { var c = getUnreadSmsCount(); var b = document.getElementById('sms-nav-badge'); if (!b) return; if (c > 0) { b.textContent = toFa(c); b.classList.remove('hidden'); } else b.classList.add('hidden'); }
 function addSmsToInbox(rawText, source) {
     var text = String(rawText || '').trim(); if (!text) return { ok: false, reason: 'empty' };
     var list = getSmsInbox();
@@ -1398,9 +1465,7 @@ function renderSmsInbox() {
         else if (s.status === 'ignored') { statusBadge = '— نادیده'; statusClass = 'status-ignored'; }
         else { statusBadge = '🔔 ثبت نشده'; statusClass = 'status-new'; }
         var meta = '📅 ' + toFa(tsToJalaliDate(s.receivedAt)) + ' — ' + toFa(tsToJalaliTime(s.receivedAt));
-        if (s.source === 'auto') meta += ' (خودکار)';
-        else if (s.source === 'clipboard') meta += ' (کلیپ‌بورد)';
-        else if (s.source === 'paste') meta += ' (دستی)';
+        if (s.source === 'auto') meta += ' (خودکار)'; else if (s.source === 'clipboard') meta += ' (کلیپ‌بورد)'; else if (s.source === 'paste') meta += ' (دستی)';
         var parsedHtml = '';
         if (p.bankName) parsedHtml += '<span class="pill">🏦 ' + esc(p.bankName) + '</span>';
         if (p.amount) parsedHtml += '<span class="pill ' + dirClass + '">' + dirLabel + ': ' + formatMoney(p.amount) + ' ' + currencyLabel() + '</span>';
@@ -1504,7 +1569,6 @@ function printVoucherPreview() {
     win.document.write('</style></head><body><h1>سند شماره ' + toFa(esc(v.number)) + '</h1>' + body.innerHTML + '</body></html>');
     win.document.close(); setTimeout(function() { win.focus(); win.print(); }, 400);
 }
-
 function exportToCsv(key, filename) {
     var data = DB.load(key, []); if (!Array.isArray(data)) data = [];
     if (data.length === 0) { alert('داده‌ای نیست.'); return; }
@@ -1536,9 +1600,7 @@ function exportReportTable(selector, filename) {
             rows.push(['عنوان تسهیلات:', title ? title.textContent.trim() : '']);
             var stats = card.querySelectorAll('.rff-fac-stats .item');
             var statRow = [];
-            for (var s = 0; s < stats.length; s++) {
-                statRow.push(stats[s].querySelector('.lbl').textContent.trim() + ': ' + stats[s].querySelector('.val').textContent.trim());
-            }
+            for (var s = 0; s < stats.length; s++) statRow.push(stats[s].querySelector('.lbl').textContent.trim() + ': ' + stats[s].querySelector('.val').textContent.trim());
             rows.push(statRow);
             var tbl = card.querySelector('.rff-inst-table');
             if (tbl) {
@@ -1557,11 +1619,7 @@ function exportReportTable(selector, filename) {
             var cells2 = trs2[i].querySelectorAll('th, td');
             var row2 = [];
             var hasVisible = false;
-            for (var j = 0; j < cells2.length; j++) {
-                if (cells2[j].style.display === 'none') continue;
-                row2.push(String(cells2[j].textContent || '').trim());
-                hasVisible = true;
-            }
+            for (var j = 0; j < cells2.length; j++) { if (cells2[j].style.display === 'none') continue; row2.push(String(cells2[j].textContent || '').trim()); hasVisible = true; }
             if (hasVisible && row2.length > 0) rows.push(row2);
         }
     } else if (treeContainer) {
@@ -1570,13 +1628,9 @@ function exportReportTable(selector, filename) {
         if (nodes.length === 0) { alert('ابتدا گزارش را اجرا کن.'); return; }
         for (var k = 0; k < nodes.length; k++) {
             var node = nodes[k];
-            var nameEl = node.querySelector('.rt-name');
-            var badgeEl = node.querySelector('.rt-level-badge');
-            var amtEls = node.querySelectorAll('.amt');
+            var nameEl = node.querySelector('.rt-name'); var badgeEl = node.querySelector('.rt-level-badge'); var amtEls = node.querySelectorAll('.amt');
             var indent = '';
-            if (node.classList.contains('level-2')) indent = '  ';
-            else if (node.classList.contains('level-3')) indent = '    ';
-            else if (node.classList.contains('level-4')) indent = '      ';
+            if (node.classList.contains('level-2')) indent = '  '; else if (node.classList.contains('level-3')) indent = '    '; else if (node.classList.contains('level-4')) indent = '      ';
             rows.push([indent + (nameEl ? nameEl.textContent.trim() : ''), badgeEl ? badgeEl.textContent.trim() : '', amtEls[0] ? amtEls[0].textContent.trim() : '', amtEls[1] ? amtEls[1].textContent.trim() : '', amtEls[2] ? amtEls[2].textContent.trim() : '']);
         }
     } else { alert('ابتدا گزارش را اجرا کن.'); return; }
@@ -1589,8 +1643,7 @@ function exportReportTable(selector, filename) {
     var now = new Date();
     var dateStr = todayJalaliStr().replace(/\//g, '-');
     var timeStr = pad2(now.getHours()) + '-' + pad2(now.getMinutes());
-    var a = document.createElement('a');
-    a.href = url; a.download = filename + '-' + dateStr + '_' + timeStr + '.csv'; a.click();
+    var a = document.createElement('a'); a.href = url; a.download = filename + '-' + dateStr + '_' + timeStr + '.csv'; a.click();
     URL.revokeObjectURL(url);
 }
 function getPrintFontFamily() { return state.font === 'bnazanin' ? "'B Nazanin',Tahoma,sans-serif" : state.font === 'bsans' ? "'B Sans',Tahoma,sans-serif" : 'Tahoma,sans-serif'; }
@@ -1655,16 +1708,12 @@ function printHtmlReport(selector, title) {
     var win = window.open('', '_blank'); if (!win) { alert('پنجره چاپ باز نشد.'); return; }
     var numCols = 6;
     if (table) { var ths = table.querySelectorAll('thead th'); numCols = ths.length || 6; }
-    else if (detailList) { numCols = 5; }
-    else if (treeContainer) { numCols = 5; }
+    else if (detailList) { numCols = 5; } else if (treeContainer) { numCols = 5; }
     win.document.write('<!DOCTYPE html><html dir="rtl" lang="fa"><head><meta charset="UTF-8"><title>' + esc(title) + '</title><style>' + buildPrintCss(numCols) + '</style></head><body>');
     if (detailList) {
         var cards = detailList.querySelectorAll('.rff-fac-card');
         var pages2 = [], current = [];
-        for (var c = 0; c < cards.length; c++) {
-            current.push(cards[c]);
-            if (current.length >= 3) { pages2.push(current); current = []; }
-        }
+        for (var c = 0; c < cards.length; c++) { current.push(cards[c]); if (current.length >= 3) { pages2.push(current); current = []; } }
         if (current.length > 0) pages2.push(current);
         if (pages2.length === 0) pages2.push([]);
         for (var pp = 0; pp < pages2.length; pp++) {
@@ -1685,12 +1734,8 @@ function printHtmlReport(selector, title) {
         }
     } else if (treeContainer) {
         var nodes = treeContainer.querySelectorAll('.rt-node');
-        var perPage = 30;
-        var pages3 = []; var curr = [];
-        for (var n = 0; n < nodes.length; n++) {
-            curr.push(nodes[n]);
-            if (curr.length >= perPage) { pages3.push(curr); curr = []; }
-        }
+        var perPage = 30; var pages3 = []; var curr = [];
+        for (var n = 0; n < nodes.length; n++) { curr.push(nodes[n]); if (curr.length >= perPage) { pages3.push(curr); curr = []; } }
         if (curr.length > 0) pages3.push(curr);
         if (pages3.length === 0) pages3.push([]);
         for (var p3 = 0; p3 < pages3.length; p3++) {
@@ -1732,21 +1777,18 @@ function applyColVisibility(tableId) {
     for (var r = 0; r < rows.length; r++) { var cells = rows[r].children; if (cells.length === 1 && cells[0].hasAttribute('colspan')) continue; for (var c = 0; c < cells.length; c++) cells[c].style.display = hidden.indexOf(c) !== -1 ? 'none' : ''; }
 }
 function applyColVisibilityAll() {
-    ['fiscal-table','persons-table','comp-table','ba-table','cb-table','proj-table','voucher-table-list','rt-table','ri-table','rf-table','rff-table','cfs-table']
-        .forEach(applyColVisibility);
+    ['fiscal-table','persons-table','comp-table','ba-table','cb-table','proj-table','voucher-table-list','rt-table','ri-table','rf-table','rff-table','cfs-table'].forEach(applyColVisibility);
 }
 function buildColGearButtons() {
     var headers = document.querySelectorAll('.list-header[data-col-table]');
-    for (var i = 0; i < headers.length; i++) {
-        (function(h) {
-            if (h.querySelector('.col-toggle-btn')) return;
-            var tableId = h.getAttribute('data-col-table');
-            var btn = document.createElement('button');
-            btn.className = 'col-toggle-btn'; btn.type = 'button'; btn.title = 'نمایش ستون‌ها'; btn.innerHTML = '⚙';
-            btn.addEventListener('click', function(ev) { ev.stopPropagation(); showColMenu(tableId, btn); });
-            h.appendChild(btn);
-        })(headers[i]);
-    }
+    for (var i = 0; i < headers.length; i++) { (function(h) {
+        if (h.querySelector('.col-toggle-btn')) return;
+        var tableId = h.getAttribute('data-col-table');
+        var btn = document.createElement('button');
+        btn.className = 'col-toggle-btn'; btn.type = 'button'; btn.title = 'نمایش ستون‌ها'; btn.innerHTML = '⚙';
+        btn.addEventListener('click', function(ev) { ev.stopPropagation(); showColMenu(tableId, btn); });
+        h.appendChild(btn);
+    })(headers[i]); }
 }
 function showColMenu(tableId, btn) {
     var menu = document.getElementById('col-menu'); if (!menu) return;
@@ -2239,45 +2281,31 @@ function renderProjectsList() {
     });
     applyColVisibility('proj-table'); makeTableResizable(document.getElementById('proj-table'));
 }
-
-/* ==================== منابع دریافتنی (Cash Flow Sources) ==================== */
 function refreshCfsMoeinSelect() {
     var sel = document.getElementById('cfs-moein'); if (!sel) return;
     var v = sel.value;
     var accounts = DB.load('accounts', []);
     var leaves = accounts.filter(function(a) { return !accounts.some(function(x) { return x.parent === a.id; }); });
     sel.innerHTML = '<option value="">— ابتدا معین را انتخاب کنید —</option>';
-    leaves.forEach(function(a) {
-        var o = document.createElement('option');
-        o.value = a.id;
-        o.textContent = getAccountLabel(a.id, accounts);
-        sel.appendChild(o);
-    });
+    leaves.forEach(function(a) { var o = document.createElement('option'); o.value = a.id; o.textContent = getAccountLabel(a.id, accounts); sel.appendChild(o); });
     sel.value = v;
 }
 function onCfsMoeinChange() {
     var moeinId = document.getElementById('cfs-moein').value;
-    var wrap = document.getElementById('cfs-details-wrap');
-    wrap.innerHTML = '';
+    var wrap = document.getElementById('cfs-details-wrap'); wrap.innerHTML = '';
     if (!moeinId) return;
     var accounts = DB.load('accounts', []);
     var acc = accounts.find(function(a) { return a.id === moeinId; });
     if (!acc || !acc.links || acc.links.length === 0) return;
-    // ذخیره انتخاب قبلی
     var prev = DB.load('cfs.tmp.details', {});
     var html = '';
     for (var i = 0; i < acc.links.length; i++) {
-        var lt = acc.links[i];
-        var items = getLinkedItems(lt);
-        if (items.length === 0) continue;
+        var lt = acc.links[i]; var items = getLinkedItems(lt); if (items.length === 0) continue;
         var selId = 'cfs-detail-' + lt;
         html += '<div class="field">';
         html += '<label>عنوان سطح ۴ منبع (' + linkTypeName(lt) + ') *</label>';
         html += '<select id="' + selId + '" data-linktype="' + lt + '"><option value="">— انتخاب کنید —</option>';
-        for (var k = 0; k < items.length; k++) {
-            var it = items[k];
-            html += '<option value="' + it.id + '"' + (prev[lt] === it.id ? ' selected' : '') + '>' + esc(getLinkedItemLabel(lt, it)) + '</option>';
-        }
+        for (var k = 0; k < items.length; k++) { var it = items[k]; html += '<option value="' + it.id + '"' + (prev[lt] === it.id ? ' selected' : '') + '>' + esc(getLinkedItemLabel(lt, it)) + '</option>'; }
         html += '</select></div>';
     }
     wrap.innerHTML = html;
@@ -2294,13 +2322,7 @@ function renderCfsList() {
         if (filter && txt.indexOf(filter) === -1) continue;
         shown++;
         var tr = document.createElement('tr');
-        tr.innerHTML =
-            '<td>' + esc(moeinLabel) + '</td>' +
-            '<td>' + esc(detailLabel) + (s.linkType ? ' <span class="muted" style="font-size:0.7rem">(' + linkTypeName(s.linkType) + ')</span>' : '') + '</td>' +
-            '<td dir="ltr">' + toFa(esc(s.expectedDate || '—')) + '</td>' +
-            '<td class="num" style="font-weight:bold;color:#1e9e6a">' + formatMoney(s.amount || 0) + ' ' + currencyLabel() + '</td>' +
-            '<td>' + esc(s.notes || '—') + '</td>' +
-            '<td><div class="row-actions"><button class="row-btn edit" data-id="' + s.id + '">✎</button><button class="row-btn del" data-id="' + s.id + '">×</button></div></td>';
+        tr.innerHTML = '<td>' + esc(moeinLabel) + '</td><td>' + esc(detailLabel) + (s.linkType ? ' <span class="muted" style="font-size:0.7rem">(' + linkTypeName(s.linkType) + ')</span>' : '') + '</td><td dir="ltr">' + toFa(esc(s.expectedDate || '—')) + '</td><td class="num" style="font-weight:bold;color:#1e9e6a">' + formatMoney(s.amount || 0) + ' ' + currencyLabel() + '</td><td>' + esc(s.notes || '—') + '</td><td><div class="row-actions"><button class="row-btn edit" data-id="' + s.id + '">✎</button><button class="row-btn del" data-id="' + s.id + '">×</button></div></td>';
         tb.appendChild(tr);
     }
     if (shown === 0) tb.innerHTML = '<tr><td colspan="6" class="empty-row">موردی ثبت نشده.</td></tr>';
@@ -2309,10 +2331,7 @@ function renderCfsList() {
         document.getElementById('cfs-id').value = s.id;
         document.getElementById('cfs-moein').value = s.moeinId || '';
         onCfsMoeinChange();
-        if (s.linkType && s.detailId) {
-            var sel = document.getElementById('cfs-detail-' + s.linkType);
-            if (sel) sel.value = s.detailId;
-        }
+        if (s.linkType && s.detailId) { var sel = document.getElementById('cfs-detail-' + s.linkType); if (sel) sel.value = s.detailId; }
         document.getElementById('cfs-date').value = s.expectedDate || '';
         document.getElementById('cfs-amount').value = s.amount ? formatRaw(s.amount) : '';
         document.getElementById('cfs-notes').value = s.notes || '';
@@ -2339,14 +2358,10 @@ function saveCfsSource() {
     var linkType = '', detailId = '';
     if (acc.links && acc.links.length > 0) {
         for (var i = 0; i < acc.links.length; i++) {
-            var lt = acc.links[i];
-            var sel = document.getElementById('cfs-detail-' + lt);
-            if (!sel) continue;
-            var items = getLinkedItems(lt);
-            if (items.length === 0) continue;
+            var lt = acc.links[i]; var sel = document.getElementById('cfs-detail-' + lt); if (!sel) continue;
+            var items = getLinkedItems(lt); if (items.length === 0) continue;
             if (!sel.value) { alert('سطح ۴ (' + linkTypeName(lt) + ') اجباری است.'); return; }
-            linkType = lt; detailId = sel.value;
-            break;
+            linkType = lt; detailId = sel.value; break;
         }
     }
     var expectedDate = normalizeDigits(document.getElementById('cfs-date').value.trim());
@@ -2355,16 +2370,12 @@ function saveCfsSource() {
     var notes = document.getElementById('cfs-notes').value.trim();
     var o = { id: id || uid(), moeinId: moeinId, linkType: linkType, detailId: detailId, expectedDate: expectedDate, amount: amount, notes: notes };
     var list = DB.load('cashFlowSources', []);
-    if (id) { for (var k = 0; k < list.length; k++) if (list[k].id === id) list[k] = o; }
-    else list.push(o);
+    if (id) { for (var k = 0; k < list.length; k++) if (list[k].id === id) list[k] = o; } else list.push(o);
     DB.save('cashFlowSources', list);
     showToast('✅ ذخیره شد');
-    clearCfsForm();
-    renderCfsList();
+    clearCfsForm(); renderCfsList();
     document.querySelector('[data-tab="cfs-list"]').click();
 }
-
-/* ==================== گزارش وضعیت نقدینگی ==================== */
 function getSourceLabel(s) {
     var accounts = DB.load('accounts', []);
     var moeinLabel = getAccountLabel(s.moeinId, accounts);
@@ -2381,9 +2392,7 @@ function computeBankBalanceAtDate(fromDate) {
         if (v.status !== 'approved') return;
         if (v.date >= fromDate) return;
         (v.lines || []).forEach(function(line) {
-            if (line.details && line.details.bank && bankIds.indexOf(line.details.bank) !== -1) {
-                total += (Number(line.debit) || 0) - (Number(line.credit) || 0);
-            }
+            if (line.details && line.details.bank && bankIds.indexOf(line.details.bank) !== -1) { total += (Number(line.debit) || 0) - (Number(line.credit) || 0); }
         });
     });
     return total;
@@ -2396,54 +2405,24 @@ function runCashFlowReport() {
     document.getElementById('cf-from').value = fromDate;
     document.getElementById('cf-to').value = toDate;
     if (fromDate > toDate) { alert('تاریخ شروع باید قبل از پایان باشد.'); return; }
-
-    // ۱) مانده بانک‌ها در ابتدای روز شروع
     var bankBalance = computeBankBalanceAtDate(fromDate);
-
-    // ۲) منابع (دریافتنی‌ها)
     var sources = DB.load('cashFlowSources', []);
-    var sourcesInRange = sources.filter(function(s) {
-        if (!s.expectedDate) return true;
-        return s.expectedDate >= fromDate && s.expectedDate <= toDate;
-    });
-
-    // ۳) اقساط تسهیلات (پرداخت‌نشده)
+    var sourcesInRange = sources.filter(function(s) { if (!s.expectedDate) return true; return s.expectedDate >= fromDate && s.expectedDate <= toDate; });
     var facilities = DB.load('facilities', []);
     var facilityInsts = [];
-    facilities.forEach(function(f) {
-        (f.installments || []).forEach(function(inst) {
-            if (inst.status === 'paid') return;
-            if (!inst.date) return;
-            if (inst.date < fromDate || inst.date > toDate) return;
-            facilityInsts.push({ f: f, inst: inst });
-        });
-    });
-
-    // ادغام و مرتب‌سازی بر اساس تاریخ
+    facilities.forEach(function(f) { (f.installments || []).forEach(function(inst) {
+        if (inst.status === 'paid') return; if (!inst.date) return;
+        if (inst.date < fromDate || inst.date > toDate) return;
+        facilityInsts.push({ f: f, inst: inst });
+    }); });
     var items = [];
     sourcesInRange.forEach(function(s) {
-        items.push({
-            type: 'source',
-            date: s.expectedDate || fromDate,
-            sortDate: s.expectedDate || (fromDate + '~'), // منابع بی‌تاریخ در ابتدای دوره
-            amount: Number(s.amount) || 0,
-            label: '📥 ' + getSourceLabel(s),
-            notes: s.notes || ''
-        });
+        items.push({ type: 'source', date: s.expectedDate || fromDate, sortDate: s.expectedDate || (fromDate + '~'), amount: Number(s.amount) || 0, label: '📥 ' + getSourceLabel(s), notes: s.notes || '' });
     });
     facilityInsts.forEach(function(item) {
-        items.push({
-            type: 'facility',
-            date: item.inst.date,
-            sortDate: item.inst.date,
-            amount: -Number(item.inst.amount || 0),
-            label: '💸 قسط ' + item.f.name,
-            notes: item.inst.status === 'registered' ? 'قسط ثبت‌شده' : ''
-        });
+        items.push({ type: 'facility', date: item.inst.date, sortDate: item.inst.date, amount: -Number(item.inst.amount || 0), label: '💸 قسط ' + item.f.name, notes: item.inst.status === 'registered' ? 'قسط ثبت‌شده' : '' });
     });
     items.sort(function(a, b) { return compareVals(a.sortDate, b.sortDate); });
-
-    // ساخت جدول
     var html = '<div class="cf-report"><div class="table-wrap">';
     html += '<table class="cf-table" id="cf-table">';
     html += '<thead><tr>';
@@ -2452,9 +2431,7 @@ function runCashFlowReport() {
     html += '<th style="width:25%">مبلغ</th>';
     html += '<th style="width:25%">مانده در خط</th>';
     html += '</tr></thead><tbody>';
-
     var running = bankBalance;
-    // ردیف اول: مانده بانک‌ها
     var bbCls = bankBalance < 0 ? 'cf-neg' : '';
     var bbText = bankBalance < 0 ? '(' + formatMoney(Math.abs(bankBalance)) + ')' : formatMoney(bankBalance);
     html += '<tr class="cf-bank-row">';
@@ -2463,19 +2440,11 @@ function runCashFlowReport() {
     html += '<td class="num ' + bbCls + '">' + bbText + '</td>';
     html += '<td class="num ' + bbCls + '">' + bbText + '</td>';
     html += '</tr>';
-
-    // سایر ردیف‌ها
     items.forEach(function(it) {
         running += it.amount;
-        var amtCls = '';
-        var amtText = '';
-        if (it.type === 'facility') {
-            amtCls = 'cf-neg';
-            amtText = '(' + formatMoney(Math.abs(it.amount)) + ')';
-        } else {
-            amtCls = 'cf-pos';
-            amtText = formatMoney(it.amount);
-        }
+        var amtCls = ''; var amtText = '';
+        if (it.type === 'facility') { amtCls = 'cf-neg'; amtText = '(' + formatMoney(Math.abs(it.amount)) + ')'; }
+        else { amtCls = 'cf-pos'; amtText = formatMoney(it.amount); }
         var balCls = running < 0 ? 'cf-neg' : '';
         var balText = running < 0 ? '(' + formatMoney(Math.abs(running)) + ')' : formatMoney(running);
         var rowCls = it.type === 'facility' ? 'cf-fac-row' : 'cf-source-row';
@@ -2487,7 +2456,6 @@ function runCashFlowReport() {
         html += '<td class="num ' + balCls + '">' + balText + '</td>';
         html += '</tr>';
     });
-
     html += '</tbody>';
     var finalCls = running < 0 ? 'cf-neg' : '';
     var finalText = running < 0 ? '(' + formatMoney(Math.abs(running)) + ')' : formatMoney(running);
@@ -2502,7 +2470,6 @@ function runCashFlowReport() {
     var unitEl = document.getElementById('cf-unit'); if (unitEl) unitEl.textContent = 'واحد: ' + currencyLabel();
     makeTableResizable(document.getElementById('cf-table'));
 }
-
 function runIncompleteReport() {
     var statusF = (document.getElementById('ri-status').value || '');
     var periodF = (document.getElementById('ri-period').value || '');
@@ -2614,10 +2581,7 @@ function computeFacilityRows() {
         var settled = unpaidList.length === 0 && ins.length > 0;
         var remainingToInit = Number(f.initial || 0) - paidAmt;
         var lastInsDate = '—';
-        if (ins.length > 0) {
-            var sortedIns = ins.slice().sort(function(a, b) { return compareVals(b.date, a.date); });
-            lastInsDate = sortedIns[0].date || '—';
-        }
+        if (ins.length > 0) { var sortedIns = ins.slice().sort(function(a, b) { return compareVals(b.date, a.date); }); lastInsDate = sortedIns[0].date || '—'; }
         if (sf === 'settled' && !settled) return;
         if (sf === 'active' && settled) return;
         if (inf === 'has-unpaid' && !(unpaidList.length > 0)) return;
@@ -2630,15 +2594,7 @@ function computeFacilityRows() {
             var txt = ((f.name || '') + ' ' + (f.date || '') + ' ' + categoryName(f.category) + ' ' + (bankObj ? bankObj.bank : '')).toLowerCase();
             if (txt.indexOf(q) === -1) return;
         }
-        rows.push({
-            f: f, bank: bankMap[f.bankId], insCount: ins.length,
-            paidCount: paidCount, registeredCount: registeredCount,
-            totalAmt: totalAmt, paidAmt: paidAmt, unpaidAmt: unpaidAmt,
-            unpaidCount: unpaidList.length, firstUnpaidDate: firstUnpaidDate,
-            firstUnpaidAmount: firstUnpaidAmount, lastPaidDate: lastPaidDate,
-            overdueCount: overdueCount, settled: settled, remaining: remainingToInit,
-            lastInsDate: lastInsDate
-        });
+        rows.push({ f: f, bank: bankMap[f.bankId], insCount: ins.length, paidCount: paidCount, registeredCount: registeredCount, totalAmt: totalAmt, paidAmt: paidAmt, unpaidAmt: unpaidAmt, unpaidCount: unpaidList.length, firstUnpaidDate: firstUnpaidDate, firstUnpaidAmount: firstUnpaidAmount, lastPaidDate: lastPaidDate, overdueCount: overdueCount, settled: settled, remaining: remainingToInit, lastInsDate: lastInsDate });
     });
     return rows;
 }
@@ -2745,18 +2701,14 @@ function renderFacilityFullSummary(rows) {
     });
 }
 function renderFacilityFullDetail(rows) {
-    var sorted = rows.slice().sort(function(a, b) {
-        if (a.insCount !== b.insCount) return a.insCount - b.insCount;
-        return compareVals(a.lastInsDate || '9999/99/99', b.lastInsDate || '9999/99/99');
-    });
+    var sorted = rows.slice().sort(function(a, b) { if (a.insCount !== b.insCount) return a.insCount - b.insCount; return compareVals(a.lastInsDate || '9999/99/99', b.lastInsDate || '9999/99/99'); });
     var today = toJalali(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
     var tStr = today[0] + '/' + pad2(today[1]) + '/' + pad2(today[2]);
     var html = '<div class="rff-detail-list">';
     for (var i = 0; i < sorted.length; i++) {
         var r = sorted[i]; var f = r.f;
         var ins = f.installments || [];
-        var paidCount = r.paidCount;
-        var unpaidCount = r.unpaidCount;
+        var paidCount = r.paidCount; var unpaidCount = r.unpaidCount;
         var catLabel = (f.category === 'scheduled') ? 'زمانبندی' : 'تسهیلات';
         var cls = (f.category === 'scheduled') ? ' sch' : '';
         html += '<div class="rff-fac-card">';
@@ -2777,9 +2729,8 @@ function renderFacilityFullDetail(rows) {
         html += '<div class="item"><div class="lbl">باقی</div><div class="val" style="color:#c47c00">' + toFa(unpaidCount) + '</div></div>';
         if (r.overdueCount > 0) html += '<div class="item"><div class="lbl">سررسید گذشته</div><div class="val" style="color:#c0392b">' + toFa(r.overdueCount) + '</div></div>';
         html += '</div>';
-        if (ins.length === 0) {
-            html += '<div class="rff-empty">— دفترچه اقساطی برای این تسهیلات ثبت نشده —</div>';
-        } else {
+        if (ins.length === 0) { html += '<div class="rff-empty">— دفترچه اقساطی برای این تسهیلات ثبت نشده —</div>'; }
+        else {
             html += '<table class="rff-inst-table"><thead><tr><th style="width:40px">#</th><th>تاریخ</th><th>مبلغ</th><th>وضعیت</th></tr></thead><tbody>';
             var sortedIns = ins.slice().sort(function(a, b) { return compareVals(a.date, b.date); });
             for (var j = 0; j < sortedIns.length; j++) {
@@ -2799,8 +2750,6 @@ function renderFacilityFullDetail(rows) {
     document.getElementById('rff-count').textContent = toFa(rows.length);
     var unitEl = document.getElementById('rff-unit'); if (unitEl) unitEl.textContent = 'واحد: ' + currencyLabel();
 }
-
-/* حسابداری: تحلیل حساب‌ها و تراز */
 function filterVouchers(opts) { var l = DB.load('vouchers', []);
     return l.filter(function(v) { if (v.status !== 'approved') return false;
         if (opts.from && v.date < opts.from) return false; if (opts.to && v.date > opts.to) return false;
@@ -2893,7 +2842,6 @@ function runTrialBalance() {
     document.getElementById('rt-result').innerHTML = html; document.getElementById('rt-count').textContent = toFa(rows.length);
     makeTableResizable(document.getElementById('rt-table')); applyColVisibility('rt-table');
 }
-
 function clearPersonForm() { var ids = ['pr-id','pr-first','pr-last','pr-father','pr-birth','pr-mobile','pr-phone','pr-bank-title','pr-acc','pr-iban','pr-card','pr-address']; for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = ''; }
 function clearCompanyForm() { var ids = ['co-id','co-name','co-phone','co-address']; for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = ''; }
 function clearBAForm() { var ids = ['ba-id','ba-bank','ba-branch-code','ba-branch-name','ba-account','ba-iban','ba-card','ba-order','ba-min-balance']; for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = ''; document.getElementById('ba-type').value = ''; }
@@ -2901,11 +2849,8 @@ function clearCBForm() { var ids = ['cb-id','cb-title','cb-unit','cb-order']; fo
 function clearFiscalForm() { ['fiscal-id','fiscal-title','fiscal-from','fiscal-to'].forEach(function(x) { document.getElementById(x).value = ''; }); }
 function clearFacForm() { ['fc-id','fc-name','fc-date','fc-initial','fc-paid'].forEach(function(x) { document.getElementById(x).value = ''; }); document.getElementById('fc-category').value = 'facility'; document.getElementById('fc-bank').value = ''; document.getElementById('fac-installments-card').style.display = 'none'; currentFacilityId = null; currentInstallments = []; }
 function makeAllTablesResizable() {
-    ['fiscal-table','persons-table','comp-table','ba-table','cb-table','proj-table','voucher-table-list','rt-table','ri-table','rf-table','rff-table','cfs-table','cf-table']
-        .forEach(function(id) { var t = document.getElementById(id); if (t) makeTableResizable(t); });
+    ['fiscal-table','persons-table','comp-table','ba-table','cb-table','proj-table','voucher-table-list','rt-table','ri-table','rf-table','rff-table','cfs-table','cf-table'].forEach(function(id) { var t = document.getElementById(id); if (t) makeTableResizable(t); });
 }
-
-/* ==================== Chart Tree ==================== */
 function renderChartTree(cid, editable) {
     var box = document.getElementById(cid); if (!box) return;
     var accounts = DB.load('accounts', []); box.innerHTML = '';
@@ -3282,6 +3227,233 @@ function refreshReportPeriodSelects() {
         sel.innerHTML = '<option value="">همه</option>'; for (var i = 0; i < ps.length; i++) { var o = document.createElement('option'); o.value = ps[i].id; o.textContent = ps[i].title; sel.appendChild(o); } sel.value = v; });
 }
 
+/* ==================== دستیار هوشمند (Groq) ==================== */
+var AI = {
+    provider: DB.load('ai.provider', 'groq'),
+    apiKey: DB.load('ai.apiKey', ''),
+    model: DB.load('ai.model', 'llama-3.3-70b-versatile'),
+    history: DB.load('ai.history', []),
+    MAX_HISTORY: 20,
+    isThinking: false
+};
+function aiSaveSettings() {
+    DB.save('ai.provider', AI.provider);
+    DB.save('ai.apiKey', AI.apiKey);
+    DB.save('ai.model', AI.model);
+}
+function aiSaveHistory() {
+    DB.save('ai.history', AI.history.slice(-AI.MAX_HISTORY));
+}
+function aiBuildContext() {
+    var lines = [];
+    lines.push('تاریخ امروز: ' + todayJalaliStr());
+    var period = DB.load('fiscalPeriods', []).find(function(p) { return p.id === state.activePeriodId; });
+    if (period) lines.push('دوره مالی فعال: ' + period.title + ' (از ' + period.from + ' تا ' + period.to + ')');
+    var banks = DB.load('bankAccounts', []);
+    if (banks.length > 0) {
+        lines.push('\n=== حساب‌های بانکی ===');
+        var totalBank = 0;
+        banks.sort(function(a, b) { return (Number(a.order) || 9999) - (Number(b.order) || 9999); });
+        banks.forEach(function(b) {
+            var bal = getBankBalance(b.id);
+            totalBank += bal;
+            lines.push('- ' + (b.bank || '—') + (b.branchName ? ' / ' + b.branchName : '') + (b.account ? ' / ' + b.account : '') + ': ' + formatMoney(bal) + ' ' + currencyLabel());
+        });
+        lines.push('جمع مانده بانک‌ها: ' + formatMoney(totalBank) + ' ' + currencyLabel());
+    }
+    var facilities = DB.load('facilities', []);
+    if (facilities.length > 0) {
+        lines.push('\n=== تسهیلات ===');
+        var today = todayJalaliStr();
+        facilities.forEach(function(f) {
+            var ins = f.installments || [];
+            var unpaid = ins.filter(function(x) { return x.status !== 'paid'; });
+            var unpaidAmt = unpaid.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
+            var overdue = unpaid.filter(function(x) { return x.date && x.date < today; }).length;
+            lines.push('- ' + f.name + ' (' + categoryName(f.category) + '): اصل ' + formatMoney(f.initial || 0) + '، پرداخت‌شده ' + formatMoney(f.paid || 0) + '، باقی ' + formatMoney(unpaidAmt) + '، تعداد اقساط باقی ' + unpaid.length + (overdue > 0 ? '، سررسید گذشته ' + overdue : ''));
+        });
+    }
+    var sources = DB.load('cashFlowSources', []);
+    if (sources.length > 0) {
+        lines.push('\n=== منابع دریافتنی ===');
+        var accounts = DB.load('accounts', []);
+        sources.forEach(function(s) {
+            var lbl = getAccountLabel(s.moeinId, accounts);
+            if (s.linkType && s.detailId) lbl += ' / ' + getDetailLabel(s.linkType, s.detailId);
+            lines.push('- ' + lbl + ': ' + formatMoney(s.amount || 0) + '، تاریخ احتمالی ' + (s.expectedDate || '—'));
+        });
+    }
+    var vouchers = DB.load('vouchers', []).filter(function(v) { return v.status === 'approved'; });
+    if (vouchers.length > 0) {
+        lines.push('\n=== آخرین ۲۵ سند تأییدشده ===');
+        var recent = vouchers.slice().sort(function(a, b) { return compareVals(b.date, a.date); }).slice(0, 25);
+        var accounts2 = DB.load('accounts', []);
+        recent.forEach(function(v) {
+            var lines2 = (v.lines || []).map(function(l) {
+                var acc = accounts2.find(function(a) { return a.id === l.account; });
+                var side = (Number(l.debit) || 0) > 0 ? 'بد' : 'بس';
+                var amt = (Number(l.debit) || 0) || (Number(l.credit) || 0);
+                return side + ' ' + (acc ? acc.name : '؟') + ' ' + formatMoney(amt);
+            }).join(' | ');
+            lines.push('- ' + v.date + ' #' + v.number + ' "' + (v.desc || '') + '": ' + lines2);
+        });
+    }
+    return lines.join('\n');
+}
+function aiBuildSystemPrompt() {
+    return 'تو «پارسیس یار» هستی، دستیار هوشمند یک نرم‌افزار حسابداری شخصی فارسی.\n' +
+        'وظیفه‌ات کمک به کاربر برای درک وضعیت مالی، تحلیل هزینه‌ها، بررسی اقساط و پاسخ به سوالات حسابداری است.\n\n' +
+        'قواعد:\n' +
+        '۱. همیشه فارسی روان و محترمانه پاسخ بده.\n' +
+        '۲. پاسخ‌ها را کوتاه و کاربردی نگه‌دار (حداکثر ۲۰۰ کلمه، مگر اینکه خواسته شود).\n' +
+        '۳. اعداد را با جداکننده هزارگان و واحد پول (' + currencyLabel() + ') بنویس.\n' +
+        '۴. اگر داده‌ای در اختیار نداری، صادقانه بگو؛ هیچوقت عدد جعل نکن.\n' +
+        '۵. اگر سوال خارج از حسابداری است، مودبانه بگو که تخصصت مالی است.\n' +
+        '۶. برای پیشنهادهای مالی، دلیل بیاور.\n\n' +
+        '=== اطلاعات لحظه‌ای کاربر ===\n' + aiBuildContext();
+}
+async function aiCallAPI(userMessage) {
+    var sys = aiBuildSystemPrompt();
+    var messages = AI.history.slice(-AI.MAX_HISTORY).map(function(m) { return { role: m.role, content: m.content }; });
+    messages.push({ role: 'user', content: userMessage });
+
+    if (AI.provider === 'groq') {
+        var msgs = [{ role: 'system', content: sys }].concat(messages);
+        var res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.apiKey },
+            body: JSON.stringify({
+                model: AI.model || 'llama-3.3-70b-versatile',
+                messages: msgs,
+                temperature: 0.3,
+                max_tokens: 800
+            })
+        });
+        if (!res.ok) { var t = await res.text(); throw new Error('Groq ' + res.status + ': ' + t.substring(0, 200)); }
+        var data = await res.json();
+        return data.choices[0].message.content;
+    } else if (AI.provider === 'openai') {
+        var msgs2 = [{ role: 'system', content: sys }].concat(messages);
+        var res2 = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.apiKey },
+            body: JSON.stringify({ model: AI.model || 'gpt-4o-mini', messages: msgs2, temperature: 0.3, max_tokens: 800 })
+        });
+        if (!res2.ok) { var t2 = await res2.text(); throw new Error('OpenAI ' + res2.status + ': ' + t2.substring(0, 200)); }
+        var data2 = await res2.json();
+        return data2.choices[0].message.content;
+    } else if (AI.provider === 'anthropic') {
+        var res3 = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-api-key': AI.apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+            body: JSON.stringify({ model: AI.model || 'claude-3-5-haiku-20241022', max_tokens: 800, system: sys, messages: messages })
+        });
+        if (!res3.ok) { var t3 = await res3.text(); throw new Error('Anthropic ' + res3.status + ': ' + t3.substring(0, 200)); }
+        var data3 = await res3.json();
+        return data3.content[0].text;
+    }
+    throw new Error('سرویس نامعتبر');
+}
+function aiRender() {
+    var box = document.getElementById('ai-messages');
+    if (!box) return;
+    if (!AI.apiKey) {
+        box.innerHTML = '<div class="ai-setup"><h3>🤖 به پارسیس یار خوش آمدید</h3><p>برای فعال‌سازی، از تنظیمات (⚙) کلید API خود را وارد کنید.<br>سرویس Groq رایگان و فوق‌سریع است — کلید از <code>console.groq.com/keys</code></p><button class="btn-primary" onclick="document.getElementById(\'ai-settings-btn\').click()">تنظیمات</button></div>';
+        return;
+    }
+    if (AI.history.length === 0) {
+        box.innerHTML = '<div class="ai-msg system">سلام! من پارسیس یار هستم. هر سوالی درباره وضعیت مالی‌ات داری بپرس.</div>';
+        return;
+    }
+    var html = '';
+    AI.history.forEach(function(m) {
+        var cls = m.role === 'user' ? 'user' : (m.role === 'error' ? 'error' : 'assistant');
+        html += '<div class="ai-msg ' + cls + '">' + esc(m.content) + '</div>';
+    });
+    if (AI.isThinking) html += '<div class="ai-msg thinking">در حال فکر کردن...</div>';
+    box.innerHTML = html;
+    box.scrollTop = box.scrollHeight;
+}
+function aiOpen() {
+    document.getElementById('ai-modal').classList.add('show');
+    document.getElementById('ai-overlay').classList.add('show');
+    aiRender();
+}
+function aiClose() {
+    document.getElementById('ai-modal').classList.remove('show');
+    document.getElementById('ai-overlay').classList.remove('show');
+}
+async function aiSend() {
+    if (AI.isThinking) return;
+    var inp = document.getElementById('ai-input');
+    var text = (inp.value || '').trim();
+    if (!text) return;
+    if (!AI.apiKey) { alert('ابتدا کلید API را در تنظیمات وارد کنید.'); return; }
+    inp.value = '';
+    AI.history.push({ role: 'user', content: text });
+    AI.isThinking = true;
+    aiRender();
+    var btn = document.getElementById('ai-send-btn');
+    if (btn) btn.disabled = true;
+    try {
+        var reply = await aiCallAPI(text);
+        AI.history.push({ role: 'assistant', content: reply });
+    } catch (e) {
+        AI.history.push({ role: 'error', content: '⚠️ ' + (e.message || 'خطا در ارتباط') });
+    } finally {
+        AI.isThinking = false;
+        if (btn) btn.disabled = false;
+        aiSaveHistory();
+        aiRender();
+    }
+}
+function aiOpenSettings() {
+    document.getElementById('ai-provider-select').value = AI.provider;
+    document.getElementById('ai-apikey-input').value = AI.apiKey;
+    document.getElementById('ai-model-input').value = AI.model;
+    document.getElementById('ai-settings-modal').classList.add('show');
+    document.getElementById('ai-settings-overlay').classList.add('show');
+}
+function aiCloseSettings() {
+    document.getElementById('ai-settings-modal').classList.remove('show');
+    document.getElementById('ai-settings-overlay').classList.remove('show');
+}
+function aiInit() {
+    document.getElementById('ai-fab').addEventListener('click', aiOpen);
+    document.getElementById('ai-close-btn').addEventListener('click', aiClose);
+    document.getElementById('ai-overlay').addEventListener('click', aiClose);
+    document.getElementById('ai-settings-btn').addEventListener('click', aiOpenSettings);
+    document.getElementById('ai-settings-close').addEventListener('click', aiCloseSettings);
+    document.getElementById('ai-settings-cancel').addEventListener('click', aiCloseSettings);
+    document.getElementById('ai-settings-overlay').addEventListener('click', aiCloseSettings);
+    document.getElementById('ai-settings-save').addEventListener('click', function() {
+        AI.provider = document.getElementById('ai-provider-select').value;
+        AI.apiKey = document.getElementById('ai-apikey-input').value.trim();
+        var defModel = AI.provider === 'groq' ? 'llama-3.3-70b-versatile' : (AI.provider === 'openai' ? 'gpt-4o-mini' : 'claude-3-5-haiku-20241022');
+        AI.model = document.getElementById('ai-model-input').value.trim() || defModel;
+        aiSaveSettings();
+        aiCloseSettings();
+        aiRender();
+        showToast('✅ ذخیره شد');
+    });
+    document.getElementById('ai-clear-btn').addEventListener('click', function() {
+        if (!confirm('تاریخچه گفتگو پاک شود؟')) return;
+        AI.history = [];
+        aiSaveHistory();
+        aiRender();
+    });
+    document.getElementById('ai-send-btn').addEventListener('click', aiSend);
+    document.getElementById('ai-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); aiSend(); }
+    });
+    document.querySelectorAll('.ai-suggestion').forEach(function(b) {
+        b.addEventListener('click', function() {
+            document.getElementById('ai-input').value = this.getAttribute('data-q');
+            aiSend();
+        });
+    });
+}
+
 var deferredInstallPrompt = null;
 window.addEventListener('beforeinstallprompt', function(e) { e.preventDefault(); deferredInstallPrompt = e;
     var banner = document.getElementById('install-banner'); if (banner) banner.classList.remove('hidden'); });
@@ -3486,11 +3658,9 @@ function init() {
     attachMoneyInput(document.getElementById('fc-initial'), function(v) { renderInstallmentsTotals(); });
     attachMoneyInput(document.getElementById('ba-min-balance'));
     attachMoneyInput(document.getElementById('cfs-amount'));
-    /* CFS events */
     document.getElementById('cfs-moein').addEventListener('change', onCfsMoeinChange);
     document.getElementById('save-cfs').addEventListener('click', saveCfsSource);
     document.getElementById('new-cfs').addEventListener('click', clearCfsForm);
-    /* Cash Flow Report events */
     document.getElementById('cf-run').addEventListener('click', runCashFlowReport);
     document.getElementById('cf-today').addEventListener('click', function() {
         var t = todayJalaliStr();
@@ -3560,7 +3730,9 @@ function init() {
     function autoRead() { if (!state.smsAutoRead) return; setTimeout(function() { readClipboardAndAdd(true); }, 700); }
     window.addEventListener('focus', autoRead);
     document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'visible') autoRead(); });
-    console.log('🎉 آماده');
+    aiInit();
+    aiRender();
+    console.log('🎉 آماده — Groq Edition');
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
