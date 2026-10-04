@@ -358,8 +358,6 @@ body.col-resizing * { cursor:col-resize !important; }
 .ri-issues { display:flex; flex-direction:column; gap:4px; padding:4px 0; }
 .ri-issue-item { display:flex; align-items:center; gap:6px; padding:4px 8px; background:#fef2f2; border-radius:7px; font-size:0.78rem; color:#b91c1c; }
 .ri-issue-item::before { content:'⚠'; color:#dc2626; }
-
-/* گزارش جامع تسهیلات — حالت جزئیات */
 .rff-detail-list { display:flex; flex-direction:column; gap:14px; }
 .rff-fac-card { background:#fff; border-radius:14px; border:1px solid var(--border); box-shadow:var(--shadow-sm); overflow:hidden; }
 .rff-fac-head { padding:14px 16px; background:linear-gradient(135deg, var(--primary-soft), #fff); border-right:4px solid var(--primary); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
@@ -379,14 +377,37 @@ body.col-resizing * { cursor:col-resize !important; }
 .rff-inst-table tr.overdue-row { background:#fef2f2; }
 .rff-inst-table .num { text-align:center; }
 .rff-empty { padding:12px; text-align:center; color:var(--text-muted); font-size:0.85rem; }
-
-/* فرم صدور سند — چیدمان جدید */
 .voucher-head-row { display:grid; grid-template-columns:130px 150px 1fr; gap:8px; align-items:end; }
 @media (max-width:640px) { .voucher-head-row { grid-template-columns:1fr 1fr; } .voucher-head-row .v-type-field { grid-column:1 / -1; } }
 .voucher-head-row .field { margin-bottom:0; }
 .voucher-head-row input { text-align:center; }
-
-/* چاپ */
+/* گزارش وضعیت نقدینگی */
+.cf-report { font-size:0.9rem; }
+.cf-table { width:100%; border-collapse:separate; border-spacing:0; background:#fff; border-radius:12px; overflow:hidden; border:1px solid var(--border); }
+.cf-table thead th { background:linear-gradient(180deg, var(--primary-light), var(--primary-soft)); color:var(--primary-dark); padding:11px 12px; text-align:right; font-weight:bold; font-size:0.82rem; border-bottom:2px solid var(--primary); white-space:nowrap; }
+.cf-table td { padding:10px 12px; border-bottom:1px solid var(--border); }
+.cf-table td.num { text-align:center; font-variant-numeric:tabular-nums; font-weight:bold; }
+.cf-table tr.cf-bank-row { background:linear-gradient(90deg, #eef5fd 0%, #ffffff 100%); }
+.cf-table tr.cf-bank-row td { font-weight:bold; color:var(--primary-dark); }
+.cf-table tr.cf-bank-row td.cf-cat { font-size:0.95rem; }
+.cf-table tr.cf-source-row { background:#f0fdf4; }
+.cf-table tr.cf-fac-row { background:#fef2f2; }
+.cf-table td.cf-neg { color:#c0392b !important; font-weight:bold; }
+.cf-table td.cf-pos { color:#1e9e6a; }
+.cf-table td.cf-cat { font-weight:bold; }
+.cf-table tr.cf-source-row td.cf-cat { color:#167a52; }
+.cf-table tr.cf-fac-row td.cf-cat { color:#991b1b; }
+.cf-table tfoot td { background:linear-gradient(180deg, var(--primary-light), var(--primary-soft)); font-weight:bold; color:var(--primary-dark); border-top:2px solid var(--primary); border-bottom:none; padding:12px; }
+.cf-table tfoot td.cf-neg { color:#c0392b !important; }
+.cf-empty { text-align:center; padding:20px; color:var(--text-muted); }
+.cf-legend { display:flex; gap:10px; flex-wrap:wrap; font-size:0.78rem; margin-top:10px; padding:8px; background:var(--bg); border-radius:10px; }
+.cf-legend .lg { display:flex; align-items:center; gap:4px; }
+.cf-legend .lg .dot { width:12px; height:12px; border-radius:3px; }
+.cf-legend .lg.bank .dot { background:#4a6cf7; }
+.cf-legend .lg.source .dot { background:#22a06b; }
+.cf-legend .lg.fac .dot { background:#e5484d; }
+.cf-legend .lg.neg .dot { background:#c0392b; }
+/* End */
 @media print {
     .topbar, .sidebar, .overlay, .install-banner, .tabs, .form-buttons, .list-header, .col-toggle-btn, .export-btn { display:none !important; }
     .content { padding:0 !important; max-width:100% !important; }
@@ -432,6 +453,7 @@ body.col-resizing * { cursor:col-resize !important; }
                 <button data-page="bank-accounts">🏦 حساب‌های بانکی</button>
                 <button data-page="cash-boxes">💰 صندوق‌ها</button>
                 <button data-page="projects">📁 پروژه‌ها</button>
+                <button data-page="cashflow-sources">📌 منابع دریافتنی</button>
             </div>
         </div>
         <div class="nav-group collapsed"><button class="nav-group-title"><span>🏦 تسهیلات</span><span class="caret">▾</span></button>
@@ -453,6 +475,7 @@ body.col-resizing * { cursor:col-resize !important; }
         </div>
         <div class="nav-group collapsed"><button class="nav-group-title"><span>📊 گزارش‌ها</span><span class="caret">▾</span></button>
             <div class="nav-group-items">
+                <button data-page="report-cashflow">💵 وضعیت نقدینگی</button>
                 <button data-page="report-account">📒 مرور حساب‌ها</button>
                 <button data-page="report-trial">⚖️ تراز آزمایشی</button>
                 <button data-page="report-incomplete">🔍 تراکنش‌های تکمیل نشده</button>
@@ -599,6 +622,33 @@ body.col-resizing * { cursor:col-resize !important; }
     </div></div>
 </section>
 
+<section id="page-cashflow-sources" class="page"><h2>📌 منابع دریافتنی</h2>
+    <p class="muted" style="margin-bottom:12px;font-size:0.8rem">منابع دریافتنی، مبالغی هستند که انتظار دارید در آینده دریافت کنید (مثل طلب از مشتری، درآمد پروژه در جریان، چک دریافتی). این اقلام در گزارش «وضعیت نقدینگی» به صورت مثبت نمایش داده می‌شوند.</p>
+    <div class="tabs"><button class="tab-btn active" data-tab="cfs-list">📋 فهرست</button><button class="tab-btn" data-tab="cfs-add">✏️ تعریف</button></div>
+    <div id="tab-cfs-list" class="tab-content active"><div class="card">
+        <div class="list-header" data-col-table="cfs-table">
+            <span class="count-badge" id="cfs-count">۰</span>
+            <input type="text" class="filter-input" id="cfs-filter" placeholder="🔍 جستجو">
+            <button class="export-btn" data-export="cashFlowSources">📊 اکسل</button>
+        </div>
+        <div class="table-wrap"><table class="data-table" id="cfs-table"><thead><tr><th>معین منبع</th><th>سطح ۴</th><th>تاریخ احتمالی</th><th>مبلغ</th><th>توضیحات</th><th>عملیات</th></tr></thead><tbody id="cfs-list-body"></tbody></table></div>
+    </div></div>
+    <div id="tab-cfs-add" class="tab-content"><div class="card">
+        <input type="hidden" id="cfs-id">
+        <div class="field">
+            <label>عنوان معین منبع *</label>
+            <select id="cfs-moein"><option value="">— ابتدا معین را انتخاب کنید —</option></select>
+        </div>
+        <div id="cfs-details-wrap"></div>
+        <div class="grid-2">
+            <div class="field"><label>تاریخ احتمالی دریافت</label><input type="text" id="cfs-date" class="date-picker" dir="ltr"></div>
+            <div class="field"><label>مبلغ احتمالی قابل دریافت</label><input type="text" id="cfs-amount" class="money-input" inputmode="numeric" dir="ltr"></div>
+        </div>
+        <div class="field"><label>توضیحات</label><input type="text" id="cfs-notes"></div>
+        <div class="form-buttons"><button id="save-cfs" class="btn-primary">💾 ذخیره</button><button id="new-cfs" class="btn-secondary">جدید</button></div>
+    </div></div>
+</section>
+
 <section id="page-facilities" class="page"><h2>🏦 تسهیلات</h2>
     <div class="tabs"><button class="tab-btn active" data-tab="fac-list">📋 فهرست</button><button class="tab-btn" data-tab="fac-add">✏️ تعریف</button></div>
     <div id="tab-fac-list" class="tab-content active"><div class="card">
@@ -736,6 +786,31 @@ body.col-resizing * { cursor:col-resize !important; }
     </div>
 </section>
 
+<section id="page-report-cashflow" class="page"><h2>💵 وضعیت نقدینگی</h2>
+    <div class="card">
+        <div class="grid-2">
+            <div class="field"><label>از تاریخ</label><input type="text" id="cf-from" class="date-picker" dir="ltr"></div>
+            <div class="field"><label>تا تاریخ</label><input type="text" id="cf-to" class="date-picker" dir="ltr"></div>
+        </div>
+        <div class="form-buttons">
+            <button id="cf-run" class="btn-primary">🔍 اجرا</button>
+            <button id="cf-today" class="btn-secondary">امروز تا یک ماه</button>
+            <button id="cf-print" class="btn-secondary">🖨 چاپ</button>
+            <button id="cf-export" class="btn-secondary">📊 اکسل</button>
+        </div>
+        <div class="cf-legend">
+            <div class="lg bank"><span class="dot"></span> مانده بانک (نقطه شروع)</div>
+            <div class="lg source"><span class="dot"></span> دریافتنی (منابع)</div>
+            <div class="lg fac"><span class="dot"></span> پرداختی (تسهیلات/اقساط)</div>
+            <div class="lg neg"><span class="dot"></span> مانده منفی (پرانتز قرمز)</div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="list-header"><span class="count-badge" id="cf-count">۰</span><span class="unit-chip" id="cf-unit"></span></div>
+        <div id="cf-result"></div>
+    </div>
+</section>
+
 <section id="page-report-account" class="page"><h2>📒 مرور حساب‌ها</h2>
     <div class="card">
         <div class="grid-4"><div class="field"><label>از تاریخ</label><input type="text" id="ra-from" class="date-picker" dir="ltr"></div><div class="field"><label>تا تاریخ</label><input type="text" id="ra-to" class="date-picker" dir="ltr"></div><div class="field"><label>نوع</label><select id="ra-cat"><option value="">همه</option><option value="permanent">دائمی</option><option value="temporary">موقت</option><option value="none">مهم نیست</option></select></div><div class="field"><label>ماهیت</label><select id="ra-nature"><option value="">همه</option><option value="debit">بدهکار</option><option value="credit">بستانکار</option><option value="none">مهم نیست</option></select></div></div>
@@ -856,7 +931,7 @@ body.col-resizing * { cursor:col-resize !important; }
 </div>
 
 <script>
-console.log('✅ پارسیس PWA v6');
+console.log('✅ پارسیس PWA v7');
 var LS_PREFIX = 'parsis.';
 var DB = {
     load: function(k, f) { try { var r = localStorage.getItem(LS_PREFIX + k); return r ? JSON.parse(r) : f; } catch(e) { return f; } },
@@ -969,6 +1044,16 @@ function jalaliDiff(y1, m1, d1, y2, m2, d2) {
     var g1 = jalaliToGregorian(y1, m1, d1); var g2 = jalaliToGregorian(y2, m2, d2);
     var date1 = new Date(g1[0], g1[1] - 1, g1[2]); var date2 = new Date(g2[0], g2[1] - 1, g2[2]);
     return Math.round((date2 - date1) / (1000 * 60 * 60 * 24));
+}
+function addJalaliDays(dateStr, days) {
+    if (!dateStr) return '';
+    var p = normalizeDigits(dateStr).split('/').map(Number);
+    if (p.length !== 3) return '';
+    var g = jalaliToGregorian(p[0], p[1], p[2]);
+    var dt = new Date(g[0], g[1] - 1, g[2]);
+    dt.setDate(dt.getDate() + days);
+    var j = toJalali(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
+    return j[0] + '/' + pad2(j[1]) + '/' + pad2(j[2]);
 }
 function tsToJalaliDate(ts) { var d = new Date(ts); var j = toJalali(d.getFullYear(), d.getMonth() + 1, d.getDate()); return j[0] + '/' + pad2(j[1]) + '/' + pad2(j[2]); }
 function tsToJalaliTime(ts) { var d = new Date(ts); return pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
@@ -1141,8 +1226,6 @@ function getVoucherIssues(v) {
     if (td !== tc) balanceIssues.push('سند متوازن نیست (اختلاف: ' + formatMoney(Math.abs(td - tc)) + ' ' + currencyLabel() + ')');
     return issues.concat(lineIssues).concat(balanceIssues);
 }
-
-/* ===== اعتبارسنجی تاریخ در دوره مالی فعال ===== */
 function validateDateInActivePeriod(dateStr) {
     if (!dateStr) return { ok: false, msg: 'تاریخ خالی است' };
     var periods = DB.load('fiscalPeriods', []);
@@ -1154,8 +1237,6 @@ function validateDateInActivePeriod(dateStr) {
     }
     return { ok: true };
 }
-
-/* ===== تشخیص حساب بانکی بر اساس نام ===== */
 function matchBankAccountByBankName(text) {
     if (!text) return null;
     var t = String(text);
@@ -1165,13 +1246,11 @@ function matchBankAccountByBankName(text) {
         var b = ba[i];
         var bankName = String(b.bank || '').trim();
         if (bankName.length < 3) continue;
-        // تطبیق کامل
         if (t.indexOf(bankName) !== -1) {
             var score = bankName.length * 2;
             if (score > bestScore) { bestScore = score; best = b; }
             continue;
         }
-        // تطبیق بخشی از نام (کلمه‌های با طول ≥ ۳)
         var parts = bankName.split(/\s+/).filter(function(w) { return w.length >= 3; });
         for (var p = 0; p < parts.length; p++) {
             if (t.indexOf(parts[p]) !== -1) {
@@ -1182,15 +1261,11 @@ function matchBankAccountByBankName(text) {
     }
     return bestScore >= 3 ? best : null;
 }
-
-/* ===== فیلتر هوشمند کلیپ‌بورد ===== */
 function findMatchingBankAccount(text) {
     if (!text) return null;
     var rawText = String(text);
-    // ۱) اول با نام بانک/شعبه
     var byName = matchBankAccountByBankName(rawText);
     if (byName) return byName;
-    // ۲) با ارقام
     var t = normalizeDigits(rawText).replace(/\D/g, '');
     if (t.length < 6) return null;
     var ba = DB.load('bankAccounts', []);
@@ -1218,8 +1293,6 @@ function findMatchingBankAccount(text) {
     }
     return best;
 }
-
-/* ===== SMS Parser ===== */
 function parseBankSms(text) {
     var result = { amount: 0, direction: '', balance: 0, accountCandidates: [], matchedAccount: null, bankName: '', raw: text };
     if (!text) return result;
@@ -1268,16 +1341,8 @@ function parseBankSms(text) {
     var allD = t.match(/\d{5,25}/g) || [];
     for (var ad = 0; ad < allD.length; ad++) { var v2 = allD[ad]; if (Number(v2) === result.balance) continue; if (Number(v2) === result.amount) continue; addC(v2); }
     result.accountCandidates = candidates;
-
-    // تطبیق با نام بانک (اولویت اول)
     var byName = matchBankAccountByBankName(text);
-    if (byName) {
-        result.matchedAccount = byName;
-        result.matchedField = 'نام بانک';
-        return result;
-    }
-
-    // تطبیق با شماره حساب/کارت/شبا
+    if (byName) { result.matchedAccount = byName; result.matchedField = 'نام بانک'; return result; }
     var ba = DB.load('bankAccounts', []); var best = null, bestMS = 0;
     for (var bi = 0; bi < ba.length; bi++) {
         var bak = ba[bi];
@@ -1368,7 +1433,6 @@ function convertSmsToVoucher(smsId) {
     var bankMoein = getBankMoeinId(); if (!bankMoein) { alert('⚠️ معین بانک تعریف نشده.'); return; }
     var matchedDetailId = p.matchedAccountId || '';
     var lines = [];
-    // شرح‌ها خالی — کاربر خودش پر کند
     if (p.direction === 'out') {
         lines.push({ id: uid(), account: '', details: {}, debit: p.amount, credit: 0, trackingNumber: '', trackingDate: '', description: '' });
         lines.push({ id: uid(), account: bankMoein, details: matchedDetailId ? { bank: matchedDetailId } : {}, debit: 0, credit: p.amount, trackingNumber: '', trackingDate: '', description: '', locked: true });
@@ -1455,7 +1519,6 @@ function exportToCsv(key, filename) {
     var a = document.createElement('a'); a.href = url; a.download = filename + '-' + dateStr + '_' + timeStr + '.csv';
     a.click(); URL.revokeObjectURL(url);
 }
-
 function exportReportTable(selector, filename) {
     var el = document.querySelector(selector);
     if (!el) { alert('ابتدا گزارش را اجرا کن.'); return; }
@@ -1530,11 +1593,8 @@ function exportReportTable(selector, filename) {
     a.href = url; a.download = filename + '-' + dateStr + '_' + timeStr + '.csv'; a.click();
     URL.revokeObjectURL(url);
 }
-
 function getPrintFontFamily() { return state.font === 'bnazanin' ? "'B Nazanin',Tahoma,sans-serif" : state.font === 'bsans' ? "'B Sans',Tahoma,sans-serif" : 'Tahoma,sans-serif'; }
 function cleanOuterHtml(el) { var c = el.cloneNode(true); var grips = c.querySelectorAll('.col-resizer'); for (var i = 0; i < grips.length; i++) grips[i].parentNode.removeChild(grips[i]); return c.outerHTML; }
-
-/* ===== CSS چاپ — فیت در یک صفحه ===== */
 function buildPrintCss(numCols) {
     numCols = numCols || 6;
     var ff = getPrintFontFamily();
@@ -1554,6 +1614,7 @@ function buildPrintCss(numCols) {
         'th { background:#e6f0fa; color:#357abd; font-weight:bold; }' +
         'tfoot td { background:#e6f0fa; font-weight:bold; }' +
         '.num { text-align:center; font-variant-numeric:tabular-nums; } .dr { color:#c0392b; } .cr { color:#1e9e6a; }' +
+        '.cf-neg { color:#c0392b !important; font-weight:bold; } .cf-pos { color:#1e9e6a; }' +
         '.print-foot { margin-top:auto; text-align:center; font-size:' + (fontSize - 1) + 'px; color:#666; border-top:1px solid #ccc; padding-top:3px; }' +
         '.report-tree { font-size:' + fontSize + 'px; }' +
         '.rt-node { border:1px solid #ccc; padding:3px 6px; margin-bottom:2px; border-radius:4px; display:flex; gap:4px; flex-wrap:wrap; font-size:' + fontSize + 'px; }' +
@@ -1592,23 +1653,16 @@ function printHtmlReport(selector, title) {
     var treeContainer = el.querySelector('.report-tree');
     var detailList = el.querySelector('.rff-detail-list');
     var win = window.open('', '_blank'); if (!win) { alert('پنجره چاپ باز نشد.'); return; }
-
-    // تشخیص تعداد ستون‌ها
     var numCols = 6;
     if (table) { var ths = table.querySelectorAll('thead th'); numCols = ths.length || 6; }
     else if (detailList) { numCols = 5; }
     else if (treeContainer) { numCols = 5; }
-
     win.document.write('<!DOCTYPE html><html dir="rtl" lang="fa"><head><meta charset="UTF-8"><title>' + esc(title) + '</title><style>' + buildPrintCss(numCols) + '</style></head><body>');
-
     if (detailList) {
-        // گزارش جامع تسهیلات — جزئیات
         var cards = detailList.querySelectorAll('.rff-fac-card');
-        // تقسیم کارت‌ها به صفحات
         var pages2 = [], current = [];
         for (var c = 0; c < cards.length; c++) {
             current.push(cards[c]);
-            // هر ۳ کارت یا بر اساس ارتفاع (تقریبی)
             if (current.length >= 3) { pages2.push(current); current = []; }
         }
         if (current.length > 0) pages2.push(current);
@@ -1678,7 +1732,7 @@ function applyColVisibility(tableId) {
     for (var r = 0; r < rows.length; r++) { var cells = rows[r].children; if (cells.length === 1 && cells[0].hasAttribute('colspan')) continue; for (var c = 0; c < cells.length; c++) cells[c].style.display = hidden.indexOf(c) !== -1 ? 'none' : ''; }
 }
 function applyColVisibilityAll() {
-    ['fiscal-table','persons-table','comp-table','ba-table','cb-table','proj-table','voucher-table-list','rt-table','ri-table','rf-table','rff-table']
+    ['fiscal-table','persons-table','comp-table','ba-table','cb-table','proj-table','voucher-table-list','rt-table','ri-table','rf-table','rff-table','cfs-table']
         .forEach(applyColVisibility);
 }
 function buildColGearButtons() {
@@ -1859,8 +1913,6 @@ function saveVoucherAsTemplate() { var valid = voucherLines.filter(function(l) {
     var list = DB.load('voucherTemplates', []); list.push(tpl); DB.save('voucherTemplates', list);
     refreshTemplateSelect(); renderTemplateList(); showToast('✅ ذخیره شد.'); }
 var templateLines = [];
-
-/* ===== دکمه افزودن شرح به استاندارد ===== */
 function addDescriptionToStandard(desc, silent) {
     if (!desc || !desc.trim()) { if (!silent) alert('شرح خالی است.'); return false; }
     var v = desc.trim();
@@ -1871,7 +1923,6 @@ function addDescriptionToStandard(desc, silent) {
     if (!silent) showToast('✅ به شرح‌های استاندارد اضافه شد.');
     return true;
 }
-
 function renderTemplateLines() {
     var box = document.getElementById('tpl-lines'); if (!box) return; box.innerHTML = '';
     if (templateLines.length === 0) templateLines.push({ side: 'debit', account: '', details: {}, desc: '', fixedAmount: 0 });
@@ -1982,7 +2033,9 @@ function goToPage(name) {
     if (name === 'bank-accounts') { renderBankAccountsList(); refreshBankTypeSelect(); }
     if (name === 'cash-boxes') { renderCashBoxesList(); refreshCashTypeSelect(); }
     if (name === 'projects') renderProjectsList();
+    if (name === 'cashflow-sources') { refreshCfsMoeinSelect(); renderCfsList(); }
     if (name === 'facilities') { renderFacilitiesList(); refreshFacBankSelect(); }
+    if (name === 'report-cashflow') { if (!document.getElementById('cf-from').value) { var t = todayJalaliStr(); document.getElementById('cf-from').value = t; document.getElementById('cf-to').value = addJalaliDays(t, 30); } runCashFlowReport(); }
     if (name === 'report-account') { refreshReportPeriodSelects(); updateUnitChips(); }
     if (name === 'report-trial') { refreshReportPeriodSelects(); updateUnitChips(); }
     if (name === 'report-incomplete') { refreshReportPeriodSelects(); updateUnitChips(); runIncompleteReport(); }
@@ -1991,7 +2044,7 @@ function goToPage(name) {
     if (name === 'home') { updateHomeWidgets(); }
     attachDatePickers(); updateTopbarPeriod(); applyColVisibilityAll(); makeAllTablesResizable(); buildColGearButtons();
 }
-function updateUnitChips() { ['ra-unit','rt-unit','rf-unit','ri-unit','rff-unit'].forEach(function(id) { var el = document.getElementById(id); if (el) el.textContent = 'واحد: ' + currencyLabel(); }); }
+function updateUnitChips() { ['ra-unit','rt-unit','rf-unit','ri-unit','rff-unit','cf-unit'].forEach(function(id) { var el = document.getElementById(id); if (el) el.textContent = 'واحد: ' + currencyLabel(); }); }
 function applyTheme(theme) { document.body.classList.remove('theme-sky','theme-beige','theme-jade'); document.body.classList.add('theme-' + theme);
     var c = document.querySelectorAll('.theme-card'); for (var i = 0; i < c.length; i++) c[i].classList.toggle('active', c[i].getAttribute('data-theme') === theme); }
 function applyFont(font) { document.body.classList.remove('font-bnazanin','font-bsans','font-tahoma'); document.body.classList.add('font-' + font);
@@ -2186,6 +2239,673 @@ function renderProjectsList() {
     });
     applyColVisibility('proj-table'); makeTableResizable(document.getElementById('proj-table'));
 }
+
+/* ==================== منابع دریافتنی (Cash Flow Sources) ==================== */
+function refreshCfsMoeinSelect() {
+    var sel = document.getElementById('cfs-moein'); if (!sel) return;
+    var v = sel.value;
+    var accounts = DB.load('accounts', []);
+    var leaves = accounts.filter(function(a) { return !accounts.some(function(x) { return x.parent === a.id; }); });
+    sel.innerHTML = '<option value="">— ابتدا معین را انتخاب کنید —</option>';
+    leaves.forEach(function(a) {
+        var o = document.createElement('option');
+        o.value = a.id;
+        o.textContent = getAccountLabel(a.id, accounts);
+        sel.appendChild(o);
+    });
+    sel.value = v;
+}
+function onCfsMoeinChange() {
+    var moeinId = document.getElementById('cfs-moein').value;
+    var wrap = document.getElementById('cfs-details-wrap');
+    wrap.innerHTML = '';
+    if (!moeinId) return;
+    var accounts = DB.load('accounts', []);
+    var acc = accounts.find(function(a) { return a.id === moeinId; });
+    if (!acc || !acc.links || acc.links.length === 0) return;
+    // ذخیره انتخاب قبلی
+    var prev = DB.load('cfs.tmp.details', {});
+    var html = '';
+    for (var i = 0; i < acc.links.length; i++) {
+        var lt = acc.links[i];
+        var items = getLinkedItems(lt);
+        if (items.length === 0) continue;
+        var selId = 'cfs-detail-' + lt;
+        html += '<div class="field">';
+        html += '<label>عنوان سطح ۴ منبع (' + linkTypeName(lt) + ') *</label>';
+        html += '<select id="' + selId + '" data-linktype="' + lt + '"><option value="">— انتخاب کنید —</option>';
+        for (var k = 0; k < items.length; k++) {
+            var it = items[k];
+            html += '<option value="' + it.id + '"' + (prev[lt] === it.id ? ' selected' : '') + '>' + esc(getLinkedItemLabel(lt, it)) + '</option>';
+        }
+        html += '</select></div>';
+    }
+    wrap.innerHTML = html;
+}
+function renderCfsList() {
+    var list = DB.load('cashFlowSources', []); var filter = (document.getElementById('cfs-filter').value || '').toLowerCase();
+    var tb = document.getElementById('cfs-list-body'); if (!tb) return; tb.innerHTML = ''; var shown = 0;
+    var accounts = DB.load('accounts', []);
+    for (var i = 0; i < list.length; i++) {
+        var s = list[i];
+        var moeinLabel = getAccountLabel(s.moeinId, accounts);
+        var detailLabel = s.linkType && s.detailId ? getDetailLabel(s.linkType, s.detailId) : '—';
+        var txt = (moeinLabel + ' ' + detailLabel + ' ' + (s.notes || '')).toLowerCase();
+        if (filter && txt.indexOf(filter) === -1) continue;
+        shown++;
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+            '<td>' + esc(moeinLabel) + '</td>' +
+            '<td>' + esc(detailLabel) + (s.linkType ? ' <span class="muted" style="font-size:0.7rem">(' + linkTypeName(s.linkType) + ')</span>' : '') + '</td>' +
+            '<td dir="ltr">' + toFa(esc(s.expectedDate || '—')) + '</td>' +
+            '<td class="num" style="font-weight:bold;color:#1e9e6a">' + formatMoney(s.amount || 0) + ' ' + currencyLabel() + '</td>' +
+            '<td>' + esc(s.notes || '—') + '</td>' +
+            '<td><div class="row-actions"><button class="row-btn edit" data-id="' + s.id + '">✎</button><button class="row-btn del" data-id="' + s.id + '">×</button></div></td>';
+        tb.appendChild(tr);
+    }
+    if (shown === 0) tb.innerHTML = '<tr><td colspan="6" class="empty-row">موردی ثبت نشده.</td></tr>';
+    document.getElementById('cfs-count').textContent = toFa(shown);
+    attachRowActions(tb, 'cashFlowSources', renderCfsList, function(s) {
+        document.getElementById('cfs-id').value = s.id;
+        document.getElementById('cfs-moein').value = s.moeinId || '';
+        onCfsMoeinChange();
+        if (s.linkType && s.detailId) {
+            var sel = document.getElementById('cfs-detail-' + s.linkType);
+            if (sel) sel.value = s.detailId;
+        }
+        document.getElementById('cfs-date').value = s.expectedDate || '';
+        document.getElementById('cfs-amount').value = s.amount ? formatRaw(s.amount) : '';
+        document.getElementById('cfs-notes').value = s.notes || '';
+        document.querySelector('[data-tab="cfs-add"]').click();
+    });
+    applyColVisibility('cfs-table'); makeTableResizable(document.getElementById('cfs-table'));
+}
+function clearCfsForm() {
+    document.getElementById('cfs-id').value = '';
+    document.getElementById('cfs-moein').value = '';
+    document.getElementById('cfs-details-wrap').innerHTML = '';
+    document.getElementById('cfs-date').value = '';
+    document.getElementById('cfs-amount').value = '';
+    document.getElementById('cfs-notes').value = '';
+    DB.save('cfs.tmp.details', {});
+}
+function saveCfsSource() {
+    var id = document.getElementById('cfs-id').value;
+    var moeinId = document.getElementById('cfs-moein').value;
+    if (!moeinId) { alert('معین منبع اجباری است.'); return; }
+    var accounts = DB.load('accounts', []);
+    var acc = accounts.find(function(a) { return a.id === moeinId; });
+    if (!acc) { alert('معین نامعتبر.'); return; }
+    var linkType = '', detailId = '';
+    if (acc.links && acc.links.length > 0) {
+        for (var i = 0; i < acc.links.length; i++) {
+            var lt = acc.links[i];
+            var sel = document.getElementById('cfs-detail-' + lt);
+            if (!sel) continue;
+            var items = getLinkedItems(lt);
+            if (items.length === 0) continue;
+            if (!sel.value) { alert('سطح ۴ (' + linkTypeName(lt) + ') اجباری است.'); return; }
+            linkType = lt; detailId = sel.value;
+            break;
+        }
+    }
+    var expectedDate = normalizeDigits(document.getElementById('cfs-date').value.trim());
+    var amount = parseMoney(normalizeDigits(document.getElementById('cfs-amount').value));
+    if (!amount) { alert('مبلغ اجباری است.'); return; }
+    var notes = document.getElementById('cfs-notes').value.trim();
+    var o = { id: id || uid(), moeinId: moeinId, linkType: linkType, detailId: detailId, expectedDate: expectedDate, amount: amount, notes: notes };
+    var list = DB.load('cashFlowSources', []);
+    if (id) { for (var k = 0; k < list.length; k++) if (list[k].id === id) list[k] = o; }
+    else list.push(o);
+    DB.save('cashFlowSources', list);
+    showToast('✅ ذخیره شد');
+    clearCfsForm();
+    renderCfsList();
+    document.querySelector('[data-tab="cfs-list"]').click();
+}
+
+/* ==================== گزارش وضعیت نقدینگی ==================== */
+function getSourceLabel(s) {
+    var accounts = DB.load('accounts', []);
+    var moeinLabel = getAccountLabel(s.moeinId, accounts);
+    var detailLabel = '';
+    if (s.linkType && s.detailId) detailLabel = getDetailLabel(s.linkType, s.detailId);
+    return moeinLabel + (detailLabel ? ' — ' + detailLabel : '');
+}
+function computeBankBalanceAtDate(fromDate) {
+    var vouchers = DB.load('vouchers', []);
+    var banks = DB.load('bankAccounts', []);
+    var bankIds = banks.map(function(b) { return b.id; });
+    var total = 0;
+    vouchers.forEach(function(v) {
+        if (v.status !== 'approved') return;
+        if (v.date >= fromDate) return;
+        (v.lines || []).forEach(function(line) {
+            if (line.details && line.details.bank && bankIds.indexOf(line.details.bank) !== -1) {
+                total += (Number(line.debit) || 0) - (Number(line.credit) || 0);
+            }
+        });
+    });
+    return total;
+}
+function runCashFlowReport() {
+    var fromDate = normalizeDigits((document.getElementById('cf-from').value || '').trim());
+    var toDate = normalizeDigits((document.getElementById('cf-to').value || '').trim());
+    if (!fromDate) fromDate = todayJalaliStr();
+    if (!toDate) toDate = fromDate;
+    document.getElementById('cf-from').value = fromDate;
+    document.getElementById('cf-to').value = toDate;
+    if (fromDate > toDate) { alert('تاریخ شروع باید قبل از پایان باشد.'); return; }
+
+    // ۱) مانده بانک‌ها در ابتدای روز شروع
+    var bankBalance = computeBankBalanceAtDate(fromDate);
+
+    // ۲) منابع (دریافتنی‌ها)
+    var sources = DB.load('cashFlowSources', []);
+    var sourcesInRange = sources.filter(function(s) {
+        if (!s.expectedDate) return true;
+        return s.expectedDate >= fromDate && s.expectedDate <= toDate;
+    });
+
+    // ۳) اقساط تسهیلات (پرداخت‌نشده)
+    var facilities = DB.load('facilities', []);
+    var facilityInsts = [];
+    facilities.forEach(function(f) {
+        (f.installments || []).forEach(function(inst) {
+            if (inst.status === 'paid') return;
+            if (!inst.date) return;
+            if (inst.date < fromDate || inst.date > toDate) return;
+            facilityInsts.push({ f: f, inst: inst });
+        });
+    });
+
+    // ادغام و مرتب‌سازی بر اساس تاریخ
+    var items = [];
+    sourcesInRange.forEach(function(s) {
+        items.push({
+            type: 'source',
+            date: s.expectedDate || fromDate,
+            sortDate: s.expectedDate || (fromDate + '~'), // منابع بی‌تاریخ در ابتدای دوره
+            amount: Number(s.amount) || 0,
+            label: '📥 ' + getSourceLabel(s),
+            notes: s.notes || ''
+        });
+    });
+    facilityInsts.forEach(function(item) {
+        items.push({
+            type: 'facility',
+            date: item.inst.date,
+            sortDate: item.inst.date,
+            amount: -Number(item.inst.amount || 0),
+            label: '💸 قسط ' + item.f.name,
+            notes: item.inst.status === 'registered' ? 'قسط ثبت‌شده' : ''
+        });
+    });
+    items.sort(function(a, b) { return compareVals(a.sortDate, b.sortDate); });
+
+    // ساخت جدول
+    var html = '<div class="cf-report"><div class="table-wrap">';
+    html += '<table class="cf-table" id="cf-table">';
+    html += '<thead><tr>';
+    html += '<th style="width:35%">عنوان دسته</th>';
+    html += '<th style="width:15%">تاریخ</th>';
+    html += '<th style="width:25%">مبلغ</th>';
+    html += '<th style="width:25%">مانده در خط</th>';
+    html += '</tr></thead><tbody>';
+
+    var running = bankBalance;
+    // ردیف اول: مانده بانک‌ها
+    var bbCls = bankBalance < 0 ? 'cf-neg' : '';
+    var bbText = bankBalance < 0 ? '(' + formatMoney(Math.abs(bankBalance)) + ')' : formatMoney(bankBalance);
+    html += '<tr class="cf-bank-row">';
+    html += '<td class="cf-cat">💰 مانده بانک ها</td>';
+    html += '<td dir="ltr">' + toFa(fromDate) + '</td>';
+    html += '<td class="num ' + bbCls + '">' + bbText + '</td>';
+    html += '<td class="num ' + bbCls + '">' + bbText + '</td>';
+    html += '</tr>';
+
+    // سایر ردیف‌ها
+    items.forEach(function(it) {
+        running += it.amount;
+        var amtCls = '';
+        var amtText = '';
+        if (it.type === 'facility') {
+            amtCls = 'cf-neg';
+            amtText = '(' + formatMoney(Math.abs(it.amount)) + ')';
+        } else {
+            amtCls = 'cf-pos';
+            amtText = formatMoney(it.amount);
+        }
+        var balCls = running < 0 ? 'cf-neg' : '';
+        var balText = running < 0 ? '(' + formatMoney(Math.abs(running)) + ')' : formatMoney(running);
+        var rowCls = it.type === 'facility' ? 'cf-fac-row' : 'cf-source-row';
+        var label = it.label + (it.notes ? ' <span class="muted" style="font-size:0.72rem">(' + esc(it.notes) + ')</span>' : '');
+        html += '<tr class="' + rowCls + '">';
+        html += '<td class="cf-cat">' + label + '</td>';
+        html += '<td dir="ltr">' + toFa(esc(it.date)) + '</td>';
+        html += '<td class="num ' + amtCls + '">' + amtText + '</td>';
+        html += '<td class="num ' + balCls + '">' + balText + '</td>';
+        html += '</tr>';
+    });
+
+    html += '</tbody>';
+    var finalCls = running < 0 ? 'cf-neg' : '';
+    var finalText = running < 0 ? '(' + formatMoney(Math.abs(running)) + ')' : formatMoney(running);
+    html += '<tfoot><tr>';
+    html += '<td colspan="2" style="text-align:left">مانده نهایی (' + currencyLabel() + ')</td>';
+    html += '<td class="num"></td>';
+    html += '<td class="num ' + finalCls + '">' + finalText + '</td>';
+    html += '</tr></tfoot>';
+    html += '</table></div></div>';
+    document.getElementById('cf-result').innerHTML = html;
+    document.getElementById('cf-count').textContent = toFa(items.length + 1) + ' ردیف';
+    var unitEl = document.getElementById('cf-unit'); if (unitEl) unitEl.textContent = 'واحد: ' + currencyLabel();
+    makeTableResizable(document.getElementById('cf-table'));
+}
+
+function runIncompleteReport() {
+    var statusF = (document.getElementById('ri-status').value || '');
+    var periodF = (document.getElementById('ri-period').value || '');
+    var vouchers = DB.load('vouchers', []);
+    var rows = [];
+    vouchers.forEach(function(v) {
+        var st = v.status || 'draft';
+        if (statusF && st !== statusF) return;
+        if (periodF && v.periodId !== periodF) return;
+        var issues = getVoucherIssues(v);
+        if (issues.length === 0) return;
+        rows.push({ v: v, issues: issues });
+    });
+    rows.sort(function(a, b) { return compareVals(a.v.number, b.v.number); });
+    var periods = DB.load('fiscalPeriods', []); var pM = {}; periods.forEach(function(p) { pM[p.id] = p.title; });
+    var html = '<div class="table-wrap"><table class="report-table" id="ri-table"><thead><tr><th>#</th><th>شماره</th><th>تاریخ</th><th>مبلغ</th><th>دوره</th><th>شرح</th><th>وضعیت</th><th>مشکلات</th><th>عملیات</th></tr></thead><tbody>';
+    var totalAmt = 0;
+    for (var i = 0; i < rows.length; i++) {
+        var r = rows[i]; var v = r.v; var amt = getVoucherAmount(v); totalAmt += amt;
+        var stB = v.status === 'approved' ? '<span class="badge badge-approved">✓</span>' : '<span class="badge badge-draft">پیش‌نویس</span>';
+        var iss = '<div class="ri-issues">' + r.issues.map(function(x) { return '<div class="ri-issue-item">' + esc(x) + '</div>'; }).join('') + '</div>';
+        var aH = '<div class="row-actions"><button class="row-btn open" data-vid="' + v.id + '" data-action="open-voucher" title="باز کردن سند">✎</button><button class="row-btn open" data-vid="' + v.id + '" data-action="preview-voucher" title="پیش‌نمایش">👁</button></div>';
+        html += '<tr><td class="num">' + toFa(i + 1) + '</td><td dir="ltr">' + toFa(esc(v.number)) + '</td><td dir="ltr">' + toFa(esc(v.date)) + '</td><td class="num" style="font-weight:bold;color:var(--primary-dark)">' + formatMoney(amt) + '</td><td>' + esc(pM[v.periodId] || '—') + '</td><td>' + esc(v.desc || '') + '</td><td>' + stB + '</td><td>' + iss + '</td><td>' + aH + '</td></tr>';
+    }
+    if (rows.length === 0) html += '<tr><td colspan="9" class="empty-row">✅ سند ناقصی وجود ندارد.</td></tr>';
+    html += '</tbody>';
+    if (rows.length > 0) html += '<tfoot><tr><td colspan="3" style="text-align:left">جمع (' + currencyLabel() + ')</td><td class="num" style="color:#c0392b;font-weight:bold">' + formatMoney(totalAmt) + '</td><td colspan="5"></td></tr></tfoot>';
+    html += '</table></div>';
+    document.getElementById('ri-result').innerHTML = html;
+    document.getElementById('ri-count').textContent = toFa(rows.length);
+    var unitEl = document.getElementById('ri-unit'); if (unitEl) unitEl.textContent = 'واحد: ' + currencyLabel();
+    makeTableResizable(document.getElementById('ri-table')); applyColVisibility('ri-table');
+    var btns = document.querySelectorAll('#ri-result [data-action]');
+    for (var bi = 0; bi < btns.length; bi++) btns[bi].addEventListener('click', function() {
+        var vid = this.getAttribute('data-vid'); var act = this.getAttribute('data-action');
+        var v = findVoucherById(vid); if (!v) return;
+        if (act === 'open-voucher') { loadVoucherForEdit(v); }
+        else if (act === 'preview-voucher') { openVoucherPreview(v); }
+    });
+}
+function runFacilityReport() {
+    var facilities = DB.load('facilities', []); var cf = document.getElementById('rf-category').value; var sf = document.getElementById('rf-status').value;
+    var st = sortState.rf; var rows = [];
+    facilities.forEach(function(f) { if (cf && (f.category || 'facility') !== cf) return;
+        var ins = f.installments || []; var ri = ins.filter(function(x) { return x.status !== 'paid'; });
+        var ra = ri.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
+        var lD = ri.length > 0 ? ri[ri.length - 1].date : '—';
+        var unpaidSorted = ri.slice().sort(function(a, b) { return compareVals(a.date, b.date); });
+        var fU = unpaidSorted.length > 0 ? unpaidSorted[0].date : '—';
+        var set = ri.length === 0 && ins.length > 0;
+        if (sf === 'settled' && !set) return; if (sf === 'active' && set) return;
+        rows.push({ f: f, rC: ri.length, rA: ra, lD: lD, fU: fU, set: set }); });
+    rows.sort(function(a, b) { var va, vb;
+        if (st.col === 'name') { va = a.f.name || ''; vb = b.f.name || ''; }
+        else if (st.col === 'initial') { va = a.f.initial || 0; vb = b.f.initial || 0; }
+        else if (st.col === 'paid') { va = a.f.paid || 0; vb = b.f.paid || 0; }
+        else if (st.col === 'remainingCount') { va = a.rC; vb = b.rC; }
+        else if (st.col === 'remainingAmount') { va = a.rA; vb = b.rA; }
+        else if (st.col === 'lastDate') { va = a.lD; vb = b.lD; }
+        else if (st.col === 'firstUnpaid') { va = a.fU; vb = b.fU; }
+        else if (st.col === 'status') { va = a.set ? 'تسویه' : 'جاری'; vb = b.set ? 'تسویه' : 'جاری'; }
+        else { va = ''; vb = ''; }
+        return st.dir === 'asc' ? compareVals(va, vb) : -compareVals(va, vb); });
+    var html = '<div class="table-wrap"><table class="report-table" id="rf-table"><thead><tr><th class="sortable" data-sort="name">عنوان <span class="sort-ind"></span></th><th class="sortable" data-sort="status">وضعیت <span class="sort-ind"></span></th><th class="sortable" data-sort="initial">مبلغ اولیه <span class="sort-ind"></span></th><th class="sortable" data-sort="paid">پرداخت <span class="sort-ind"></span></th><th class="sortable" data-sort="remainingCount">اقساط باقی <span class="sort-ind"></span></th><th class="sortable" data-sort="remainingAmount">مبلغ باقی <span class="sort-ind"></span></th><th class="sortable" data-sort="firstUnpaid">اولین قسط پرداخت‌نشده <span class="sort-ind"></span></th><th class="sortable" data-sort="lastDate">آخرین قسط <span class="sort-ind"></span></th></tr></thead><tbody>';
+    var tr = 0;
+    for (var i = 0; i < rows.length; i++) { var r = rows[i]; var f = r.f;
+        html += '<tr><td>' + esc(f.name) + '</td><td>' + (r.set ? '<span class="badge badge-settled">تسویه</span>' : '<span class="badge badge-active">جاری</span>') + '</td><td class="num">' + fmtRep(f.initial || 0) + '</td><td class="num">' + fmtRep(f.paid || 0) + '</td><td class="num">' + toFa(r.rC) + '</td><td class="num">' + fmtRep(r.rA) + '</td><td dir="ltr">' + toFa(r.fU) + '</td><td dir="ltr">' + toFa(r.lD) + '</td></tr>';
+        tr += r.rA; }
+    html += '</tbody><tfoot><tr><td colspan="5" style="text-align:left">جمع مانده (' + currencyLabel() + ')</td><td class="num">' + fmtRep(tr) + '</td><td colspan="2"></td></tr></tfoot></table></div>';
+    document.getElementById('rf-result').innerHTML = html; document.getElementById('rf-count').textContent = toFa(rows.length);
+    setupRfSorting();
+    var ths = document.querySelectorAll('#rf-result th.sortable');
+    for (var t = 0; t < ths.length; t++) { ths[t].classList.remove('sorted-asc', 'sorted-desc'); if (ths[t].getAttribute('data-sort') === st.col) ths[t].classList.add(st.dir === 'asc' ? 'sorted-asc' : 'sorted-desc'); }
+    makeTableResizable(document.getElementById('rf-table')); applyColVisibility('rf-table');
+}
+function computeFacilityRows() {
+    var facilities = DB.load('facilities', []);
+    var cf = document.getElementById('rff-category').value;
+    var sf = document.getElementById('rff-status').value;
+    var inf = document.getElementById('rff-inst-status').value;
+    var bf = document.getElementById('rff-bank').value;
+    var fromD = document.getElementById('rff-from').value;
+    var toD = document.getElementById('rff-to').value;
+    var q = (document.getElementById('rff-search').value || '').toLowerCase();
+    var banks = DB.load('bankAccounts', []);
+    var bankMap = {}; banks.forEach(function(b) { bankMap[b.id] = b; });
+    var today = toJalali(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
+    var tStr = today[0] + '/' + pad2(today[1]) + '/' + pad2(today[2]);
+    var rows = [];
+    facilities.forEach(function(f) {
+        if (cf && (f.category || 'facility') !== cf) return;
+        if (bf && f.bankId !== bf) return;
+        if (fromD && f.date && f.date < fromD) return;
+        if (toD && f.date && f.date > toD) return;
+        var ins = f.installments || [];
+        var paidCount = ins.filter(function(x) { return x.status === 'paid'; }).length;
+        var registeredCount = ins.filter(function(x) { return x.status === 'registered'; }).length;
+        var totalAmt = ins.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
+        var paidAmt = ins.filter(function(x) { return x.status === 'paid'; }).reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
+        var unpaidList = ins.filter(function(x) { return x.status !== 'paid'; });
+        var unpaidAmt = unpaidList.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
+        var unpaidSorted = unpaidList.slice().sort(function(a, b) { return compareVals(a.date, b.date); });
+        var firstUnpaidDate = unpaidSorted.length > 0 ? unpaidSorted[0].date : '';
+        var firstUnpaidAmount = unpaidSorted.length > 0 ? Number(unpaidSorted[0].amount) || 0 : 0;
+        var lastPaidDate = '—';
+        var paidSorted = ins.filter(function(x) { return x.status === 'paid' && x.date; }).slice().sort(function(a, b) { return compareVals(b.date, a.date); });
+        if (paidSorted.length > 0) lastPaidDate = paidSorted[0].date;
+        var overdueCount = unpaidList.filter(function(x) { return x.date && x.date < tStr; }).length;
+        var settled = unpaidList.length === 0 && ins.length > 0;
+        var remainingToInit = Number(f.initial || 0) - paidAmt;
+        var lastInsDate = '—';
+        if (ins.length > 0) {
+            var sortedIns = ins.slice().sort(function(a, b) { return compareVals(b.date, a.date); });
+            lastInsDate = sortedIns[0].date || '—';
+        }
+        if (sf === 'settled' && !settled) return;
+        if (sf === 'active' && settled) return;
+        if (inf === 'has-unpaid' && !(unpaidList.length > 0)) return;
+        if (inf === 'has-paid' && !(paidCount > 0)) return;
+        if (inf === 'all-paid' && !(ins.length > 0 && paidCount === ins.length)) return;
+        if (inf === 'no-installments' && ins.length > 0) return;
+        if (inf === 'overdue' && overdueCount === 0) return;
+        if (q) {
+            var bankObj = bankMap[f.bankId];
+            var txt = ((f.name || '') + ' ' + (f.date || '') + ' ' + categoryName(f.category) + ' ' + (bankObj ? bankObj.bank : '')).toLowerCase();
+            if (txt.indexOf(q) === -1) return;
+        }
+        rows.push({
+            f: f, bank: bankMap[f.bankId], insCount: ins.length,
+            paidCount: paidCount, registeredCount: registeredCount,
+            totalAmt: totalAmt, paidAmt: paidAmt, unpaidAmt: unpaidAmt,
+            unpaidCount: unpaidList.length, firstUnpaidDate: firstUnpaidDate,
+            firstUnpaidAmount: firstUnpaidAmount, lastPaidDate: lastPaidDate,
+            overdueCount: overdueCount, settled: settled, remaining: remainingToInit,
+            lastInsDate: lastInsDate
+        });
+    });
+    return rows;
+}
+function runFacilityFullReport() {
+    var rows = computeFacilityRows();
+    var st = sortState.rff;
+    rows.sort(function(a, b) {
+        var va, vb;
+        switch (st.col) {
+            case 'name': va = a.f.name || ''; vb = b.f.name || ''; break;
+            case 'category': va = categoryName(a.f.category); vb = categoryName(b.f.category); break;
+            case 'bank': va = a.bank ? a.bank.bank : ''; vb = b.bank ? b.bank.bank : ''; break;
+            case 'date': va = a.f.date || ''; vb = b.f.date || ''; break;
+            case 'initial': va = Number(a.f.initial || 0); vb = Number(b.f.initial || 0); break;
+            case 'paidAmt': va = a.paidAmt; vb = b.paidAmt; break;
+            case 'unpaidAmt': va = a.unpaidAmt; vb = b.unpaidAmt; break;
+            case 'insCount': va = a.insCount; vb = b.insCount; break;
+            case 'paidCount': va = a.paidCount; vb = b.paidCount; break;
+            case 'unpaidCount': va = a.unpaidCount; vb = b.unpaidCount; break;
+            case 'firstUnpaidDate': va = a.firstUnpaidDate || ''; vb = b.firstUnpaidDate || ''; break;
+            case 'lastPaidDate': va = a.lastPaidDate || ''; vb = b.lastPaidDate || ''; break;
+            case 'overdueCount': va = a.overdueCount; vb = b.overdueCount; break;
+            case 'status': va = a.settled ? 'تسویه' : 'جاری'; vb = b.settled ? 'تسویه' : 'جاری'; break;
+            default: va = ''; vb = '';
+        }
+        return st.dir === 'asc' ? compareVals(va, vb) : -compareVals(va, vb);
+    });
+    if (state.rffView === 'detail') renderFacilityFullDetail(rows);
+    else renderFacilityFullSummary(rows);
+}
+function renderFacilityFullSummary(rows) {
+    var st = sortState.rff;
+    var html = '<div class="table-wrap"><table class="report-table" id="rff-table"><thead><tr>' +
+        '<th class="sortable" data-sort="name">عنوان <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="category">دسته <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="bank">بانک <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="date">تاریخ <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="initial">مبلغ اولیه <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="paidAmt">پرداخت شده <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="unpaidAmt">باقی‌مانده <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="insCount">تعداد اقساط <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="paidCount">پرداخت‌شده <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="unpaidCount">باقی <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="overdueCount">سررسید گذشته <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="firstUnpaidDate">اولین قسط پرداخت‌نشده <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="lastPaidDate">آخرین قسط پرداخت‌شده <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="status">وضعیت <span class="sort-ind"></span></th>' +
+        '<th>عملیات</th></tr></thead><tbody>';
+    var sumInit = 0, sumPaid = 0, sumUnpaid = 0, sumInsCount = 0, sumPaidCount = 0, sumUnpaidCount = 0, sumOverdue = 0;
+    for (var i = 0; i < rows.length; i++) {
+        var r = rows[i]; var f = r.f;
+        sumInit += Number(f.initial || 0); sumPaid += r.paidAmt; sumUnpaid += r.unpaidAmt;
+        sumInsCount += r.insCount; sumPaidCount += r.paidCount; sumUnpaidCount += r.unpaidCount; sumOverdue += r.overdueCount;
+        var catB = (f.category === 'scheduled') ? '<span class="badge badge-cat-sch">زمانبندی</span>' : '<span class="badge badge-cat-fac">تسهیلات</span>';
+        var stB = r.settled ? '<span class="badge badge-settled">تسویه</span>' : '<span class="badge badge-active">جاری</span>';
+        var overdue = r.overdueCount > 0 ? '<span class="badge badge-overdue">' + toFa(r.overdueCount) + '</span>' : '۰';
+        var firstUnpaidCell = r.firstUnpaidDate ? (toFa(r.firstUnpaidDate) + (r.firstUnpaidAmount ? ' <span class="muted" style="font-size:0.7rem">(' + fmtRep(r.firstUnpaidAmount) + ')</span>' : '')) : '—';
+        var aH = '<div class="row-actions"><button class="row-btn open" data-fid="' + f.id + '" data-action="rff-inst" title="دفترچه اقساط">📖</button><button class="row-btn edit" data-fid="' + f.id + '" data-action="rff-edit" title="ویرایش">✎</button></div>';
+        html += '<tr>' +
+            '<td><strong>' + esc(f.name) + '</strong></td>' +
+            '<td>' + catB + '</td>' +
+            '<td>' + esc(r.bank ? r.bank.bank : '—') + '</td>' +
+            '<td dir="ltr">' + toFa(esc(f.date || '—')) + '</td>' +
+            '<td class="num">' + fmtRep(f.initial || 0) + '</td>' +
+            '<td class="num" style="color:#1e9e6a">' + fmtRep(r.paidAmt) + '</td>' +
+            '<td class="num" style="color:' + (r.unpaidAmt > 0 ? '#c0392b' : '#1e9e6a') + '">' + fmtRep(r.unpaidAmt) + '</td>' +
+            '<td class="num">' + toFa(r.insCount) + '</td>' +
+            '<td class="num" style="color:#1e9e6a">' + toFa(r.paidCount) + '</td>' +
+            '<td class="num" style="color:#c47c00">' + toFa(r.unpaidCount) + '</td>' +
+            '<td class="num">' + overdue + '</td>' +
+            '<td dir="ltr">' + firstUnpaidCell + '</td>' +
+            '<td dir="ltr">' + toFa(r.lastPaidDate) + '</td>' +
+            '<td>' + stB + '</td>' +
+            '<td>' + aH + '</td>' +
+        '</tr>';
+    }
+    if (rows.length === 0) html += '<tr><td colspan="15" class="empty-row">موردی یافت نشد.</td></tr>';
+    html += '</tbody>';
+    if (rows.length > 0) {
+        html += '<tfoot><tr><td colspan="4" style="text-align:left">جمع کل (' + currencyLabel() + ')</td>' +
+            '<td class="num">' + fmtRep(sumInit) + '</td>' +
+            '<td class="num" style="color:#1e9e6a">' + fmtRep(sumPaid) + '</td>' +
+            '<td class="num" style="color:#c0392b">' + fmtRep(sumUnpaid) + '</td>' +
+            '<td class="num">' + toFa(sumInsCount) + '</td>' +
+            '<td class="num" style="color:#1e9e6a">' + toFa(sumPaidCount) + '</td>' +
+            '<td class="num" style="color:#c47c00">' + toFa(sumUnpaidCount) + '</td>' +
+            '<td class="num">' + toFa(sumOverdue) + '</td>' +
+            '<td colspan="4"></td></tr></tfoot>';
+    }
+    html += '</table></div>';
+    document.getElementById('rff-result').innerHTML = html;
+    document.getElementById('rff-count').textContent = toFa(rows.length);
+    var unitEl = document.getElementById('rff-unit'); if (unitEl) unitEl.textContent = 'واحد: ' + currencyLabel();
+    setupRffSorting();
+    var ths = document.querySelectorAll('#rff-result th.sortable');
+    for (var t = 0; t < ths.length; t++) { ths[t].classList.remove('sorted-asc', 'sorted-desc'); if (ths[t].getAttribute('data-sort') === st.col) ths[t].classList.add(st.dir === 'asc' ? 'sorted-asc' : 'sorted-desc'); }
+    makeTableResizable(document.getElementById('rff-table')); applyColVisibility('rff-table');
+    var btns = document.querySelectorAll('#rff-result [data-action]');
+    for (var bi = 0; bi < btns.length; bi++) btns[bi].addEventListener('click', function() {
+        var fid = this.getAttribute('data-fid'); var act = this.getAttribute('data-action');
+        var f = DB.load('facilities', []).find(function(x) { return x.id === fid; }); if (!f) return;
+        if (act === 'rff-inst') loadFacilityForInstallments(f);
+        else if (act === 'rff-edit') loadFacilityIntoForm(f);
+    });
+}
+function renderFacilityFullDetail(rows) {
+    var sorted = rows.slice().sort(function(a, b) {
+        if (a.insCount !== b.insCount) return a.insCount - b.insCount;
+        return compareVals(a.lastInsDate || '9999/99/99', b.lastInsDate || '9999/99/99');
+    });
+    var today = toJalali(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
+    var tStr = today[0] + '/' + pad2(today[1]) + '/' + pad2(today[2]);
+    var html = '<div class="rff-detail-list">';
+    for (var i = 0; i < sorted.length; i++) {
+        var r = sorted[i]; var f = r.f;
+        var ins = f.installments || [];
+        var paidCount = r.paidCount;
+        var unpaidCount = r.unpaidCount;
+        var catLabel = (f.category === 'scheduled') ? 'زمانبندی' : 'تسهیلات';
+        var cls = (f.category === 'scheduled') ? ' sch' : '';
+        html += '<div class="rff-fac-card">';
+        html += '<div class="rff-fac-head' + cls + '">';
+        html += '<div><div class="rff-fac-title">' + esc(f.name) + '</div><div class="rff-fac-meta">';
+        html += '<span class="chip-m">' + catLabel + '</span>';
+        if (r.bank) html += '<span class="chip-m">🏦 ' + esc(r.bank.bank || '') + '</span>';
+        if (f.date) html += '<span class="chip-m">📅 ' + toFa(f.date) + '</span>';
+        html += '</div></div>';
+        html += '<div>' + (r.settled ? '<span class="badge badge-settled">✓ تسویه</span>' : '<span class="badge badge-active">در جریان</span>') + '</div>';
+        html += '</div>';
+        html += '<div class="rff-fac-stats">';
+        html += '<div class="item"><div class="lbl">مبلغ اولیه</div><div class="val">' + formatMoney(f.initial || 0) + '</div></div>';
+        html += '<div class="item"><div class="lbl">پرداخت شده</div><div class="val" style="color:#1e9e6a">' + formatMoney(r.paidAmt) + '</div></div>';
+        html += '<div class="item"><div class="lbl">باقی‌مانده</div><div class="val" style="color:' + (r.unpaidAmt > 0 ? '#c0392b' : '#1e9e6a') + '">' + formatMoney(r.unpaidAmt) + '</div></div>';
+        html += '<div class="item"><div class="lbl">تعداد اقساط</div><div class="val">' + toFa(ins.length) + '</div></div>';
+        html += '<div class="item"><div class="lbl">پرداخت‌شده</div><div class="val" style="color:#1e9e6a">' + toFa(paidCount) + '</div></div>';
+        html += '<div class="item"><div class="lbl">باقی</div><div class="val" style="color:#c47c00">' + toFa(unpaidCount) + '</div></div>';
+        if (r.overdueCount > 0) html += '<div class="item"><div class="lbl">سررسید گذشته</div><div class="val" style="color:#c0392b">' + toFa(r.overdueCount) + '</div></div>';
+        html += '</div>';
+        if (ins.length === 0) {
+            html += '<div class="rff-empty">— دفترچه اقساطی برای این تسهیلات ثبت نشده —</div>';
+        } else {
+            html += '<table class="rff-inst-table"><thead><tr><th style="width:40px">#</th><th>تاریخ</th><th>مبلغ</th><th>وضعیت</th></tr></thead><tbody>';
+            var sortedIns = ins.slice().sort(function(a, b) { return compareVals(a.date, b.date); });
+            for (var j = 0; j < sortedIns.length; j++) {
+                var inx = sortedIns[j];
+                var isOverdue = (inx.status !== 'paid' && inx.date && inx.date < tStr);
+                var rowCls = (inx.status === 'paid') ? 'paid-row' : (isOverdue ? 'overdue-row' : '');
+                var stLabel = (inx.status === 'paid') ? '<span class="badge badge-paid">✓ پرداخت</span>' : (isOverdue ? '<span class="badge badge-overdue">سررسید گذشته</span>' : '<span class="badge badge-registered">ثبت</span>');
+                html += '<tr class="' + rowCls + '"><td class="num">' + toFa(j + 1) + '</td><td dir="ltr">' + toFa(esc(inx.date || '—')) + '</td><td class="num" style="font-weight:bold">' + formatMoney(inx.amount || 0) + '</td><td>' + stLabel + '</td></tr>';
+            }
+            html += '</tbody></table>';
+        }
+        html += '</div>';
+    }
+    if (rows.length === 0) html += '<div class="card"><p class="muted" style="text-align:center">موردی یافت نشد.</p></div>';
+    html += '</div>';
+    document.getElementById('rff-result').innerHTML = html;
+    document.getElementById('rff-count').textContent = toFa(rows.length);
+    var unitEl = document.getElementById('rff-unit'); if (unitEl) unitEl.textContent = 'واحد: ' + currencyLabel();
+}
+
+/* حسابداری: تحلیل حساب‌ها و تراز */
+function filterVouchers(opts) { var l = DB.load('vouchers', []);
+    return l.filter(function(v) { if (v.status !== 'approved') return false;
+        if (opts.from && v.date < opts.from) return false; if (opts.to && v.date > opts.to) return false;
+        if (opts.vtype && v.type !== opts.vtype) return false; if (opts.periodId && v.periodId !== opts.periodId) return false; return true; }); }
+function computeAccountBalances(opts) {
+    var vouchers = filterVouchers(opts); var accounts = DB.load('accounts', []); var balances = {};
+    accounts.forEach(function(a) { balances[a.id] = { debit: 0, credit: 0 }; });
+    vouchers.forEach(function(v) { v.lines.forEach(function(line) { if (!line.account) return;
+        var acc = accounts.find(function(a) { return a.id === line.account; }); if (!acc) return;
+        if (opts.cat && acc.cat !== opts.cat) return; if (opts.nature && acc.nature !== opts.nature) return;
+        if (!balances[acc.id]) balances[acc.id] = { debit: 0, credit: 0 };
+        balances[acc.id].debit += Number(line.debit) || 0; balances[acc.id].credit += Number(line.credit) || 0; }); });
+    var db = {};
+    if (opts.level === 4) { vouchers.forEach(function(v) { v.lines.forEach(function(line) { if (!line.account || !line.details) return;
+        var acc = accounts.find(function(a) { return a.id === line.account; }); if (!acc) return;
+        if (opts.cat && acc.cat !== opts.cat) return; if (opts.nature && acc.nature !== opts.nature) return;
+        Object.keys(line.details).forEach(function(lt) { var did = line.details[lt]; if (!did) return;
+            if (!db[did]) db[did] = { debit: 0, credit: 0, parent: acc.id, linkType: lt };
+            db[did].debit += Number(line.debit) || 0; db[did].credit += Number(line.credit) || 0; }); }); }); }
+    return { balances: balances, detailBalances: db };
+}
+function rollupBalances(accounts, balances) {
+    var rolled = {}, idMap = {};
+    accounts.forEach(function(a) { idMap[a.id] = a; rolled[a.id] = { debit: balances[a.id] ? balances[a.id].debit : 0, credit: balances[a.id] ? balances[a.id].credit : 0 }; });
+    function depth(acc) { var d = 0, cur = acc; while (cur && cur.parent) { d++; cur = idMap[cur.parent]; } return d; }
+    var sorted = accounts.slice().sort(function(a, b) { return depth(b) - depth(a); });
+    sorted.forEach(function(a) { if (a.parent && rolled[a.parent]) { rolled[a.parent].debit += rolled[a.id].debit; rolled[a.parent].credit += rolled[a.id].credit; } });
+    return rolled;
+}
+function runAccountReport() {
+    var opts = { from: document.getElementById('ra-from').value, to: document.getElementById('ra-to').value, vtype: document.getElementById('ra-vtype').value, periodId: document.getElementById('ra-period').value, cat: document.getElementById('ra-cat').value, nature: document.getElementById('ra-nature').value, level: Number(document.getElementById('ra-level').value) || 3 };
+    var accounts = DB.load('accounts', []); var result = computeAccountBalances(opts); var rolled = rollupBalances(accounts, result.balances);
+    state.reportExpandedNodes = {}; var box = document.getElementById('ra-result'); box.innerHTML = ''; var tL = opts.level;
+    var roots = accounts.filter(function(a) { return !a.parent; });
+    function getCh(pid) { return accounts.filter(function(a) { return a.parent === pid; }); }
+    var dM = {}; if (tL >= 4) { Object.keys(result.detailBalances).forEach(function(did) { var d = result.detailBalances[did]; if (!dM[d.parent]) dM[d.parent] = []; dM[d.parent].push({ id: did, linkType: d.linkType, debit: d.debit, credit: d.credit }); }); }
+    var tD = 0, tC = 0, shown = 0;
+    var container = document.createElement('div'); container.className = 'report-tree'; box.appendChild(container);
+    function renderNode(node, level, parentEl) {
+        var b = rolled[node.id] || { debit: 0, credit: 0 }; var net = b.debit - b.credit;
+        var hC = getCh(node.id).length > 0 || (level === 3 && tL === 4 && dM[node.id] && dM[node.id].length > 0);
+        var sS = level <= tL; var isE = state.reportExpandedNodes[node.id] !== false;
+        if (sS) { var div = document.createElement('div'); div.className = 'rt-node level-' + level; var ek = node.id;
+            var th = hC ? '<span class="rt-toggle" data-toggle="' + ek + '">' + (isE ? '▼' : '◀') + '</span>' : '<span class="rt-toggle empty">•</span>';
+            var lB = ''; if (level === 1) lB = '<span class="rt-level-badge l1">گروه</span>'; else if (level === 2) lB = '<span class="rt-level-badge l2">کل</span>'; else if (level === 3) lB = '<span class="rt-level-badge l3">معین</span>';
+            var nD = net === 0 ? '۰' : fmtRep(Math.abs(net));
+            div.innerHTML = th + '<span class="rt-name">' + esc(node.name) + '</span>' + lB + '<span class="rt-amounts"><span class="amt dr">بدهکار: ' + fmtRep(b.debit) + '</span><span class="amt cr">بستانکار: ' + fmtRep(b.credit) + '</span><span class="amt net">مانده: ' + nD + '</span></span>';
+            var tEl = div.querySelector('[data-toggle]');
+            if (tEl) tEl.addEventListener('click', function(e) { e.stopPropagation(); state.reportExpandedNodes[ek] = !isE; rerender(); });
+            parentEl.appendChild(div); tD += b.debit; tC += b.credit; shown++; }
+        if (sS && isE) { var cB = document.createElement('div'); cB.className = 'rt-children';
+            var chs = getCh(node.id); for (var ci = 0; ci < chs.length; ci++) renderNode(chs[ci], level + 1, cB);
+            if (level === 3 && tL === 4 && dM[node.id]) { var ds = dM[node.id];
+                for (var di = 0; di < ds.length; di++) { var d = ds[di]; var dn = d.debit - d.credit; var dnD = dn === 0 ? '۰' : fmtRep(Math.abs(dn));
+                    var dD = document.createElement('div'); dD.className = 'rt-node level-4';
+                    dD.innerHTML = '<span class="rt-toggle empty">•</span><span class="rt-name">' + esc(getDetailLabel(d.linkType, d.id)) + '</span><span class="rt-level-badge l4">' + linkTypeName(d.linkType) + '</span><span class="rt-amounts"><span class="amt dr">بدهکار: ' + fmtRep(d.debit) + '</span><span class="amt cr">بستانکار: ' + fmtRep(d.credit) + '</span><span class="amt net">مانده: ' + dnD + '</span></span>';
+                    cB.appendChild(dD); tD += d.debit; tC += d.credit; shown++; } }
+            if (cB.children.length > 0) parentEl.appendChild(cB); }
+    }
+    function rerender() { container.innerHTML = ''; tD = 0; tC = 0; shown = 0;
+        for (var i = 0; i < roots.length; i++) renderNode(roots[i], 1, container);
+        var footer = document.createElement('div');
+        footer.style.cssText = 'margin-top:14px;padding:14px;background:var(--primary-soft);border-radius:12px;font-weight:bold;color:var(--primary-dark);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;border:1px solid var(--primary-light)';
+        var bt = (tD === tC) ? '✓ متوازن' : '⚠️ اختلاف: ' + fmtRep(Math.abs(tD - tC));
+        footer.innerHTML = '<span>جمع بدهکار: ' + fmtRep(tD) + '</span><span>جمع بستانکار: ' + fmtRep(tC) + '</span><span>' + bt + '</span><span>واحد: ' + currencyLabel() + '</span>';
+        container.appendChild(footer); document.getElementById('ra-count').textContent = toFa(shown); }
+    rerender(); window._renderAccountReportTree = rerender;
+}
+function runTrialBalance() {
+    var opts = { from: document.getElementById('rt-from').value, to: document.getElementById('rt-to').value, vtype: document.getElementById('rt-vtype').value, periodId: document.getElementById('rt-period').value, cat: document.getElementById('rt-cat').value, nature: document.getElementById('rt-nature').value, level: Number(document.getElementById('rt-level').value) || 3 };
+    var accounts = DB.load('accounts', []); var result = computeAccountBalances(opts); var rolled = rollupBalances(accounts, result.balances);
+    var rows = []; function getCh(pid) { return accounts.filter(function(a) { return a.parent === pid; }); }
+    function walk(node, level) { var b = rolled[node.id] || { debit: 0, credit: 0 }; var net = b.debit - b.credit;
+        if (opts.level === 4 && level === 3) { var sD = 0, sC = 0;
+            Object.keys(result.detailBalances).forEach(function(did) { var d = result.detailBalances[did]; if (d.parent !== node.id) return; sD += d.debit; sC += d.credit;
+                var dn = d.debit - d.credit; rows.push({ name: getDetailLabel(d.linkType, did) + ' (' + node.name + ')', level: 4, debit: d.debit, credit: d.credit, md: dn > 0 ? dn : 0, mc: dn < 0 ? -dn : 0 }); });
+            var dd = b.debit - sD, dc = b.credit - sC;
+            if (Math.abs(dd) > 0.5 || Math.abs(dc) > 0.5) { var dn2 = dd - dc; rows.push({ name: node.name + ' (بدون تفصیلی)', level: 4, debit: dd, credit: dc, md: dn2 > 0 ? dn2 : 0, mc: dn2 < 0 ? -dn2 : 0 }); }
+            return; }
+        if (level === opts.level) { if (b.debit > 0 || b.credit > 0) rows.push({ name: node.name, level: level, debit: b.debit, credit: b.credit, md: net > 0 ? net : 0, mc: net < 0 ? -net : 0 }); return; }
+        if (level < opts.level) { var chs = getCh(node.id); for (var ci = 0; ci < chs.length; ci++) walk(chs[ci], level + 1); } }
+    var roots = accounts.filter(function(a) { return !a.parent; });
+    for (var i = 0; i < roots.length; i++) walk(roots[i], 1);
+    var html = '<div class="table-wrap"><table class="report-table" id="rt-table"><thead><tr><th>عنوان</th><th>سطح</th><th>گردش بدهکار</th><th>گردش بستانکار</th><th>مانده بدهکار</th><th>مانده بستانکار</th></tr></thead><tbody>';
+    var tD = 0, tC = 0, tMD = 0, tMC = 0;
+    for (var r = 0; r < rows.length; r++) { var row = rows[r]; tD += row.debit; tC += row.credit; tMD += row.md; tMC += row.mc;
+        var lN = row.level === 1 ? 'گروه' : (row.level === 2 ? 'کل' : (row.level === 3 ? 'معین' : 'تفصیلی'));
+        html += '<tr><td>' + esc(row.name) + '</td><td>' + lN + '</td><td class="num dr">' + fmtRep(row.debit) + '</td><td class="num cr">' + fmtRep(row.credit) + '</td><td class="num dr">' + (row.md ? fmtRep(row.md) : '—') + '</td><td class="num cr">' + (row.mc ? fmtRep(row.mc) : '—') + '</td></tr>'; }
+    html += '</tbody><tfoot><tr><td colspan="2" style="text-align:left">جمع (' + currencyLabel() + ')</td><td class="num dr">' + fmtRep(tD) + '</td><td class="num cr">' + fmtRep(tC) + '</td><td class="num dr">' + fmtRep(tMD) + '</td><td class="num cr">' + fmtRep(tMC) + '</td></tr></tfoot></table></div>';
+    document.getElementById('rt-result').innerHTML = html; document.getElementById('rt-count').textContent = toFa(rows.length);
+    makeTableResizable(document.getElementById('rt-table')); applyColVisibility('rt-table');
+}
+
+function clearPersonForm() { var ids = ['pr-id','pr-first','pr-last','pr-father','pr-birth','pr-mobile','pr-phone','pr-bank-title','pr-acc','pr-iban','pr-card','pr-address']; for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = ''; }
+function clearCompanyForm() { var ids = ['co-id','co-name','co-phone','co-address']; for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = ''; }
+function clearBAForm() { var ids = ['ba-id','ba-bank','ba-branch-code','ba-branch-name','ba-account','ba-iban','ba-card','ba-order','ba-min-balance']; for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = ''; document.getElementById('ba-type').value = ''; }
+function clearCBForm() { var ids = ['cb-id','cb-title','cb-unit','cb-order']; for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = ''; document.getElementById('cb-type').value = ''; }
+function clearFiscalForm() { ['fiscal-id','fiscal-title','fiscal-from','fiscal-to'].forEach(function(x) { document.getElementById(x).value = ''; }); }
+function clearFacForm() { ['fc-id','fc-name','fc-date','fc-initial','fc-paid'].forEach(function(x) { document.getElementById(x).value = ''; }); document.getElementById('fc-category').value = 'facility'; document.getElementById('fc-bank').value = ''; document.getElementById('fac-installments-card').style.display = 'none'; currentFacilityId = null; currentInstallments = []; }
+function makeAllTablesResizable() {
+    ['fiscal-table','persons-table','comp-table','ba-table','cb-table','proj-table','voucher-table-list','rt-table','ri-table','rf-table','rff-table','cfs-table','cf-table']
+        .forEach(function(id) { var t = document.getElementById(id); if (t) makeTableResizable(t); });
+}
+
+/* ==================== Chart Tree ==================== */
 function renderChartTree(cid, editable) {
     var box = document.getElementById(cid); if (!box) return;
     var accounts = DB.load('accounts', []); box.innerHTML = '';
@@ -2436,10 +3156,8 @@ function persistVoucher(approve) {
     var d = normalizeDigits(document.getElementById('v-date').value.trim());
     var ty = document.getElementById('v-type').value;
     var ds = document.getElementById('v-desc').value.trim();
-    // استفاده از دوره فعال به جای فیلد
     var pid = state.activePeriodId || '';
     if (!num || !d) { alert('شماره و تاریخ اجباری.'); return; }
-    // اعتبارسنجی تاریخ در بازه دوره فعال
     var dv = validateDateInActivePeriod(d);
     if (!dv.ok) { alert('⚠️ ' + dv.msg); return; }
     if (!ds) { alert('⚠️ شرح سند اجباری.'); return; }
@@ -2563,413 +3281,6 @@ function refreshReportPeriodSelects() {
     ['ra-period','rt-period','ri-period'].forEach(function(id) { var sel = document.getElementById(id); if (!sel) return; var v = sel.value;
         sel.innerHTML = '<option value="">همه</option>'; for (var i = 0; i < ps.length; i++) { var o = document.createElement('option'); o.value = ps[i].id; o.textContent = ps[i].title; sel.appendChild(o); } sel.value = v; });
 }
-function filterVouchers(opts) { var l = DB.load('vouchers', []);
-    return l.filter(function(v) { if (v.status !== 'approved') return false;
-        if (opts.from && v.date < opts.from) return false; if (opts.to && v.date > opts.to) return false;
-        if (opts.vtype && v.type !== opts.vtype) return false; if (opts.periodId && v.periodId !== opts.periodId) return false; return true; }); }
-function computeAccountBalances(opts) {
-    var vouchers = filterVouchers(opts); var accounts = DB.load('accounts', []); var balances = {};
-    accounts.forEach(function(a) { balances[a.id] = { debit: 0, credit: 0 }; });
-    vouchers.forEach(function(v) { v.lines.forEach(function(line) { if (!line.account) return;
-        var acc = accounts.find(function(a) { return a.id === line.account; }); if (!acc) return;
-        if (opts.cat && acc.cat !== opts.cat) return; if (opts.nature && acc.nature !== opts.nature) return;
-        if (!balances[acc.id]) balances[acc.id] = { debit: 0, credit: 0 };
-        balances[acc.id].debit += Number(line.debit) || 0; balances[acc.id].credit += Number(line.credit) || 0; }); });
-    var db = {};
-    if (opts.level === 4) { vouchers.forEach(function(v) { v.lines.forEach(function(line) { if (!line.account || !line.details) return;
-        var acc = accounts.find(function(a) { return a.id === line.account; }); if (!acc) return;
-        if (opts.cat && acc.cat !== opts.cat) return; if (opts.nature && acc.nature !== opts.nature) return;
-        Object.keys(line.details).forEach(function(lt) { var did = line.details[lt]; if (!did) return;
-            if (!db[did]) db[did] = { debit: 0, credit: 0, parent: acc.id, linkType: lt };
-            db[did].debit += Number(line.debit) || 0; db[did].credit += Number(line.credit) || 0; }); }); }); }
-    return { balances: balances, detailBalances: db };
-}
-function rollupBalances(accounts, balances) {
-    var rolled = {}, idMap = {};
-    accounts.forEach(function(a) { idMap[a.id] = a; rolled[a.id] = { debit: balances[a.id] ? balances[a.id].debit : 0, credit: balances[a.id] ? balances[a.id].credit : 0 }; });
-    function depth(acc) { var d = 0, cur = acc; while (cur && cur.parent) { d++; cur = idMap[cur.parent]; } return d; }
-    var sorted = accounts.slice().sort(function(a, b) { return depth(b) - depth(a); });
-    sorted.forEach(function(a) { if (a.parent && rolled[a.parent]) { rolled[a.parent].debit += rolled[a.id].debit; rolled[a.parent].credit += rolled[a.id].credit; } });
-    return rolled;
-}
-function runAccountReport() {
-    var opts = { from: document.getElementById('ra-from').value, to: document.getElementById('ra-to').value, vtype: document.getElementById('ra-vtype').value, periodId: document.getElementById('ra-period').value, cat: document.getElementById('ra-cat').value, nature: document.getElementById('ra-nature').value, level: Number(document.getElementById('ra-level').value) || 3 };
-    var accounts = DB.load('accounts', []); var result = computeAccountBalances(opts); var rolled = rollupBalances(accounts, result.balances);
-    state.reportExpandedNodes = {}; var box = document.getElementById('ra-result'); box.innerHTML = ''; var tL = opts.level;
-    var roots = accounts.filter(function(a) { return !a.parent; });
-    function getCh(pid) { return accounts.filter(function(a) { return a.parent === pid; }); }
-    var dM = {}; if (tL >= 4) { Object.keys(result.detailBalances).forEach(function(did) { var d = result.detailBalances[did]; if (!dM[d.parent]) dM[d.parent] = []; dM[d.parent].push({ id: did, linkType: d.linkType, debit: d.debit, credit: d.credit }); }); }
-    var tD = 0, tC = 0, shown = 0;
-    var container = document.createElement('div'); container.className = 'report-tree'; box.appendChild(container);
-    function renderNode(node, level, parentEl) {
-        var b = rolled[node.id] || { debit: 0, credit: 0 }; var net = b.debit - b.credit;
-        var hC = getCh(node.id).length > 0 || (level === 3 && tL === 4 && dM[node.id] && dM[node.id].length > 0);
-        var sS = level <= tL; var isE = state.reportExpandedNodes[node.id] !== false;
-        if (sS) { var div = document.createElement('div'); div.className = 'rt-node level-' + level; var ek = node.id;
-            var th = hC ? '<span class="rt-toggle" data-toggle="' + ek + '">' + (isE ? '▼' : '◀') + '</span>' : '<span class="rt-toggle empty">•</span>';
-            var lB = ''; if (level === 1) lB = '<span class="rt-level-badge l1">گروه</span>'; else if (level === 2) lB = '<span class="rt-level-badge l2">کل</span>'; else if (level === 3) lB = '<span class="rt-level-badge l3">معین</span>';
-            var nD = net === 0 ? '۰' : fmtRep(Math.abs(net));
-            div.innerHTML = th + '<span class="rt-name">' + esc(node.name) + '</span>' + lB + '<span class="rt-amounts"><span class="amt dr">بدهکار: ' + fmtRep(b.debit) + '</span><span class="amt cr">بستانکار: ' + fmtRep(b.credit) + '</span><span class="amt net">مانده: ' + nD + '</span></span>';
-            var tEl = div.querySelector('[data-toggle]');
-            if (tEl) tEl.addEventListener('click', function(e) { e.stopPropagation(); state.reportExpandedNodes[ek] = !isE; rerender(); });
-            parentEl.appendChild(div); tD += b.debit; tC += b.credit; shown++; }
-        if (sS && isE) { var cB = document.createElement('div'); cB.className = 'rt-children';
-            var chs = getCh(node.id); for (var ci = 0; ci < chs.length; ci++) renderNode(chs[ci], level + 1, cB);
-            if (level === 3 && tL === 4 && dM[node.id]) { var ds = dM[node.id];
-                for (var di = 0; di < ds.length; di++) { var d = ds[di]; var dn = d.debit - d.credit; var dnD = dn === 0 ? '۰' : fmtRep(Math.abs(dn));
-                    var dD = document.createElement('div'); dD.className = 'rt-node level-4';
-                    dD.innerHTML = '<span class="rt-toggle empty">•</span><span class="rt-name">' + esc(getDetailLabel(d.linkType, d.id)) + '</span><span class="rt-level-badge l4">' + linkTypeName(d.linkType) + '</span><span class="rt-amounts"><span class="amt dr">بدهکار: ' + fmtRep(d.debit) + '</span><span class="amt cr">بستانکار: ' + fmtRep(d.credit) + '</span><span class="amt net">مانده: ' + dnD + '</span></span>';
-                    cB.appendChild(dD); tD += d.debit; tC += d.credit; shown++; } }
-            if (cB.children.length > 0) parentEl.appendChild(cB); }
-    }
-    function rerender() { container.innerHTML = ''; tD = 0; tC = 0; shown = 0;
-        for (var i = 0; i < roots.length; i++) renderNode(roots[i], 1, container);
-        var footer = document.createElement('div');
-        footer.style.cssText = 'margin-top:14px;padding:14px;background:var(--primary-soft);border-radius:12px;font-weight:bold;color:var(--primary-dark);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;border:1px solid var(--primary-light)';
-        var bt = (tD === tC) ? '✓ متوازن' : '⚠️ اختلاف: ' + fmtRep(Math.abs(tD - tC));
-        footer.innerHTML = '<span>جمع بدهکار: ' + fmtRep(tD) + '</span><span>جمع بستانکار: ' + fmtRep(tC) + '</span><span>' + bt + '</span><span>واحد: ' + currencyLabel() + '</span>';
-        container.appendChild(footer); document.getElementById('ra-count').textContent = toFa(shown); }
-    rerender(); window._renderAccountReportTree = rerender;
-}
-function runTrialBalance() {
-    var opts = { from: document.getElementById('rt-from').value, to: document.getElementById('rt-to').value, vtype: document.getElementById('rt-vtype').value, periodId: document.getElementById('rt-period').value, cat: document.getElementById('rt-cat').value, nature: document.getElementById('rt-nature').value, level: Number(document.getElementById('rt-level').value) || 3 };
-    var accounts = DB.load('accounts', []); var result = computeAccountBalances(opts); var rolled = rollupBalances(accounts, result.balances);
-    var rows = []; function getCh(pid) { return accounts.filter(function(a) { return a.parent === pid; }); }
-    function walk(node, level) { var b = rolled[node.id] || { debit: 0, credit: 0 }; var net = b.debit - b.credit;
-        if (opts.level === 4 && level === 3) { var sD = 0, sC = 0;
-            Object.keys(result.detailBalances).forEach(function(did) { var d = result.detailBalances[did]; if (d.parent !== node.id) return; sD += d.debit; sC += d.credit;
-                var dn = d.debit - d.credit; rows.push({ name: getDetailLabel(d.linkType, did) + ' (' + node.name + ')', level: 4, debit: d.debit, credit: d.credit, md: dn > 0 ? dn : 0, mc: dn < 0 ? -dn : 0 }); });
-            var dd = b.debit - sD, dc = b.credit - sC;
-            if (Math.abs(dd) > 0.5 || Math.abs(dc) > 0.5) { var dn2 = dd - dc; rows.push({ name: node.name + ' (بدون تفصیلی)', level: 4, debit: dd, credit: dc, md: dn2 > 0 ? dn2 : 0, mc: dn2 < 0 ? -dn2 : 0 }); }
-            return; }
-        if (level === opts.level) { if (b.debit > 0 || b.credit > 0) rows.push({ name: node.name, level: level, debit: b.debit, credit: b.credit, md: net > 0 ? net : 0, mc: net < 0 ? -net : 0 }); return; }
-        if (level < opts.level) { var chs = getCh(node.id); for (var ci = 0; ci < chs.length; ci++) walk(chs[ci], level + 1); } }
-    var roots = accounts.filter(function(a) { return !a.parent; });
-    for (var i = 0; i < roots.length; i++) walk(roots[i], 1);
-    var html = '<div class="table-wrap"><table class="report-table" id="rt-table"><thead><tr><th>عنوان</th><th>سطح</th><th>گردش بدهکار</th><th>گردش بستانکار</th><th>مانده بدهکار</th><th>مانده بستانکار</th></tr></thead><tbody>';
-    var tD = 0, tC = 0, tMD = 0, tMC = 0;
-    for (var r = 0; r < rows.length; r++) { var row = rows[r]; tD += row.debit; tC += row.credit; tMD += row.md; tMC += row.mc;
-        var lN = row.level === 1 ? 'گروه' : (row.level === 2 ? 'کل' : (row.level === 3 ? 'معین' : 'تفصیلی'));
-        html += '<tr><td>' + esc(row.name) + '</td><td>' + lN + '</td><td class="num dr">' + fmtRep(row.debit) + '</td><td class="num cr">' + fmtRep(row.credit) + '</td><td class="num dr">' + (row.md ? fmtRep(row.md) : '—') + '</td><td class="num cr">' + (row.mc ? fmtRep(row.mc) : '—') + '</td></tr>'; }
-    html += '</tbody><tfoot><tr><td colspan="2" style="text-align:left">جمع (' + currencyLabel() + ')</td><td class="num dr">' + fmtRep(tD) + '</td><td class="num cr">' + fmtRep(tC) + '</td><td class="num dr">' + fmtRep(tMD) + '</td><td class="num cr">' + fmtRep(tMC) + '</td></tr></tfoot></table></div>';
-    document.getElementById('rt-result').innerHTML = html; document.getElementById('rt-count').textContent = toFa(rows.length);
-    makeTableResizable(document.getElementById('rt-table')); applyColVisibility('rt-table');
-}
-function runIncompleteReport() {
-    var statusF = (document.getElementById('ri-status').value || '');
-    var periodF = (document.getElementById('ri-period').value || '');
-    var vouchers = DB.load('vouchers', []);
-    var rows = [];
-    vouchers.forEach(function(v) {
-        var st = v.status || 'draft';
-        if (statusF && st !== statusF) return;
-        if (periodF && v.periodId !== periodF) return;
-        var issues = getVoucherIssues(v);
-        if (issues.length === 0) return;
-        rows.push({ v: v, issues: issues });
-    });
-    rows.sort(function(a, b) { return compareVals(a.v.number, b.v.number); });
-    var periods = DB.load('fiscalPeriods', []); var pM = {}; periods.forEach(function(p) { pM[p.id] = p.title; });
-    var html = '<div class="table-wrap"><table class="report-table" id="ri-table"><thead><tr><th>#</th><th>شماره</th><th>تاریخ</th><th>مبلغ</th><th>دوره</th><th>شرح</th><th>وضعیت</th><th>مشکلات</th><th>عملیات</th></tr></thead><tbody>';
-    var totalAmt = 0;
-    for (var i = 0; i < rows.length; i++) {
-        var r = rows[i]; var v = r.v; var amt = getVoucherAmount(v); totalAmt += amt;
-        var stB = v.status === 'approved' ? '<span class="badge badge-approved">✓</span>' : '<span class="badge badge-draft">پیش‌نویس</span>';
-        var iss = '<div class="ri-issues">' + r.issues.map(function(x) { return '<div class="ri-issue-item">' + esc(x) + '</div>'; }).join('') + '</div>';
-        var aH = '<div class="row-actions"><button class="row-btn open" data-vid="' + v.id + '" data-action="open-voucher" title="باز کردن سند">✎</button><button class="row-btn open" data-vid="' + v.id + '" data-action="preview-voucher" title="پیش‌نمایش">👁</button></div>';
-        html += '<tr><td class="num">' + toFa(i + 1) + '</td><td dir="ltr">' + toFa(esc(v.number)) + '</td><td dir="ltr">' + toFa(esc(v.date)) + '</td><td class="num" style="font-weight:bold;color:var(--primary-dark)">' + formatMoney(amt) + '</td><td>' + esc(pM[v.periodId] || '—') + '</td><td>' + esc(v.desc || '') + '</td><td>' + stB + '</td><td>' + iss + '</td><td>' + aH + '</td></tr>';
-    }
-    if (rows.length === 0) html += '<tr><td colspan="9" class="empty-row">✅ سند ناقصی وجود ندارد.</td></tr>';
-    html += '</tbody>';
-    if (rows.length > 0) html += '<tfoot><tr><td colspan="3" style="text-align:left">جمع (' + currencyLabel() + ')</td><td class="num" style="color:#c0392b;font-weight:bold">' + formatMoney(totalAmt) + '</td><td colspan="5"></td></tr></tfoot>';
-    html += '</table></div>';
-    document.getElementById('ri-result').innerHTML = html;
-    document.getElementById('ri-count').textContent = toFa(rows.length);
-    var unitEl = document.getElementById('ri-unit'); if (unitEl) unitEl.textContent = 'واحد: ' + currencyLabel();
-    makeTableResizable(document.getElementById('ri-table')); applyColVisibility('ri-table');
-    var btns = document.querySelectorAll('#ri-result [data-action]');
-    for (var bi = 0; bi < btns.length; bi++) btns[bi].addEventListener('click', function() {
-        var vid = this.getAttribute('data-vid'); var act = this.getAttribute('data-action');
-        var v = findVoucherById(vid); if (!v) return;
-        if (act === 'open-voucher') { loadVoucherForEdit(v); }
-        else if (act === 'preview-voucher') { openVoucherPreview(v); }
-    });
-}
-function runFacilityReport() {
-    var facilities = DB.load('facilities', []); var cf = document.getElementById('rf-category').value; var sf = document.getElementById('rf-status').value;
-    var st = sortState.rf; var rows = [];
-    facilities.forEach(function(f) { if (cf && (f.category || 'facility') !== cf) return;
-        var ins = f.installments || []; var ri = ins.filter(function(x) { return x.status !== 'paid'; });
-        var ra = ri.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
-        var lD = ri.length > 0 ? ri[ri.length - 1].date : '—';
-        var unpaidSorted = ri.slice().sort(function(a, b) { return compareVals(a.date, b.date); });
-        var fU = unpaidSorted.length > 0 ? unpaidSorted[0].date : '—';
-        var set = ri.length === 0 && ins.length > 0;
-        if (sf === 'settled' && !set) return; if (sf === 'active' && set) return;
-        rows.push({ f: f, rC: ri.length, rA: ra, lD: lD, fU: fU, set: set }); });
-    rows.sort(function(a, b) { var va, vb;
-        if (st.col === 'name') { va = a.f.name || ''; vb = b.f.name || ''; }
-        else if (st.col === 'initial') { va = a.f.initial || 0; vb = b.f.initial || 0; }
-        else if (st.col === 'paid') { va = a.f.paid || 0; vb = b.f.paid || 0; }
-        else if (st.col === 'remainingCount') { va = a.rC; vb = b.rC; }
-        else if (st.col === 'remainingAmount') { va = a.rA; vb = b.rA; }
-        else if (st.col === 'lastDate') { va = a.lD; vb = b.lD; }
-        else if (st.col === 'firstUnpaid') { va = a.fU; vb = b.fU; }
-        else if (st.col === 'status') { va = a.set ? 'تسویه' : 'جاری'; vb = b.set ? 'تسویه' : 'جاری'; }
-        else { va = ''; vb = ''; }
-        return st.dir === 'asc' ? compareVals(va, vb) : -compareVals(va, vb); });
-    var html = '<div class="table-wrap"><table class="report-table" id="rf-table"><thead><tr><th class="sortable" data-sort="name">عنوان <span class="sort-ind"></span></th><th class="sortable" data-sort="status">وضعیت <span class="sort-ind"></span></th><th class="sortable" data-sort="initial">مبلغ اولیه <span class="sort-ind"></span></th><th class="sortable" data-sort="paid">پرداخت <span class="sort-ind"></span></th><th class="sortable" data-sort="remainingCount">اقساط باقی <span class="sort-ind"></span></th><th class="sortable" data-sort="remainingAmount">مبلغ باقی <span class="sort-ind"></span></th><th class="sortable" data-sort="firstUnpaid">اولین قسط پرداخت‌نشده <span class="sort-ind"></span></th><th class="sortable" data-sort="lastDate">آخرین قسط <span class="sort-ind"></span></th></tr></thead><tbody>';
-    var tr = 0;
-    for (var i = 0; i < rows.length; i++) { var r = rows[i]; var f = r.f;
-        html += '<tr><td>' + esc(f.name) + '</td><td>' + (r.set ? '<span class="badge badge-settled">تسویه</span>' : '<span class="badge badge-active">جاری</span>') + '</td><td class="num">' + fmtRep(f.initial || 0) + '</td><td class="num">' + fmtRep(f.paid || 0) + '</td><td class="num">' + toFa(r.rC) + '</td><td class="num">' + fmtRep(r.rA) + '</td><td dir="ltr">' + toFa(r.fU) + '</td><td dir="ltr">' + toFa(r.lD) + '</td></tr>';
-        tr += r.rA; }
-    html += '</tbody><tfoot><tr><td colspan="5" style="text-align:left">جمع مانده (' + currencyLabel() + ')</td><td class="num">' + fmtRep(tr) + '</td><td colspan="2"></td></tr></tfoot></table></div>';
-    document.getElementById('rf-result').innerHTML = html; document.getElementById('rf-count').textContent = toFa(rows.length);
-    setupRfSorting();
-    var ths = document.querySelectorAll('#rf-result th.sortable');
-    for (var t = 0; t < ths.length; t++) { ths[t].classList.remove('sorted-asc', 'sorted-desc'); if (ths[t].getAttribute('data-sort') === st.col) ths[t].classList.add(st.dir === 'asc' ? 'sorted-asc' : 'sorted-desc'); }
-    makeTableResizable(document.getElementById('rf-table')); applyColVisibility('rf-table');
-}
-
-/* ===== گزارش جامع تسهیلات (کلی + جزئیات) ===== */
-function computeFacilityRows() {
-    var facilities = DB.load('facilities', []);
-    var cf = document.getElementById('rff-category').value;
-    var sf = document.getElementById('rff-status').value;
-    var inf = document.getElementById('rff-inst-status').value;
-    var bf = document.getElementById('rff-bank').value;
-    var fromD = document.getElementById('rff-from').value;
-    var toD = document.getElementById('rff-to').value;
-    var q = (document.getElementById('rff-search').value || '').toLowerCase();
-    var banks = DB.load('bankAccounts', []);
-    var bankMap = {}; banks.forEach(function(b) { bankMap[b.id] = b; });
-    var today = toJalali(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
-    var tStr = today[0] + '/' + pad2(today[1]) + '/' + pad2(today[2]);
-    var rows = [];
-    facilities.forEach(function(f) {
-        if (cf && (f.category || 'facility') !== cf) return;
-        if (bf && f.bankId !== bf) return;
-        if (fromD && f.date && f.date < fromD) return;
-        if (toD && f.date && f.date > toD) return;
-        var ins = f.installments || [];
-        var paidCount = ins.filter(function(x) { return x.status === 'paid'; }).length;
-        var registeredCount = ins.filter(function(x) { return x.status === 'registered'; }).length;
-        var totalAmt = ins.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
-        var paidAmt = ins.filter(function(x) { return x.status === 'paid'; }).reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
-        var unpaidList = ins.filter(function(x) { return x.status !== 'paid'; });
-        var unpaidAmt = unpaidList.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
-        var unpaidSorted = unpaidList.slice().sort(function(a, b) { return compareVals(a.date, b.date); });
-        var firstUnpaidDate = unpaidSorted.length > 0 ? unpaidSorted[0].date : '';
-        var firstUnpaidAmount = unpaidSorted.length > 0 ? Number(unpaidSorted[0].amount) || 0 : 0;
-        var lastPaidDate = '—';
-        var paidSorted = ins.filter(function(x) { return x.status === 'paid' && x.date; }).slice().sort(function(a, b) { return compareVals(b.date, a.date); });
-        if (paidSorted.length > 0) lastPaidDate = paidSorted[0].date;
-        var overdueCount = unpaidList.filter(function(x) { return x.date && x.date < tStr; }).length;
-        var settled = unpaidList.length === 0 && ins.length > 0;
-        var remainingToInit = Number(f.initial || 0) - paidAmt;
-        var lastInsDate = '—';
-        if (ins.length > 0) {
-            var sortedIns = ins.slice().sort(function(a, b) { return compareVals(b.date, a.date); });
-            lastInsDate = sortedIns[0].date || '—';
-        }
-        if (sf === 'settled' && !settled) return;
-        if (sf === 'active' && settled) return;
-        if (inf === 'has-unpaid' && !(unpaidList.length > 0)) return;
-        if (inf === 'has-paid' && !(paidCount > 0)) return;
-        if (inf === 'all-paid' && !(ins.length > 0 && paidCount === ins.length)) return;
-        if (inf === 'no-installments' && ins.length > 0) return;
-        if (inf === 'overdue' && overdueCount === 0) return;
-        if (q) {
-            var bankObj = bankMap[f.bankId];
-            var txt = ((f.name || '') + ' ' + (f.date || '') + ' ' + categoryName(f.category) + ' ' + (bankObj ? bankObj.bank : '')).toLowerCase();
-            if (txt.indexOf(q) === -1) return;
-        }
-        rows.push({
-            f: f, bank: bankMap[f.bankId], insCount: ins.length,
-            paidCount: paidCount, registeredCount: registeredCount,
-            totalAmt: totalAmt, paidAmt: paidAmt, unpaidAmt: unpaidAmt,
-            unpaidCount: unpaidList.length, firstUnpaidDate: firstUnpaidDate,
-            firstUnpaidAmount: firstUnpaidAmount, lastPaidDate: lastPaidDate,
-            overdueCount: overdueCount, settled: settled, remaining: remainingToInit,
-            lastInsDate: lastInsDate
-        });
-    });
-    return rows;
-}
-function runFacilityFullReport() {
-    var rows = computeFacilityRows();
-    var st = sortState.rff;
-    rows.sort(function(a, b) {
-        var va, vb;
-        switch (st.col) {
-            case 'name': va = a.f.name || ''; vb = b.f.name || ''; break;
-            case 'category': va = categoryName(a.f.category); vb = categoryName(b.f.category); break;
-            case 'bank': va = a.bank ? a.bank.bank : ''; vb = b.bank ? b.bank.bank : ''; break;
-            case 'date': va = a.f.date || ''; vb = b.f.date || ''; break;
-            case 'initial': va = Number(a.f.initial || 0); vb = Number(b.f.initial || 0); break;
-            case 'paidAmt': va = a.paidAmt; vb = b.paidAmt; break;
-            case 'unpaidAmt': va = a.unpaidAmt; vb = b.unpaidAmt; break;
-            case 'insCount': va = a.insCount; vb = b.insCount; break;
-            case 'paidCount': va = a.paidCount; vb = b.paidCount; break;
-            case 'unpaidCount': va = a.unpaidCount; vb = b.unpaidCount; break;
-            case 'firstUnpaidDate': va = a.firstUnpaidDate || ''; vb = b.firstUnpaidDate || ''; break;
-            case 'lastPaidDate': va = a.lastPaidDate || ''; vb = b.lastPaidDate || ''; break;
-            case 'overdueCount': va = a.overdueCount; vb = b.overdueCount; break;
-            case 'status': va = a.settled ? 'تسویه' : 'جاری'; vb = b.settled ? 'تسویه' : 'جاری'; break;
-            default: va = ''; vb = '';
-        }
-        return st.dir === 'asc' ? compareVals(va, vb) : -compareVals(va, vb);
-    });
-    if (state.rffView === 'detail') {
-        renderFacilityFullDetail(rows);
-    } else {
-        renderFacilityFullSummary(rows);
-    }
-}
-function renderFacilityFullSummary(rows) {
-    var st = sortState.rff;
-    var html = '<div class="table-wrap"><table class="report-table" id="rff-table"><thead><tr>' +
-        '<th class="sortable" data-sort="name">عنوان <span class="sort-ind"></span></th>' +
-        '<th class="sortable" data-sort="category">دسته <span class="sort-ind"></span></th>' +
-        '<th class="sortable" data-sort="bank">بانک <span class="sort-ind"></span></th>' +
-        '<th class="sortable" data-sort="date">تاریخ <span class="sort-ind"></span></th>' +
-        '<th class="sortable" data-sort="initial">مبلغ اولیه <span class="sort-ind"></span></th>' +
-        '<th class="sortable" data-sort="paidAmt">پرداخت شده <span class="sort-ind"></span></th>' +
-        '<th class="sortable" data-sort="unpaidAmt">باقی‌مانده <span class="sort-ind"></span></th>' +
-        '<th class="sortable" data-sort="insCount">تعداد اقساط <span class="sort-ind"></span></th>' +
-        '<th class="sortable" data-sort="paidCount">پرداخت‌شده <span class="sort-ind"></span></th>' +
-        '<th class="sortable" data-sort="unpaidCount">باقی <span class="sort-ind"></span></th>' +
-        '<th class="sortable" data-sort="overdueCount">سررسید گذشته <span class="sort-ind"></span></th>' +
-        '<th class="sortable" data-sort="firstUnpaidDate">اولین قسط پرداخت‌نشده <span class="sort-ind"></span></th>' +
-        '<th class="sortable" data-sort="lastPaidDate">آخرین قسط پرداخت‌شده <span class="sort-ind"></span></th>' +
-        '<th class="sortable" data-sort="status">وضعیت <span class="sort-ind"></span></th>' +
-        '<th>عملیات</th></tr></thead><tbody>';
-    var sumInit = 0, sumPaid = 0, sumUnpaid = 0, sumInsCount = 0, sumPaidCount = 0, sumUnpaidCount = 0, sumOverdue = 0;
-    for (var i = 0; i < rows.length; i++) {
-        var r = rows[i]; var f = r.f;
-        sumInit += Number(f.initial || 0); sumPaid += r.paidAmt; sumUnpaid += r.unpaidAmt;
-        sumInsCount += r.insCount; sumPaidCount += r.paidCount; sumUnpaidCount += r.unpaidCount; sumOverdue += r.overdueCount;
-        var catB = (f.category === 'scheduled') ? '<span class="badge badge-cat-sch">زمانبندی</span>' : '<span class="badge badge-cat-fac">تسهیلات</span>';
-        var stB = r.settled ? '<span class="badge badge-settled">تسویه</span>' : '<span class="badge badge-active">جاری</span>';
-        var overdue = r.overdueCount > 0 ? '<span class="badge badge-overdue">' + toFa(r.overdueCount) + '</span>' : '۰';
-        var firstUnpaidCell = r.firstUnpaidDate ? (toFa(r.firstUnpaidDate) + (r.firstUnpaidAmount ? ' <span class="muted" style="font-size:0.7rem">(' + fmtRep(r.firstUnpaidAmount) + ')</span>' : '')) : '—';
-        var aH = '<div class="row-actions"><button class="row-btn open" data-fid="' + f.id + '" data-action="rff-inst" title="دفترچه اقساط">📖</button><button class="row-btn edit" data-fid="' + f.id + '" data-action="rff-edit" title="ویرایش">✎</button></div>';
-        html += '<tr>' +
-            '<td><strong>' + esc(f.name) + '</strong></td>' +
-            '<td>' + catB + '</td>' +
-            '<td>' + esc(r.bank ? r.bank.bank : '—') + '</td>' +
-            '<td dir="ltr">' + toFa(esc(f.date || '—')) + '</td>' +
-            '<td class="num">' + fmtRep(f.initial || 0) + '</td>' +
-            '<td class="num" style="color:#1e9e6a">' + fmtRep(r.paidAmt) + '</td>' +
-            '<td class="num" style="color:' + (r.unpaidAmt > 0 ? '#c0392b' : '#1e9e6a') + '">' + fmtRep(r.unpaidAmt) + '</td>' +
-            '<td class="num">' + toFa(r.insCount) + '</td>' +
-            '<td class="num" style="color:#1e9e6a">' + toFa(r.paidCount) + '</td>' +
-            '<td class="num" style="color:#c47c00">' + toFa(r.unpaidCount) + '</td>' +
-            '<td class="num">' + overdue + '</td>' +
-            '<td dir="ltr">' + firstUnpaidCell + '</td>' +
-            '<td dir="ltr">' + toFa(r.lastPaidDate) + '</td>' +
-            '<td>' + stB + '</td>' +
-            '<td>' + aH + '</td>' +
-        '</tr>';
-    }
-    if (rows.length === 0) html += '<tr><td colspan="15" class="empty-row">موردی یافت نشد.</td></tr>';
-    html += '</tbody>';
-    if (rows.length > 0) {
-        html += '<tfoot><tr><td colspan="4" style="text-align:left">جمع کل (' + currencyLabel() + ')</td>' +
-            '<td class="num">' + fmtRep(sumInit) + '</td>' +
-            '<td class="num" style="color:#1e9e6a">' + fmtRep(sumPaid) + '</td>' +
-            '<td class="num" style="color:#c0392b">' + fmtRep(sumUnpaid) + '</td>' +
-            '<td class="num">' + toFa(sumInsCount) + '</td>' +
-            '<td class="num" style="color:#1e9e6a">' + toFa(sumPaidCount) + '</td>' +
-            '<td class="num" style="color:#c47c00">' + toFa(sumUnpaidCount) + '</td>' +
-            '<td class="num">' + toFa(sumOverdue) + '</td>' +
-            '<td colspan="4"></td></tr></tfoot>';
-    }
-    html += '</table></div>';
-    document.getElementById('rff-result').innerHTML = html;
-    document.getElementById('rff-count').textContent = toFa(rows.length);
-    var unitEl = document.getElementById('rff-unit'); if (unitEl) unitEl.textContent = 'واحد: ' + currencyLabel();
-    setupRffSorting();
-    var ths = document.querySelectorAll('#rff-result th.sortable');
-    for (var t = 0; t < ths.length; t++) { ths[t].classList.remove('sorted-asc', 'sorted-desc'); if (ths[t].getAttribute('data-sort') === st.col) ths[t].classList.add(st.dir === 'asc' ? 'sorted-asc' : 'sorted-desc'); }
-    makeTableResizable(document.getElementById('rff-table')); applyColVisibility('rff-table');
-    var btns = document.querySelectorAll('#rff-result [data-action]');
-    for (var bi = 0; bi < btns.length; bi++) btns[bi].addEventListener('click', function() {
-        var fid = this.getAttribute('data-fid'); var act = this.getAttribute('data-action');
-        var f = DB.load('facilities', []).find(function(x) { return x.id === fid; }); if (!f) return;
-        if (act === 'rff-inst') loadFacilityForInstallments(f);
-        else if (act === 'rff-edit') loadFacilityIntoForm(f);
-    });
-}
-function renderFacilityFullDetail(rows) {
-    // مرتب‌سازی: تعداد اقساط صعودی، سپس آخرین تاریخ قسط صعودی
-    var sorted = rows.slice().sort(function(a, b) {
-        if (a.insCount !== b.insCount) return a.insCount - b.insCount;
-        return compareVals(a.lastInsDate || '9999/99/99', b.lastInsDate || '9999/99/99');
-    });
-    var today = toJalali(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
-    var tStr = today[0] + '/' + pad2(today[1]) + '/' + pad2(today[2]);
-    var html = '<div class="rff-detail-list">';
-    var totalAllAmt = 0;
-    for (var i = 0; i < sorted.length; i++) {
-        var r = sorted[i]; var f = r.f;
-        var ins = f.installments || [];
-        var paidCount = r.paidCount;
-        var unpaidCount = r.unpaidCount;
-        var catLabel = (f.category === 'scheduled') ? 'زمانبندی' : 'تسهیلات';
-        var cls = (f.category === 'scheduled') ? ' sch' : '';
-        html += '<div class="rff-fac-card">';
-        html += '<div class="rff-fac-head' + cls + '">';
-        html += '<div><div class="rff-fac-title">' + esc(f.name) + '</div><div class="rff-fac-meta">';
-        html += '<span class="chip-m">' + catLabel + '</span>';
-        if (r.bank) html += '<span class="chip-m">🏦 ' + esc(r.bank.bank || '') + '</span>';
-        if (f.date) html += '<span class="chip-m">📅 ' + toFa(f.date) + '</span>';
-        html += '</div></div>';
-        html += '<div>' + (r.settled ? '<span class="badge badge-settled">✓ تسویه</span>' : '<span class="badge badge-active">در جریان</span>') + '</div>';
-        html += '</div>';
-        html += '<div class="rff-fac-stats">';
-        html += '<div class="item"><div class="lbl">مبلغ اولیه</div><div class="val">' + formatMoney(f.initial || 0) + '</div></div>';
-        html += '<div class="item"><div class="lbl">پرداخت شده</div><div class="val" style="color:#1e9e6a">' + formatMoney(r.paidAmt) + '</div></div>';
-        html += '<div class="item"><div class="lbl">باقی‌مانده</div><div class="val" style="color:' + (r.unpaidAmt > 0 ? '#c0392b' : '#1e9e6a') + '">' + formatMoney(r.unpaidAmt) + '</div></div>';
-        html += '<div class="item"><div class="lbl">تعداد اقساط</div><div class="val">' + toFa(ins.length) + '</div></div>';
-        html += '<div class="item"><div class="lbl">پرداخت‌شده</div><div class="val" style="color:#1e9e6a">' + toFa(paidCount) + '</div></div>';
-        html += '<div class="item"><div class="lbl">باقی</div><div class="val" style="color:#c47c00">' + toFa(unpaidCount) + '</div></div>';
-        if (r.overdueCount > 0) html += '<div class="item"><div class="lbl">سررسید گذشته</div><div class="val" style="color:#c0392b">' + toFa(r.overdueCount) + '</div></div>';
-        html += '</div>';
-        if (ins.length === 0) {
-            html += '<div class="rff-empty">— دفترچه اقساطی برای این تسهیلات ثبت نشده —</div>';
-        } else {
-            html += '<table class="rff-inst-table"><thead><tr><th style="width:40px">#</th><th>تاریخ</th><th>مبلغ</th><th>وضعیت</th></tr></thead><tbody>';
-            var sortedIns = ins.slice().sort(function(a, b) { return compareVals(a.date, b.date); });
-            for (var j = 0; j < sortedIns.length; j++) {
-                var inx = sortedIns[j];
-                var isOverdue = (inx.status !== 'paid' && inx.date && inx.date < tStr);
-                var rowCls = (inx.status === 'paid') ? 'paid-row' : (isOverdue ? 'overdue-row' : '');
-                var stLabel = (inx.status === 'paid') ? '<span class="badge badge-paid">✓ پرداخت</span>' : (isOverdue ? '<span class="badge badge-overdue">سررسید گذشته</span>' : '<span class="badge badge-registered">ثبت</span>');
-                html += '<tr class="' + rowCls + '"><td class="num">' + toFa(j + 1) + '</td><td dir="ltr">' + toFa(esc(inx.date || '—')) + '</td><td class="num" style="font-weight:bold">' + formatMoney(inx.amount || 0) + '</td><td>' + stLabel + '</td></tr>';
-                totalAllAmt += Number(inx.amount) || 0;
-            }
-            html += '</tbody></table>';
-        }
-        html += '</div>';
-    }
-    if (rows.length === 0) html += '<div class="card"><p class="muted" style="text-align:center">موردی یافت نشد.</p></div>';
-    html += '</div>';
-    document.getElementById('rff-result').innerHTML = html;
-    document.getElementById('rff-count').textContent = toFa(rows.length);
-    var unitEl = document.getElementById('rff-unit'); if (unitEl) unitEl.textContent = 'واحد: ' + currencyLabel();
-}
-
-function clearPersonForm() { var ids = ['pr-id','pr-first','pr-last','pr-father','pr-birth','pr-mobile','pr-phone','pr-bank-title','pr-acc','pr-iban','pr-card','pr-address']; for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = ''; }
-function clearCompanyForm() { var ids = ['co-id','co-name','co-phone','co-address']; for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = ''; }
-function clearBAForm() { var ids = ['ba-id','ba-bank','ba-branch-code','ba-branch-name','ba-account','ba-iban','ba-card','ba-order','ba-min-balance']; for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = ''; document.getElementById('ba-type').value = ''; }
-function clearCBForm() { var ids = ['cb-id','cb-title','cb-unit','cb-order']; for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = ''; document.getElementById('cb-type').value = ''; }
-function clearFiscalForm() { ['fiscal-id','fiscal-title','fiscal-from','fiscal-to'].forEach(function(x) { document.getElementById(x).value = ''; }); }
-function clearFacForm() { ['fc-id','fc-name','fc-date','fc-initial','fc-paid'].forEach(function(x) { document.getElementById(x).value = ''; }); document.getElementById('fc-category').value = 'facility'; document.getElementById('fc-bank').value = ''; document.getElementById('fac-installments-card').style.display = 'none'; currentFacilityId = null; currentInstallments = []; }
-function makeAllTablesResizable() {
-    ['fiscal-table','persons-table','comp-table','ba-table','cb-table','proj-table','voucher-table-list','rt-table','ri-table','rf-table','rff-table']
-        .forEach(function(id) { var t = document.getElementById(id); if (t) makeTableResizable(t); });
-}
 
 var deferredInstallPrompt = null;
 window.addEventListener('beforeinstallprompt', function(e) { e.preventDefault(); deferredInstallPrompt = e;
@@ -3022,6 +3333,7 @@ function init() {
     document.getElementById('proj-filter').addEventListener('input', renderProjectsList);
     document.getElementById('fac-filter').addEventListener('input', renderFacilitiesList);
     document.getElementById('fac-cat-filter').addEventListener('change', renderFacilitiesList);
+    document.getElementById('cfs-filter').addEventListener('input', renderCfsList);
     document.getElementById('vlist-search').addEventListener('input', renderVoucherList);
     var eB = document.querySelectorAll('.export-btn[data-export]');
     for (var e = 0; e < eB.length; e++) eB[e].addEventListener('click', function() { exportToCsv(this.getAttribute('data-export'), this.getAttribute('data-export')); });
@@ -3173,6 +3485,21 @@ function init() {
         DB.save('facilities', l); showToast('✅'); renderFacilitiesList(); updateHomeWidgets(); });
     attachMoneyInput(document.getElementById('fc-initial'), function(v) { renderInstallmentsTotals(); });
     attachMoneyInput(document.getElementById('ba-min-balance'));
+    attachMoneyInput(document.getElementById('cfs-amount'));
+    /* CFS events */
+    document.getElementById('cfs-moein').addEventListener('change', onCfsMoeinChange);
+    document.getElementById('save-cfs').addEventListener('click', saveCfsSource);
+    document.getElementById('new-cfs').addEventListener('click', clearCfsForm);
+    /* Cash Flow Report events */
+    document.getElementById('cf-run').addEventListener('click', runCashFlowReport);
+    document.getElementById('cf-today').addEventListener('click', function() {
+        var t = todayJalaliStr();
+        document.getElementById('cf-from').value = t;
+        document.getElementById('cf-to').value = addJalaliDays(t, 30);
+        runCashFlowReport();
+    });
+    document.getElementById('cf-print').addEventListener('click', function() { printHtmlReport('#cf-result', 'وضعیت نقدینگی'); });
+    document.getElementById('cf-export').addEventListener('click', function() { exportReportTable('#cf-result', 'cash-flow'); });
     document.getElementById('apply-template').addEventListener('click', function() { var id = document.getElementById('v-template').value; if (!id) { alert('الگو انتخاب کن.'); return; } applyTemplate(id); });
     document.getElementById('save-as-template').addEventListener('click', saveVoucherAsTemplate);
     document.getElementById('goto-templates').addEventListener('click', function() { goToPage('templates'); });
@@ -3216,7 +3543,6 @@ function init() {
     document.getElementById('rff-bank').addEventListener('change', runFacilityFullReport);
     document.getElementById('rff-search').addEventListener('input', runFacilityFullReport);
     ['rff-from','rff-to'].forEach(function(id) { var el = document.getElementById(id); if (el) el.addEventListener('input', runFacilityFullReport); });
-    // تب‌های نمایش کلی/جزئیات
     var rffTabs = document.querySelectorAll('[data-rff-view]');
     for (var ti = 0; ti < rffTabs.length; ti++) rffTabs[ti].addEventListener('click', function() {
         var v = this.getAttribute('data-rff-view');
@@ -3224,7 +3550,6 @@ function init() {
         for (var z = 0; z < rffTabs.length; z++) rffTabs[z].classList.toggle('active', rffTabs[z].getAttribute('data-rff-view') === v);
         runFacilityFullReport();
     });
-    // فعال‌سازی تب اولیه
     for (var ti2 = 0; ti2 < rffTabs.length; ti2++) rffTabs[ti2].classList.toggle('active', rffTabs[ti2].getAttribute('data-rff-view') === state.rffView);
     updateDateDisplay(); updateTopbarPeriod(); updateHomeWidgets();
     setInterval(function() { updateDateDisplay(); updateTopbarPeriod(); updateHomeWidgets(); }, 60000);
