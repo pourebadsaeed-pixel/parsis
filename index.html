@@ -443,6 +443,9 @@ body.col-resizing * { cursor:col-resize !important; }
 .ai-setup { padding:20px; text-align:center; color:var(--text-muted); }
 .ai-setup h3 { color:var(--primary-dark); margin-bottom:10px; font-size:1rem; }
 .ai-setup p { font-size:0.85rem; margin-bottom:14px; line-height:1.7; }
+/* ✅ اصلاح: مودال و اوورلی تنظیمات AI باید بالاتر از مودال AI قرار گیرند */
+#ai-settings-overlay { z-index:600 !important; }
+#ai-settings-modal { z-index:610 !important; }
 </style>
 </head>
 <body class="theme-sky font-tahoma">
@@ -1027,7 +1030,7 @@ body.col-resizing * { cursor:col-resize !important; }
 </div>
 
 <script>
-console.log('✅ پارسیس PWA v9 — Groq Ready');
+console.log('✅ پارسیس PWA v10 — Groq Ready (AI Settings Fixed)');
 var LS_PREFIX = 'parsis.';
 var DB = {
     load: function(k, f) { try { var r = localStorage.getItem(LS_PREFIX + k); return r ? JSON.parse(r) : f; } catch(e) { return f; } },
@@ -3422,7 +3425,7 @@ function aiInit() {
     document.getElementById('ai-fab').addEventListener('click', aiOpen);
     document.getElementById('ai-close-btn').addEventListener('click', aiClose);
     document.getElementById('ai-overlay').addEventListener('click', aiClose);
-    document.getElementById('ai-settings-btn').addEventListener('click', aiOpenSettings);
+    document.getElementById('ai-settings-btn').addEventListener('click', function(e) { e.stopPropagation(); aiOpenSettings(); });
     document.getElementById('ai-settings-close').addEventListener('click', aiCloseSettings);
     document.getElementById('ai-settings-cancel').addEventListener('click', aiCloseSettings);
     document.getElementById('ai-settings-overlay').addEventListener('click', aiCloseSettings);
@@ -3732,7 +3735,7 @@ function init() {
     document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'visible') autoRead(); });
     aiInit();
     aiRender();
-    console.log('🎉 آماده — Groq Edition');
+    console.log('🎉 آماده — Groq Edition + AI Settings Fixed');
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
