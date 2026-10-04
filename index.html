@@ -1008,10 +1008,10 @@ body.col-resizing * { cursor:col-resize !important; }
         <div class="modal-section">
             <h3>مدل</h3>
             <div class="field">
-                <input type="text" id="ai-model-input" dir="ltr" placeholder="llama-3.3-70b-versatile">
+                <input type="text" id="ai-model-input" dir="ltr" placeholder="openai/gpt-oss-120b">
             </div>
             <p class="muted" style="font-size:0.72rem">
-                <b>Groq (رایگان):</b> <code>llama-3.3-70b-versatile</code> یا <code>llama-3.1-8b-instant</code> یا <code>mixtral-8x7b-32768</code><br>
+                <b>Groq (رایگان):</b> <code>openai/gpt-oss-120b</code> یا <code>qwen/qwen3.6-27b</code><br>
                 OpenAI: <code>gpt-4o-mini</code> — Anthropic: <code>claude-3-5-haiku-20241022</code>
             </p>
         </div>
@@ -1030,7 +1030,7 @@ body.col-resizing * { cursor:col-resize !important; }
 </div>
 
 <script>
-console.log('✅ پارسیس PWA v10 — Groq Ready (AI Settings Fixed)');
+console.log('✅ پارسیس PWA v11 — Groq Ready (Model Fixed + Role Filter)');
 var LS_PREFIX = 'parsis.';
 var DB = {
     load: function(k, f) { try { var r = localStorage.getItem(LS_PREFIX + k); return r ? JSON.parse(r) : f; } catch(e) { return f; } },
@@ -3234,7 +3234,7 @@ function refreshReportPeriodSelects() {
 var AI = {
     provider: DB.load('ai.provider', 'groq'),
     apiKey: DB.load('ai.apiKey', ''),
-    model: DB.load('ai.model', 'llama-3.3-70b-versatile'),
+    model: DB.load('ai.model', 'openai/gpt-oss-120b'), // ✅ مدل پیش‌فرض جدید
     history: DB.load('ai.history', []),
     MAX_HISTORY: 20,
     isThinking: false
@@ -3317,7 +3317,10 @@ function aiBuildSystemPrompt() {
 }
 async function aiCallAPI(userMessage) {
     var sys = aiBuildSystemPrompt();
-    var messages = AI.history.slice(-AI.MAX_HISTORY).map(function(m) { return { role: m.role, content: m.content }; });
+    // ✅ اصلاح: فیلتر کردن نقش‌های نامعتبر (مثل error) قبل از ارسال به API
+    var messages = AI.history.slice(-AI.MAX_HISTORY)
+        .filter(function(m) { return m.role === 'user' || m.role === 'assistant'; })
+        .map(function(m) { return { role: m.role, content: m.content }; });
     messages.push({ role: 'user', content: userMessage });
 
     if (AI.provider === 'groq') {
@@ -3326,7 +3329,7 @@ async function aiCallAPI(userMessage) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.apiKey },
             body: JSON.stringify({
-                model: AI.model || 'llama-3.3-70b-versatile',
+                model: AI.model || 'openai/gpt-oss-120b',
                 messages: msgs,
                 temperature: 0.3,
                 max_tokens: 800
@@ -3402,6 +3405,7 @@ async function aiSend() {
         var reply = await aiCallAPI(text);
         AI.history.push({ role: 'assistant', content: reply });
     } catch (e) {
+        // ✅ اصلاح: خطا با نقش 'error' ذخیره می‌شود اما در aiCallAPI فیلتر خواهد شد
         AI.history.push({ role: 'error', content: '⚠️ ' + (e.message || 'خطا در ارتباط') });
     } finally {
         AI.isThinking = false;
@@ -3432,7 +3436,7 @@ function aiInit() {
     document.getElementById('ai-settings-save').addEventListener('click', function() {
         AI.provider = document.getElementById('ai-provider-select').value;
         AI.apiKey = document.getElementById('ai-apikey-input').value.trim();
-        var defModel = AI.provider === 'groq' ? 'llama-3.3-70b-versatile' : (AI.provider === 'openai' ? 'gpt-4o-mini' : 'claude-3-5-haiku-20241022');
+        var defModel = AI.provider === 'groq' ? 'openai/gpt-oss-120b' : (AI.provider === 'openai' ? 'gpt-4o-mini' : 'claude-3-5-haiku-20241022');
         AI.model = document.getElementById('ai-model-input').value.trim() || defModel;
         aiSaveSettings();
         aiCloseSettings();
@@ -3735,7 +3739,7 @@ function init() {
     document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'visible') autoRead(); });
     aiInit();
     aiRender();
-    console.log('🎉 آماده — Groq Edition + AI Settings Fixed');
+    console.log('🎉 آماده — Groq Edition + Model & Role Fixed');
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
