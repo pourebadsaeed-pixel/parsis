@@ -96,8 +96,6 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .chip-list { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
 .chip { display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:var(--primary-light); color:var(--primary-dark); border-radius:20px; font-size:0.82rem; font-weight:bold; }
 .chip .chip-del { background:none; border:none; color:var(--danger); font-size:1rem; cursor:pointer; padding:0 2px; }
-
-/* ============= list-header و دکمه‌های ابزار ============= */
 .list-header { display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:8px 10px; background:var(--primary-soft); border-radius:12px; margin-bottom:10px; font-size:0.82rem; border:1px solid var(--primary-light); }
 .count-badge { background:#fff; color:var(--primary-dark); padding:3px 10px; border-radius:12px; font-weight:bold; box-shadow:var(--shadow-sm); }
 .filter-input { flex:1; min-width:120px; padding:7px 11px; border:1px solid var(--border); border-radius:9px; font-family:inherit; font-size:0.82rem; background:#fff; outline:none; transition:border-color 0.15s; }
@@ -106,8 +104,6 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .export-btn:hover { border-color:var(--primary); background:var(--primary-soft); }
 .col-toggle-btn { background:#fff; color:var(--primary-dark); border:1px solid var(--border); width:34px; height:32px; border-radius:9px; font-size:1rem; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0; transition:all 0.15s; }
 .col-toggle-btn:hover { border-color:var(--primary); background:var(--primary-soft); transform:rotate(30deg); }
-
-/* منوی نمایش ستون‌ها */
 .col-menu { position:absolute; z-index:400; background:#fff; border-radius:12px; border:1px solid var(--border); box-shadow:var(--shadow-lg); padding:6px; min-width:200px; max-width:280px; font-size:0.85rem; }
 .col-menu-head { padding:8px 12px; font-weight:bold; color:var(--primary-dark); border-bottom:1px solid var(--border); font-size:0.85rem; }
 .col-menu-body { max-height:280px; overflow-y:auto; padding:6px 0; }
@@ -121,8 +117,6 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .col-menu-foot button { flex:1; padding:7px 10px; border-radius:8px; border:none; font-family:inherit; font-size:0.78rem; font-weight:bold; cursor:pointer; }
 .col-menu-reset { background:var(--primary-light); color:var(--primary-dark); }
 .col-menu-close { background:var(--bg); color:var(--text-muted); }
-
-/* ============= جدول داده‌ها ============= */
 .table-wrap { overflow-x:auto; border-radius:12px; border:1px solid var(--border); background:#fff; box-shadow:var(--shadow-sm); }
 .data-table { width:100%; border-collapse:collapse; font-size:0.85rem; background:var(--card); table-layout:auto; }
 .data-table th { background:linear-gradient(180deg, var(--primary-light), var(--primary-soft)); color:var(--primary-dark); padding:10px 12px; text-align:right; font-weight:bold; font-size:0.8rem; border-bottom:1px solid var(--border-strong); white-space:nowrap; position:relative; user-select:none; }
@@ -138,14 +132,11 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .data-table tbody tr:hover { background:var(--primary-soft); }
 .data-table tr.approved-row { background:#f0fdf4 !important; }
 .data-table tr:last-child td { border-bottom:none; }
-
-/* ستون‌کش قابل کشیدن */
 .col-resizer { position:absolute; top:0; left:-3px; bottom:0; width:10px; cursor:col-resize; z-index:3; }
 .col-resizer::after { content:''; position:absolute; top:20%; bottom:20%; left:4px; width:2px; background:rgba(0,0,0,0.08); border-radius:2px; transition:background 0.15s; }
 .col-resizer:hover::after { background:var(--primary); }
 body.col-resizing { cursor:col-resize !important; user-select:none; }
 body.col-resizing * { cursor:col-resize !important; }
-
 .row-actions { display:flex; gap:4px; }
 .row-btn { background:none; border:none; padding:5px 8px; border-radius:7px; cursor:pointer; font-size:0.9rem; transition:background 0.12s; }
 .row-btn:hover { background:var(--bg); }
@@ -164,8 +155,9 @@ body.col-resizing * { cursor:col-resize !important; }
 .badge-settled { background:#d1fae5; color:#065f46; }
 .badge-cat-fac { background:#e0e7ff; color:#3730a3; }
 .badge-cat-sch { background:#fef3c7; color:#92400e; }
-
-/* ============= مودال‌ها ============= */
+.badge-paid { background:#d1fae5; color:#065f46; }
+.badge-registered { background:#fff4e0; color:#c47c00; }
+.badge-overdue { background:#fdeaea; color:#c0392b; }
 .modal { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.95); background:#fff; border-radius:16px; max-width:560px; width:92%; max-height:88vh; display:flex; flex-direction:column; z-index:210; opacity:0; visibility:hidden; transition:opacity 0.2s, transform 0.2s; box-shadow:var(--shadow-lg); }
 .modal.show { opacity:1; visibility:visible; transform:translate(-50%,-50%) scale(1); }
 .modal-head { display:flex; justify-content:space-between; align-items:center; padding:14px 18px; background:linear-gradient(135deg,var(--topbar-from),var(--topbar-to)); color:#fff; border-radius:16px 16px 0 0; }
@@ -180,8 +172,6 @@ body.col-resizing * { cursor:col-resize !important; }
 .theme-card.active, .font-card.active { border-color:var(--primary); font-weight:bold; background:var(--primary-soft); }
 .theme-swatch { width:36px; height:36px; border-radius:50%; box-shadow:var(--shadow-sm); }
 .font-card .sample { font-size:1.1rem; color:var(--primary-dark); }
-
-/* ============= درخت کدینگ ============= */
 .tree-search { margin-bottom:8px; }
 .tree-search input { width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:10px; font-family:inherit; font-size:0.9rem; outline:none; }
 .tree { font-size:0.88rem; }
@@ -196,50 +186,13 @@ body.col-resizing * { cursor:col-resize !important; }
 .tree-add-btn { background:#e6f6ee; color:var(--accent); border:none; border-radius:6px; padding:2px 8px; font-size:0.9rem; font-weight:bold; cursor:pointer; }
 .tree-del-btn { background:#fdeaea; color:var(--danger); border:none; border-radius:6px; padding:2px 8px; font-size:0.9rem; font-weight:bold; cursor:pointer; }
 .tree-children { padding-right:18px; border-right:1px dashed var(--border-strong); margin-right:6px; }
-
-/* ============= گزارش درختی (مرور حساب‌ها) — نسخه زیبا ============= */
 .report-tree { font-size:0.9rem; padding:4px 0; }
-.rt-node {
-    display:flex; align-items:center; gap:10px;
-    padding:12px 14px; margin-bottom:6px;
-    border-radius:12px;
-    background:#fff;
-    border:1px solid var(--border);
-    border-right:4px solid var(--primary);
-    flex-wrap:wrap;
-    transition:all 0.15s;
-    box-shadow:var(--shadow-sm);
-}
+.rt-node { display:flex; align-items:center; gap:10px; padding:12px 14px; margin-bottom:6px; border-radius:12px; background:#fff; border:1px solid var(--border); border-right:4px solid var(--primary); flex-wrap:wrap; transition:all 0.15s; box-shadow:var(--shadow-sm); }
 .rt-node:hover { box-shadow:var(--shadow-md); transform:translateX(-2px); }
-.rt-node.level-1 {
-    background:linear-gradient(90deg, #eef5fd 0%, #ffffff 100%);
-    border-right-color:#4a6cf7;
-    font-weight:bold;
-    font-size:0.95rem;
-    padding:14px 16px;
-    margin-bottom:8px;
-}
-.rt-node.level-2 {
-    background:#f7fbff;
-    border-right-color:#22a06b;
-    margin-right:16px;
-    border-right-width:3px;
-}
-.rt-node.level-3 {
-    background:#fbfdff;
-    border-right-color:#e8a33d;
-    margin-right:32px;
-    border-right-width:3px;
-    font-size:0.88rem;
-}
-.rt-node.level-4 {
-    background:#fdfdfd;
-    border-right-color:#94a3b8;
-    margin-right:48px;
-    font-size:0.84rem;
-    border-right-width:2px;
-    padding:10px 12px;
-}
+.rt-node.level-1 { background:linear-gradient(90deg, #eef5fd 0%, #ffffff 100%); border-right-color:#4a6cf7; font-weight:bold; font-size:0.95rem; padding:14px 16px; margin-bottom:8px; }
+.rt-node.level-2 { background:#f7fbff; border-right-color:#22a06b; margin-right:16px; border-right-width:3px; }
+.rt-node.level-3 { background:#fbfdff; border-right-color:#e8a33d; margin-right:32px; border-right-width:3px; font-size:0.88rem; }
+.rt-node.level-4 { background:#fdfdfd; border-right-color:#94a3b8; margin-right:48px; font-size:0.84rem; border-right-width:2px; padding:10px 12px; }
 .rt-toggle { width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-size:0.7rem; color:var(--text-muted); cursor:pointer; border-radius:6px; background:var(--bg); transition:background 0.12s; }
 .rt-toggle:hover { background:var(--primary-light); color:var(--primary-dark); }
 .rt-toggle.empty { visibility:hidden; }
@@ -258,8 +211,6 @@ body.col-resizing * { cursor:col-resize !important; }
 .rt-amounts .amt.cr { color:#1e9e6a; background:#f0fdf4; }
 .rt-amounts .amt.net { color:#3730a3; background:#eef2ff; }
 .rt-children { padding:0; }
-
-/* ============= اقلام سند ============= */
 .voucher-line { padding:12px; background:var(--bg); border-radius:12px; margin-bottom:10px; position:relative; border:1px solid transparent; transition:border-color 0.15s; }
 .voucher-line.locked { background:#f0f4ff; border-color:#c7d2fe; }
 .voucher-line .ln-num { position:absolute; top:8px; right:10px; font-size:0.75rem; color:var(--text-muted); font-weight:bold; }
@@ -285,7 +236,6 @@ body.col-resizing * { cursor:col-resize !important; }
 .voucher-total .ok { color:var(--accent); }
 .voucher-total .err { color:var(--danger); }
 .voucher-total .draft-note { font-size:0.78rem; color:var(--text-muted); font-weight:normal; }
-
 .sms-box { background:var(--bg); border-radius:12px; padding:12px; margin-bottom:10px; }
 .checkbox-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:6px; }
 .checkbox-item { display:flex; align-items:center; gap:6px; padding:8px 10px; background:var(--bg); border-radius:8px; cursor:pointer; font-size:0.85rem; }
@@ -318,20 +268,8 @@ body.col-resizing * { cursor:col-resize !important; }
 .cal-foot button { flex:1; padding:9px; border-radius:9px; border:none; font-family:inherit; font-size:0.88rem; font-weight:bold; cursor:pointer; }
 .cal-foot .btn-today { background:var(--primary-light); color:var(--primary-dark); }
 .cal-foot .btn-close { background:#fdeaea; color:var(--danger); }
-
-/* ============= جدول گزارش‌ها — نسخه زیبا ============= */
 .report-table { width:100%; border-collapse:separate; border-spacing:0; font-size:0.85rem; background:#fff; border-radius:12px; overflow:hidden; }
-.report-table thead th {
-    background:linear-gradient(180deg, var(--primary-light), var(--primary-soft));
-    color:var(--primary-dark);
-    padding:11px 12px;
-    text-align:right;
-    font-weight:bold;
-    font-size:0.8rem;
-    border-bottom:2px solid var(--primary);
-    white-space:nowrap;
-    position:sticky; top:0; z-index:2;
-}
+.report-table thead th { background:linear-gradient(180deg, var(--primary-light), var(--primary-soft)); color:var(--primary-dark); padding:11px 12px; text-align:right; font-weight:bold; font-size:0.8rem; border-bottom:2px solid var(--primary); white-space:nowrap; position:sticky; top:0; z-index:2; }
 .report-table thead th.sortable { cursor:pointer; user-select:none; }
 .report-table thead th.sortable:hover { background:var(--primary-light); }
 .report-table th .sort-ind { font-size:0.7rem; opacity:0.5; margin-right:4px; }
@@ -348,7 +286,6 @@ body.col-resizing * { cursor:col-resize !important; }
 .report-table tfoot td { background:linear-gradient(180deg, var(--primary-light), var(--primary-soft)); font-weight:bold; color:var(--primary-dark); border-top:2px solid var(--primary); border-bottom:none; padding:11px 12px; }
 .report-table tfoot .num.dr { color:#c0392b; }
 .report-table tfoot .num.cr { color:#1e9e6a; }
-
 .tpl-row { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:12px 14px; background:var(--card); border:1px solid var(--border); border-radius:12px; margin-bottom:8px; flex-wrap:wrap; transition:all 0.15s; }
 .tpl-row:hover { border-color:var(--primary-light); box-shadow:var(--shadow-sm); }
 .tpl-row .tpl-name { font-weight:bold; color:var(--primary-dark); font-size:0.9rem; }
@@ -415,11 +352,6 @@ body.col-resizing * { cursor:col-resize !important; }
 .install-banner { background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:#fff; padding:12px 14px; border-radius:12px; margin-bottom:12px; display:flex; align-items:center; gap:10px; box-shadow:var(--shadow-md); }
 .install-banner .txt { flex:1; font-size:0.85rem; }
 .install-banner button { background:#fff; color:var(--primary); border:none; padding:8px 14px; border-radius:9px; font-family:inherit; font-weight:bold; font-size:0.82rem; cursor:pointer; }
-.issue-row { padding:8px 10px; border-radius:10px; background:#fff5f5; border-right:3px solid var(--danger); margin-bottom:6px; font-size:0.82rem; }
-.issue-list { margin:0; padding-right:16px; color:#c0392b; font-size:0.82rem; }
-.issue-list li { margin-bottom:2px; }
-
-/* ============= گزارش تراکنش‌های تکمیل نشده ============= */
 .ri-issues { display:flex; flex-direction:column; gap:4px; padding:4px 0; }
 .ri-issue-item { display:flex; align-items:center; gap:6px; padding:4px 8px; background:#fef2f2; border-radius:7px; font-size:0.78rem; color:#b91c1c; }
 .ri-issue-item::before { content:'⚠'; color:#dc2626; }
@@ -488,6 +420,7 @@ body.col-resizing * { cursor:col-resize !important; }
                 <button data-page="report-trial">⚖️ تراز آزمایشی</button>
                 <button data-page="report-incomplete">🔍 تراکنش‌های تکمیل نشده</button>
                 <button data-page="report-facility">🏦 خلاصه تسهیلات</button>
+                <button data-page="report-facility-full">📊 گزارش جامع تسهیلات</button>
             </div>
         </div>
     </nav>
@@ -747,7 +680,7 @@ body.col-resizing * { cursor:col-resize !important; }
         </div>
         <div class="method-card" id="method-clip">
             <h4><span class="method-num">۲</span> کلیپ‌بورد <span class="method-status no" id="clip-status">—</span></h4>
-            <p style="font-size:0.78rem">⚠️ فقط متن‌هایی که شامل <b>شماره حساب‌های بانکی شما</b> باشند خوانده می‌شوند.</p>
+            <p style="font-size:0.78rem">⚠️ فقط متن‌هایی که شامل <b>شماره حساب یا نام بانک‌های شما</b> باشند خوانده می‌شوند.</p>
             <label class="checkbox-item" style="cursor:pointer;margin-bottom:8px"><input type="checkbox" id="sms-auto-read"> <span>خواندن خودکار از کلیپ‌بورد</span></label>
             <div class="form-buttons"><button id="sms-read-clip" class="btn-primary btn-mini">📋 خواندن</button></div>
         </div>
@@ -778,7 +711,7 @@ body.col-resizing * { cursor:col-resize !important; }
         <div class="grid-3"><div class="field"><label>نوع سند</label><select id="rt-vtype"><option value="">همه</option><option value="general">عمومی</option><option value="opening">افتتاحیه</option><option value="establishment">افتتاحیه استقرار</option><option value="closing">بستن حساب</option><option value="final">اختتامیه</option></select></div><div class="field"><label>دوره</label><select id="rt-period"><option value="">همه</option></select></div><div class="field"><label>سطح</label><select id="rt-level"><option value="2">کل</option><option value="3" selected>معین</option><option value="4">تفصیلی</option></select></div></div>
         <div class="form-buttons"><button id="rt-run" class="btn-primary">🔍 اجرا</button><button id="rt-print" class="btn-secondary">🖨 چاپ</button><button id="rt-export" class="btn-secondary">📊 اکسل</button><label class="checkbox-item" style="display:inline-flex;width:auto"><input type="checkbox" id="rt-hide"> <span>مخفی</span></label></div>
     </div>
-    <div class="card"><div class="list-header"><span class="count-badge" id="rt-count">۰</span><span class="unit-chip" id="rt-unit"></span></div><div id="rt-result"></div></div>
+    <div class="card"><div class="list-header" data-col-table="rt-table"><span class="count-badge" id="rt-count">۰</span><span class="unit-chip" id="rt-unit"></span></div><div id="rt-result"></div></div>
 </section>
 
 <section id="page-report-incomplete" class="page"><h2>🔍 تراکنش‌های تکمیل نشده</h2>
@@ -787,7 +720,7 @@ body.col-resizing * { cursor:col-resize !important; }
         <div class="form-buttons"><button id="ri-run" class="btn-primary">🔍 اجرا</button><button id="ri-print" class="btn-secondary">🖨 چاپ</button><button id="ri-export" class="btn-secondary">📊 اکسل</button></div>
         <p class="muted" style="margin-top:8px;font-size:0.78rem">سندهایی که معین یا تفصیلی مرتبط در آن‌ها پر نشده، شرح قلم خالی است، یا سند متوازن نیست.</p>
     </div>
-    <div class="card"><div class="list-header"><span class="count-badge" id="ri-count">۰</span><span class="unit-chip" id="ri-unit"></span></div><div id="ri-result"></div></div>
+    <div class="card"><div class="list-header" data-col-table="ri-table"><span class="count-badge" id="ri-count">۰</span><span class="unit-chip" id="ri-unit"></span></div><div id="ri-result"></div></div>
 </section>
 
 <section id="page-report-facility" class="page"><h2>🏦 خلاصه تسهیلات</h2>
@@ -795,14 +728,37 @@ body.col-resizing * { cursor:col-resize !important; }
         <div class="grid-2"><div class="field"><label>دسته</label><select id="rf-category"><option value="">همه</option><option value="facility">تسهیلات</option><option value="scheduled">زمانبندی</option></select></div><div class="field"><label>وضعیت</label><select id="rf-status"><option value="">همه</option><option value="active">در جریان</option><option value="settled">تسویه</option></select></div></div>
         <div class="form-buttons"><button id="rf-run" class="btn-primary">🔍 اجرا</button><button id="rf-print" class="btn-secondary">🖨 چاپ</button><button id="rf-export" class="btn-secondary">📊 اکسل</button><label class="checkbox-item" style="display:inline-flex;width:auto"><input type="checkbox" id="rf-hide"> <span>مخفی</span></label></div>
     </div>
-    <div class="card"><div class="list-header"><span class="count-badge" id="rf-count">۰</span><span class="unit-chip" id="rf-unit"></span></div><div id="rf-result"></div></div>
+    <div class="card"><div class="list-header" data-col-table="rf-table"><span class="count-badge" id="rf-count">۰</span><span class="unit-chip" id="rf-unit"></span></div><div id="rf-result"></div></div>
+</section>
+
+<section id="page-report-facility-full" class="page"><h2>📊 گزارش جامع تسهیلات</h2>
+    <div class="card">
+        <div class="grid-3">
+            <div class="field"><label>دسته</label><select id="rff-category"><option value="">همه</option><option value="facility">تسهیلات</option><option value="scheduled">زمانبندی</option></select></div>
+            <div class="field"><label>وضعیت تسویه</label><select id="rff-status"><option value="">همه</option><option value="active">در جریان</option><option value="settled">تسویه شده</option></select></div>
+            <div class="field"><label>وضعیت اقساط</label><select id="rff-inst-status">
+                <option value="">همه</option>
+                <option value="has-unpaid">دارای قسط پرداخت‌نشده</option>
+                <option value="has-paid">دارای قسط پرداخت‌شده</option>
+                <option value="all-paid">همه اقساط پرداخت شده</option>
+                <option value="no-installments">بدون قسط</option>
+                <option value="overdue">دارای قسط سررسید گذشته</option>
+            </select></div>
+        </div>
+        <div class="grid-3">
+            <div class="field"><label>بانک</label><select id="rff-bank"><option value="">همه</option></select></div>
+            <div class="field"><label>از تاریخ</label><input type="text" id="rff-from" class="date-picker" dir="ltr"></div>
+            <div class="field"><label>تا تاریخ</label><input type="text" id="rff-to" class="date-picker" dir="ltr"></div>
+        </div>
+        <div class="field"><label>جستجو</label><input type="text" id="rff-search" placeholder="🔍 در نام، بانک، تاریخ"></div>
+        <div class="form-buttons"><button id="rff-run" class="btn-primary">🔍 اجرا</button><button id="rff-print" class="btn-secondary">🖨 چاپ</button><button id="rff-export" class="btn-secondary">📊 اکسل</button><label class="checkbox-item" style="display:inline-flex;width:auto"><input type="checkbox" id="rff-hide"> <span>مخفی</span></label></div>
+    </div>
+    <div class="card"><div class="list-header" data-col-table="rff-table"><span class="count-badge" id="rff-count">۰</span><span class="unit-chip" id="rff-unit"></span></div><div id="rff-result"></div></div>
 </section>
 </main>
 </div>
 
 <datalist id="std-desc-list"></datalist>
-
-<!-- منوی نمایش ستون‌ها (قابل جابجایی) -->
 <div id="col-menu" class="col-menu hidden"></div>
 
 <div id="settings-overlay" class="overlay"></div>
@@ -856,7 +812,7 @@ body.col-resizing * { cursor:col-resize !important; }
 </div>
 
 <script>
-console.log('✅ پارسیس PWA v4');
+console.log('✅ پارسیس PWA v5');
 var LS_PREFIX = 'parsis.';
 var DB = {
     load: function(k, f) { try { var r = localStorage.getItem(LS_PREFIX + k); return r ? JSON.parse(r) : f; } catch(e) { return f; } },
@@ -1141,29 +1097,39 @@ function getVoucherIssues(v) {
     return issues.concat(lineIssues).concat(balanceIssues);
 }
 
-/* ===== فیلتر هوشمند کلیپ‌بورد ===== */
+/* ===== فیلتر هوشمند کلیپ‌بورد — شماره حساب یا نام بانک ===== */
 function findMatchingBankAccount(text) {
     if (!text) return null;
-    var t = normalizeDigits(text).replace(/\D/g, '');
-    if (t.length < 6) return null;
+    var rawText = String(text);
     var ba = DB.load('bankAccounts', []);
-    var best = null, bestScore = 0;
+    // ۱) تطبیق بر اساس نام بانک / نام شعبه
     for (var i = 0; i < ba.length; i++) {
         var b = ba[i];
+        var bankName = String(b.bank || '').trim();
+        if (bankName.length >= 3 && rawText.indexOf(bankName) !== -1) return b;
+        var bn = String(b.branchName || '').trim();
+        if (bn.length >= 4 && rawText.indexOf(bn) !== -1) return b;
+    }
+    // ۲) تطبیق بر اساس ارقام حساب/کارت/شبا
+    var t = normalizeDigits(rawText).replace(/\D/g, '');
+    if (t.length < 6) return null;
+    var best = null, bestScore = 0;
+    for (var j = 0; j < ba.length; j++) {
+        var bj = ba[j];
         var cands = [
-            { v: (b.account || '').replace(/\D/g, ''), w: 3 },
-            { v: (b.card || '').replace(/\D/g, ''), w: 2 },
-            { v: (b.iban || '').replace(/\D/g, ''), w: 2 }
+            { v: (bj.account || '').replace(/\D/g, ''), w: 3 },
+            { v: (bj.card || '').replace(/\D/g, ''), w: 2 },
+            { v: (bj.iban || '').replace(/\D/g, ''), w: 2 }
         ];
-        for (var j = 0; j < cands.length; j++) {
-            var n = cands[j].v;
+        for (var k = 0; k < cands.length; k++) {
+            var n = cands[k].v;
             if (n.length < 6) continue;
             var maxLen = Math.min(n.length, 16);
             for (var len = maxLen; len >= 6; len--) {
                 var sub = n.slice(-len);
                 if (t.indexOf(sub) !== -1) {
-                    var score = len * cands[j].w;
-                    if (score > bestScore) { bestScore = score; best = b; }
+                    var score = len * cands[k].w;
+                    if (score > bestScore) { bestScore = score; best = bj; }
                     break;
                 }
             }
@@ -1177,8 +1143,8 @@ function parseBankSms(text) {
     var result = { amount: 0, direction: '', balance: 0, accountCandidates: [], matchedAccount: null, bankName: '', raw: text };
     if (!text) return result;
     var t = normalizeDigits(text);
-    var knownBanks = ['ملی','پاسارگاد','صادرات','تجارت','ملت','سپه','کشاورزی','مسکن','پارسیان','سامان','رفاه','اقتصاد نوین','آینده','شهر','دی','سینا','گردشگری','صنعت و معدن','توسعه صادرات','قوامین','حکمت','ایران زمین','مهر ایران','خاورمیانه','کارآفرین','پست بانک','رسالت','بلو','سرمایه'];
-    for (var b = 0; b < knownBanks.length; b++) if (t.indexOf(knownBanks[b]) !== -1) { result.bankName = 'بانک ' + knownBanks[b]; break; }
+    var knownBanks = ['ملی','پاسارگاد','صادرات','تجارت','ملت','سپه','کشاورزی','مسکن','پارسیان','سامان','رفاه','اقتصاد نوین','آینده','شهر','دی','سینا','گردشگری','صنعت و معدن','توسعه صادرات','قوامین','حکمت','ایران زمین','مهر ایران','خاورمیانه','کارآفرین','پست بانک','رسالت','بلو','سرمایه','مفید','کارگزاری'];
+    for (var b = 0; b < knownBanks.length; b++) if (t.indexOf(knownBanks[b]) !== -1) { result.bankName = (knownBanks[b] === 'مفید' || knownBanks[b] === 'کارگزاری') ? 'کارگزاری مفید' : 'بانک ' + knownBanks[b]; break; }
     if (!result.bankName) { var bm2 = t.match(/بانک\s+([آ-ی\u200c]{2,20})/); if (bm2) result.bankName = 'بانک ' + bm2[1]; }
     var bm = t.match(/مانده\s*(?:حساب)?\s*[:ـ]?\s*([\d,]+)/);
     if (bm) result.balance = Number(bm[1].replace(/,/g, '')) || 0;
@@ -1219,27 +1185,30 @@ function parseBankSms(text) {
     for (var ad = 0; ad < allD.length; ad++) { var v2 = allD[ad]; if (Number(v2) === result.balance) continue; if (Number(v2) === result.amount) continue; addC(v2); }
     result.accountCandidates = candidates;
     var ba = DB.load('bankAccounts', []); var best = null, bestMS = 0;
-    for (var bi = 0; bi < ba.length; bi++) {
-        var bak = ba[bi];
-        var fields = [{ v: (bak.account || '').replace(/\D/g, ''), w: 10, name: 'حساب' }, { v: (bak.card || '').replace(/\D/g, ''), w: 7, name: 'کارت' }, { v: (bak.iban || '').replace(/\D/g, ''), w: 5, name: 'شبا' }];
-        for (var fi = 0; fi < fields.length; fi++) {
-            var fv = fields[fi].v, w = fields[fi].w; if (fv.length < 4) continue;
-            for (var ci2 = 0; ci2 < candidates.length; ci2++) {
-                var cand = candidates[ci2].value; if (cand.length < 4) continue;
-                var sc = 0;
-                if (fv === cand) sc = 100 * w;
-                else if (fv.indexOf(cand) !== -1) sc = (50 + cand.length * 3) * w;
-                else if (cand.indexOf(fv) !== -1) sc = (50 + fv.length * 3) * w;
-                else { var ml = Math.min(fv.length, cand.length, 10); for (var sl = ml; sl >= 4; sl--) if (fv.slice(-sl) === cand.slice(-sl)) { sc = (20 + sl * 8) * w; break; } }
-                if (sc > bestMS) { bestMS = sc; best = { account: bak, matchedField: fields[fi].name }; }
+    // نام بانک → تطبیق
+    for (var nb = 0; nb < ba.length; nb++) {
+        var bankNm = String(ba[nb].bank || '').trim();
+        if (bankNm.length >= 3 && t.indexOf(bankNm) !== -1) { best = { account: ba[nb], matchedField: 'نام بانک' }; bestMS = 9999; break; }
+    }
+    if (!best) {
+        for (var bi = 0; bi < ba.length; bi++) {
+            var bak = ba[bi];
+            var fields = [{ v: (bak.account || '').replace(/\D/g, ''), w: 10, name: 'حساب' }, { v: (bak.card || '').replace(/\D/g, ''), w: 7, name: 'کارت' }, { v: (bak.iban || '').replace(/\D/g, ''), w: 5, name: 'شبا' }];
+            for (var fi = 0; fi < fields.length; fi++) {
+                var fv = fields[fi].v, w = fields[fi].w; if (fv.length < 4) continue;
+                for (var ci2 = 0; ci2 < candidates.length; ci2++) {
+                    var cand = candidates[ci2].value; if (cand.length < 4) continue;
+                    var sc = 0;
+                    if (fv === cand) sc = 100 * w;
+                    else if (fv.indexOf(cand) !== -1) sc = (50 + cand.length * 3) * w;
+                    else if (cand.indexOf(fv) !== -1) sc = (50 + fv.length * 3) * w;
+                    else { var ml = Math.min(fv.length, cand.length, 10); for (var sl = ml; sl >= 4; sl--) if (fv.slice(-sl) === cand.slice(-sl)) { sc = (20 + sl * 8) * w; break; } }
+                    if (sc > bestMS) { bestMS = sc; best = { account: bak, matchedField: fields[fi].name }; }
+                }
             }
         }
     }
     if (best && bestMS >= 200) { result.matchedAccount = best.account; result.matchedField = best.matchedField; }
-    if (!result.matchedAccount && result.bankName) {
-        var nm2 = ba.find(function(b) { return (b.bank || '').indexOf(result.bankName.replace('بانک ', '')) !== -1; });
-        if (nm2) { result.matchedAccount = nm2; result.matchedField = 'نام بانک'; }
-    }
     return result;
 }
 function getSmsInbox() { return DB.load('smsInbox', []); }
@@ -1285,7 +1254,7 @@ function renderSmsInbox() {
         if (p.amount) parsedHtml += '<span class="pill ' + dirClass + '">' + dirLabel + ': ' + formatMoney(p.amount) + ' ' + currencyLabel() + '</span>';
         else parsedHtml += '<span class="pill">' + dirLabel + '</span>';
         if (p.balance) parsedHtml += '<span class="pill">💰 ' + formatMoney(p.balance) + '</span>';
-        if (p.matchedAccountTitle) parsedHtml += '<span class="pill" style="background:#d1fae5;color:#065f46">🎯 ' + esc(p.matchedAccountTitle) + '</span>';
+        if (p.matchedAccountTitle) parsedHtml += '<span class="pill" style="background:#d1fae5;color:#065f46">🎯 ' + esc(p.matchedAccountTitle) + (p.matchedField ? ' (' + esc(p.matchedField) + ')' : '') + '</span>';
         var canConvert = (s.status === 'new') && p.amount > 0 && p.direction;
         html += '<div class="sms-item ' + statusClass + '"><div class="sms-item-head"><div><div class="title">' + statusBadge + '</div><div class="meta">' + esc(meta) + '</div></div></div>' +
             '<div class="sms-item-parsed">' + parsedHtml + '</div>' +
@@ -1333,7 +1302,7 @@ function readClipboardAndAdd(auto) {
         if (auto && t === _lastClipboardText) return;
         var matched = findMatchingBankAccount(t);
         if (!matched) {
-            if (!auto) alert('❌ این متن شامل شماره حساب‌های بانکی شما نیست.');
+            if (!auto) alert('❌ این متن شامل شماره حساب یا نام بانک‌های شما نیست.');
             return;
         }
         var res = addSmsToInbox(t, auto ? 'auto' : 'clipboard');
@@ -1434,29 +1403,13 @@ function exportReportTable(selector, filename) {
             if (node.classList.contains('level-2')) indent = '  ';
             else if (node.classList.contains('level-3')) indent = '    ';
             else if (node.classList.contains('level-4')) indent = '      ';
-            var row2 = [
-                indent + (nameEl ? nameEl.textContent.trim() : ''),
-                badgeEl ? badgeEl.textContent.trim() : '',
-                amtEls[0] ? amtEls[0].textContent.trim() : '',
-                amtEls[1] ? amtEls[1].textContent.trim() : '',
-                amtEls[2] ? amtEls[2].textContent.trim() : ''
-            ];
+            var row2 = [indent + (nameEl ? nameEl.textContent.trim() : ''), badgeEl ? badgeEl.textContent.trim() : '', amtEls[0] ? amtEls[0].textContent.trim() : '', amtEls[1] ? amtEls[1].textContent.trim() : '', amtEls[2] ? amtEls[2].textContent.trim() : ''];
             rows.push(row2);
         }
-    } else {
-        alert('ابتدا گزارش را اجرا کن.');
-        return;
-    }
-
+    } else { alert('ابتدا گزارش را اجرا کن.'); return; }
     if (rows.length === 0) { alert('داده‌ای برای خروجی نیست.'); return; }
-
     var lines = [];
-    for (var r = 0; r < rows.length; r++) {
-        lines.push(rows[r].map(function(c) {
-            return '"' + String(c).replace(/"/g, '""') + '"';
-        }).join(','));
-    }
-
+    for (var r = 0; r < rows.length; r++) lines.push(rows[r].map(function(c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(','));
     var csv = '\uFEFF' + lines.join('\n');
     var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     var url = URL.createObjectURL(blob);
@@ -1464,9 +1417,7 @@ function exportReportTable(selector, filename) {
     var dateStr = todayJalaliStr().replace(/\//g, '-');
     var timeStr = pad2(now.getHours()) + '-' + pad2(now.getMinutes());
     var a = document.createElement('a');
-    a.href = url;
-    a.download = filename + '-' + dateStr + '_' + timeStr + '.csv';
-    a.click();
+    a.href = url; a.download = filename + '-' + dateStr + '_' + timeStr + '.csv'; a.click();
     URL.revokeObjectURL(url);
 }
 
@@ -1540,84 +1491,38 @@ function printHtmlReport(selector, title) {
     }
     win.document.write('</body></html>'); win.document.close(); setTimeout(function() { win.focus(); win.print(); }, 400);
 }
-
-/* ==================== تغییر اندازه ستون‌ها ==================== */
 function makeTableResizable(table) {
-    if (!table || table.dataset.resizable === '1') return;
-    table.dataset.resizable = '1';
+    if (!table || table.dataset.resizable === '1') return; table.dataset.resizable = '1';
     var ths = table.querySelectorAll('thead th');
-    for (var i = 0; i < ths.length; i++) {
-        (function(th) {
-            if (th.querySelector('.col-resizer')) return;
-            var grip = document.createElement('span');
-            grip.className = 'col-resizer';
-            grip.setAttribute('title', 'برای تغییر اندازه بکشید');
-            th.appendChild(grip);
-            var startX = 0, startW = 0, tblStartW = 0;
-            function onMove(ev) {
-                var clientX = ev.touches ? ev.touches[0].clientX : ev.clientX;
-                var dx = clientX - startX;
-                // در RTL اگر به راست بکشیم، ستون باریک‌تر می‌شود
-                var w = Math.max(50, startW + dx);
-                th.style.width = w + 'px';
-                th.style.minWidth = w + 'px';
-            }
-            function onUp() {
-                document.removeEventListener('mousemove', onMove);
-                document.removeEventListener('touchmove', onMove);
-                document.removeEventListener('mouseup', onUp);
-                document.removeEventListener('touchend', onUp);
-                document.body.classList.remove('col-resizing');
-            }
-            function onDown(ev) {
-                ev.preventDefault();
-                ev.stopPropagation();
-                var allThs = table.querySelectorAll('thead th');
-                var widths = [];
-                for (var t = 0; t < allThs.length; t++) widths.push(allThs[t].offsetWidth);
-                table.style.tableLayout = 'fixed';
-                table.style.width = '100%';
-                for (var t2 = 0; t2 < allThs.length; t2++) {
-                    allThs[t2].style.width = widths[t2] + 'px';
-                    allThs[t2].style.minWidth = widths[t2] + 'px';
-                }
-                startX = (ev.touches ? ev.touches[0].clientX : ev.clientX);
-                startW = th.offsetWidth;
-                document.body.classList.add('col-resizing');
-                document.addEventListener('mousemove', onMove);
-                document.addEventListener('touchmove', onMove, { passive: false });
-                document.addEventListener('mouseup', onUp);
-                document.addEventListener('touchend', onUp);
-            }
-            grip.addEventListener('mousedown', onDown);
-            grip.addEventListener('touchstart', onDown, { passive: false });
-        })(ths[i]);
-    }
+    for (var i = 0; i < ths.length; i++) { (function(th) {
+        if (th.querySelector('.col-resizer')) return;
+        var grip = document.createElement('span'); grip.className = 'col-resizer'; grip.setAttribute('title', 'برای تغییر اندازه بکشید'); th.appendChild(grip);
+        var startX = 0, startW = 0;
+        function onMove(ev) { var clientX = ev.touches ? ev.touches[0].clientX : ev.clientX; var dx = clientX - startX; var w = Math.max(50, startW + dx); th.style.width = w + 'px'; th.style.minWidth = w + 'px'; }
+        function onUp() { document.removeEventListener('mousemove', onMove); document.removeEventListener('touchmove', onMove); document.removeEventListener('mouseup', onUp); document.removeEventListener('touchend', onUp); document.body.classList.remove('col-resizing'); }
+        function onDown(ev) { ev.preventDefault(); ev.stopPropagation();
+            var allThs = table.querySelectorAll('thead th'); var widths = []; for (var t = 0; t < allThs.length; t++) widths.push(allThs[t].offsetWidth);
+            table.style.tableLayout = 'fixed'; table.style.width = '100%';
+            for (var t2 = 0; t2 < allThs.length; t2++) { allThs[t2].style.width = widths[t2] + 'px'; allThs[t2].style.minWidth = widths[t2] + 'px'; }
+            startX = (ev.touches ? ev.touches[0].clientX : ev.clientX); startW = th.offsetWidth; document.body.classList.add('col-resizing');
+            document.addEventListener('mousemove', onMove); document.addEventListener('touchmove', onMove, { passive: false });
+            document.addEventListener('mouseup', onUp); document.addEventListener('touchend', onUp);
+        }
+        grip.addEventListener('mousedown', onDown); grip.addEventListener('touchstart', onDown, { passive: false });
+    })(ths[i]); }
 }
-
-/* ==================== تنظیمات نمایش ستون‌ها ==================== */
 var colSettings = DB.load('columnSettings', {});
 function getHiddenCols(tableId) { return colSettings[tableId] || []; }
 function setHiddenCols(tableId, arr) { colSettings[tableId] = arr; DB.save('columnSettings', colSettings); }
 function applyColVisibility(tableId) {
-    var table = document.getElementById(tableId);
-    if (!table) return;
-    var hidden = getHiddenCols(tableId);
-    var rows = table.querySelectorAll('tr');
-    for (var r = 0; r < rows.length; r++) {
-        var cells = rows[r].children;
-        if (cells.length === 1 && cells[0].hasAttribute('colspan')) continue;
-        for (var c = 0; c < cells.length; c++) {
-            cells[c].style.display = hidden.indexOf(c) !== -1 ? 'none' : '';
-        }
-    }
+    var table = document.getElementById(tableId); if (!table) return;
+    var hidden = getHiddenCols(tableId); var rows = table.querySelectorAll('tr');
+    for (var r = 0; r < rows.length; r++) { var cells = rows[r].children; if (cells.length === 1 && cells[0].hasAttribute('colspan')) continue; for (var c = 0; c < cells.length; c++) cells[c].style.display = hidden.indexOf(c) !== -1 ? 'none' : ''; }
 }
 function applyColVisibilityAll() {
-    ['fiscal-table','persons-table','comp-table','ba-table','cb-table','proj-table','voucher-table-list','rt-table','ri-table','rf-table']
+    ['fiscal-table','persons-table','comp-table','ba-table','cb-table','proj-table','voucher-table-list','rt-table','ri-table','rf-table','rff-table']
         .forEach(applyColVisibility);
 }
-
-/* ساخت دکمه‌های چرخ‌دنده در list-header */
 function buildColGearButtons() {
     var headers = document.querySelectorAll('.list-header[data-col-table]');
     for (var i = 0; i < headers.length; i++) {
@@ -1625,89 +1530,51 @@ function buildColGearButtons() {
             if (h.querySelector('.col-toggle-btn')) return;
             var tableId = h.getAttribute('data-col-table');
             var btn = document.createElement('button');
-            btn.className = 'col-toggle-btn';
-            btn.type = 'button';
-            btn.title = 'نمایش ستون‌ها';
-            btn.innerHTML = '⚙';
-            btn.addEventListener('click', function(ev) {
-                ev.stopPropagation();
-                showColMenu(tableId, btn);
-            });
+            btn.className = 'col-toggle-btn'; btn.type = 'button'; btn.title = 'نمایش ستون‌ها'; btn.innerHTML = '⚙';
+            btn.addEventListener('click', function(ev) { ev.stopPropagation(); showColMenu(tableId, btn); });
             h.appendChild(btn);
         })(headers[i]);
     }
 }
-
-/* منوی شناور نمایش ستون‌ها */
 function showColMenu(tableId, btn) {
-    var menu = document.getElementById('col-menu');
-    if (!menu) return;
-    var table = document.getElementById(tableId);
-    if (!table) return;
-    var thead = table.querySelector('thead');
-    if (!thead) return;
-    var ths = thead.querySelectorAll('th');
-    var hidden = getHiddenCols(tableId);
+    var menu = document.getElementById('col-menu'); if (!menu) return;
+    var table = document.getElementById(tableId); if (!table) return;
+    var thead = table.querySelector('thead'); if (!thead) return;
+    var ths = thead.querySelectorAll('th'); var hidden = getHiddenCols(tableId);
     var html = '<div class="col-menu-head">👁 نمایش ستون‌ها</div><div class="col-menu-body">';
     for (var i = 0; i < ths.length; i++) {
         var th = ths[i];
         var label = String(th.textContent || '').replace(/[⇅▲▼]/g, '').trim() || ('ستون ' + (i+1));
-        var isAction = /عملیات/.test(label);
-        var disabled = isAction ? ' disabled' : '';
+        var isAction = /عملیات/.test(label); var disabled = isAction ? ' disabled' : '';
         var checked = hidden.indexOf(i) === -1 ? 'checked' : '';
-        html += '<label class="col-menu-item' + (isAction ? ' col-menu-disabled' : '') + '">' +
-                    '<input type="checkbox" data-table="' + tableId + '" data-col="' + i + '" ' + checked + disabled + '>' +
-                    '<span>' + esc(label) + '</span>' +
-                '</label>';
+        html += '<label class="col-menu-item' + (isAction ? ' col-menu-disabled' : '') + '"><input type="checkbox" data-table="' + tableId + '" data-col="' + i + '" ' + checked + disabled + '><span>' + esc(label) + '</span></label>';
     }
     html += '</div><div class="col-menu-foot"><button type="button" class="col-menu-reset">بازنشانی</button><button type="button" class="col-menu-close">بستن</button></div>';
-    menu.innerHTML = html;
-    menu.classList.remove('hidden');
-    var rect = btn.getBoundingClientRect();
-    var menuW = 220;
+    menu.innerHTML = html; menu.classList.remove('hidden');
+    var rect = btn.getBoundingClientRect(); var menuW = 220;
     var top = rect.bottom + window.scrollY + 6;
     var left = rect.left + window.scrollX - menuW + rect.width;
-    if (left < 8) left = 8;
-    if (left + menuW > window.innerWidth - 8) left = window.innerWidth - menuW - 8;
-    menu.style.top = top + 'px';
-    menu.style.left = left + 'px';
-
+    if (left < 8) left = 8; if (left + menuW > window.innerWidth - 8) left = window.innerWidth - menuW - 8;
+    menu.style.top = top + 'px'; menu.style.left = left + 'px';
     menu.querySelectorAll('input[type=checkbox]').forEach(function(cb) {
         cb.addEventListener('change', function() {
-            var tid = this.getAttribute('data-table');
-            var idx = Number(this.getAttribute('data-col'));
+            var tid = this.getAttribute('data-table'); var idx = Number(this.getAttribute('data-col'));
             var h = getHiddenCols(tid).slice();
-            if (this.checked) { h = h.filter(function(x) { return x !== idx; }); }
+            if (this.checked) h = h.filter(function(x) { return x !== idx; });
             else { if (h.indexOf(idx) === -1) h.push(idx); }
-            setHiddenCols(tid, h);
-            applyColVisibility(tid);
+            setHiddenCols(tid, h); applyColVisibility(tid);
         });
     });
-    menu.querySelector('.col-menu-reset').addEventListener('click', function() {
-        var tid = this.parentElement.parentElement.getAttribute('data-tid') || tableId;
-        setHiddenCols(tableId, []);
-        applyColVisibility(tableId);
-        showColMenu(tableId, btn);
-    });
-    menu.querySelector('.col-menu-close').addEventListener('click', function() {
-        menu.classList.add('hidden');
-    });
+    menu.querySelector('.col-menu-reset').addEventListener('click', function() { setHiddenCols(tableId, []); applyColVisibility(tableId); showColMenu(tableId, btn); });
+    menu.querySelector('.col-menu-close').addEventListener('click', function() { menu.classList.add('hidden'); });
 }
 document.addEventListener('click', function(e) {
-    var menu = document.getElementById('col-menu');
-    if (!menu || menu.classList.contains('hidden')) return;
-    if (menu.contains(e.target)) return;
-    if (e.target.closest && e.target.closest('.col-toggle-btn')) return;
+    var menu = document.getElementById('col-menu'); if (!menu || menu.classList.contains('hidden')) return;
+    if (menu.contains(e.target)) return; if (e.target.closest && e.target.closest('.col-toggle-btn')) return;
     menu.classList.add('hidden');
 });
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        var menu = document.getElementById('col-menu');
-        if (menu && !menu.classList.contains('hidden')) menu.classList.add('hidden');
-    }
-});
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { var menu = document.getElementById('col-menu'); if (menu && !menu.classList.contains('hidden')) menu.classList.add('hidden'); } });
 
-/* ==================== Widgets ==================== */
 function updateTopbarPeriod() { var el = document.getElementById('topbar-period'); if (!el) return;
     var list = DB.load('fiscalPeriods', []); var p = list.find(function(x) { return x.id === state.activePeriodId; });
     el.textContent = p ? p.title : 'دوره: —'; el.title = p ? ('دوره: ' + p.title) : ''; }
@@ -1740,11 +1607,9 @@ function renderBankBalancesWidget() {
     if (banks.length === 0) { el.innerHTML = '<div class="widget-empty">حساب بانکی ثبت نشده.</div>'; return; }
     banks = banks.slice().sort(function(a, b) { var oa = Number(a.order) || 9999, ob = Number(b.order) || 9999; if (oa !== ob) return oa - ob; return (a.bank || '').localeCompare(b.bank || '', 'fa'); });
     var html = '', total = 0, shown = 0;
-    for (var i = 0; i < banks.length; i++) {
-        var b = banks[i]; var bal = getBankBalance(b.id); if (bal === 0) continue; shown++; total += bal;
+    for (var i = 0; i < banks.length; i++) { var b = banks[i]; var bal = getBankBalance(b.id); if (bal === 0) continue; shown++; total += bal;
         var cls = bal > 0 ? 'positive' : 'negative';
-        html += '<div class="balance-row"><div class="info"><div class="name">' + esc(b.bank || '—') + '</div><div class="meta">' + (b.branchName ? esc(b.branchName) + ' — ' : '') + toFa(esc(b.account || '—')) + '</div></div><div class="amount ' + cls + '">' + formatMoney(bal) + ' ' + currencyLabel() + '</div></div>';
-    }
+        html += '<div class="balance-row"><div class="info"><div class="name">' + esc(b.bank || '—') + '</div><div class="meta">' + (b.branchName ? esc(b.branchName) + ' — ' : '') + toFa(esc(b.account || '—')) + '</div></div><div class="amount ' + cls + '">' + formatMoney(bal) + ' ' + currencyLabel() + '</div></div>'; }
     if (shown === 0) { el.innerHTML = '<div class="widget-empty">حساب با مانده غیرصفر نیست.</div>'; return; }
     html += '<div class="balance-row balance-total"><div class="info"><div class="name">💰 جمع کل</div></div><div class="amount ' + (total >= 0 ? 'positive' : 'negative') + '">' + formatMoney(total) + ' ' + currencyLabel() + '</div></div>';
     el.innerHTML = html;
@@ -1757,8 +1622,7 @@ function renderCashBalancesWidget() {
     var html = '', total = 0, shown = 0;
     for (var i = 0; i < cbs.length; i++) { var c = cbs[i]; var bal = getCashBoxBalance(c.id); if (bal === 0) continue; shown++; total += bal;
         var cls = bal > 0 ? 'positive' : 'negative';
-        html += '<div class="balance-row"><div class="info"><div class="name">' + esc(c.title || '—') + '</div><div class="meta">' + esc(c.type || '—') + (c.unit ? ' — ' + esc(c.unit) : '') + '</div></div><div class="amount ' + cls + '">' + formatMoney(bal) + ' ' + currencyLabel() + '</div></div>';
-    }
+        html += '<div class="balance-row"><div class="info"><div class="name">' + esc(c.title || '—') + '</div><div class="meta">' + esc(c.type || '—') + (c.unit ? ' — ' + esc(c.unit) : '') + '</div></div><div class="amount ' + cls + '">' + formatMoney(bal) + ' ' + currencyLabel() + '</div></div>'; }
     if (shown === 0) { el.innerHTML = '<div class="widget-empty">صندوق با مانده غیرصفر نیست.</div>'; return; }
     html += '<div class="balance-row balance-total"><div class="info"><div class="name">💰 جمع کل</div></div><div class="amount ' + (total >= 0 ? 'positive' : 'negative') + '">' + formatMoney(total) + ' ' + currencyLabel() + '</div></div>';
     el.innerHTML = html;
@@ -1947,12 +1811,11 @@ function goToPage(name) {
     if (name === 'report-trial') { refreshReportPeriodSelects(); updateUnitChips(); }
     if (name === 'report-incomplete') { refreshReportPeriodSelects(); updateUnitChips(); runIncompleteReport(); }
     if (name === 'report-facility') { runFacilityReport(); }
+    if (name === 'report-facility-full') { refreshRffBankSelect(); runFacilityFullReport(); }
     if (name === 'home') { updateHomeWidgets(); }
-    attachDatePickers(); updateTopbarPeriod();
-    applyColVisibilityAll();
-    makeAllTablesResizable();
+    attachDatePickers(); updateTopbarPeriod(); applyColVisibilityAll(); makeAllTablesResizable(); buildColGearButtons();
 }
-function updateUnitChips() { ['ra-unit','rt-unit','rf-unit','ri-unit'].forEach(function(id) { var el = document.getElementById(id); if (el) el.textContent = 'واحد: ' + currencyLabel(); }); }
+function updateUnitChips() { ['ra-unit','rt-unit','rf-unit','ri-unit','rff-unit'].forEach(function(id) { var el = document.getElementById(id); if (el) el.textContent = 'واحد: ' + currencyLabel(); }); }
 function applyTheme(theme) { document.body.classList.remove('theme-sky','theme-beige','theme-jade'); document.body.classList.add('theme-' + theme);
     var c = document.querySelectorAll('.theme-card'); for (var i = 0; i < c.length; i++) c[i].classList.toggle('active', c[i].getAttribute('data-theme') === theme); }
 function applyFont(font) { document.body.classList.remove('font-bnazanin','font-bsans','font-tahoma'); document.body.classList.add('font-' + font);
@@ -1974,19 +1837,14 @@ function setupTabs() {
 }
 function downloadBackup() {
     var data = {};
-    for (var i = 0; i < localStorage.length; i++) {
-        var k = localStorage.key(i);
-        if (k.indexOf(LS_PREFIX) === 0) data[k] = localStorage.getItem(k);
-    }
+    for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k.indexOf(LS_PREFIX) === 0) data[k] = localStorage.getItem(k); }
     var backup = { app:'parsis', version:'pwa', exportedAt: new Date().toISOString(), data: data };
     var blob = new Blob([JSON.stringify(backup, null, 2)], { type:'application/json' });
     var url = URL.createObjectURL(blob);
     var now = new Date();
     var dateStr = todayJalaliStr().replace(/\//g, '-');
     var timeStr = pad2(now.getHours()) + '-' + pad2(now.getMinutes());
-    var a = document.createElement('a');
-    a.href = url; a.download = 'parsis-' + dateStr + '_' + timeStr + '.json'; a.click();
-    URL.revokeObjectURL(url);
+    var a = document.createElement('a'); a.href = url; a.download = 'parsis-' + dateStr + '_' + timeStr + '.json'; a.click(); URL.revokeObjectURL(url);
     var info = document.getElementById('backup-info');
     if (info) { info.style.color = 'var(--accent)'; info.textContent = '✅ پشتیبان دانلود شد — ' + toFa(dateStr) + ' ساعت ' + toFa(pad2(now.getHours()) + ':' + pad2(now.getMinutes())); }
 }
@@ -2003,7 +1861,7 @@ function resetAllData() { var pwd = prompt('رمز ریست:'); if (pwd === null
     var ks = []; for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf(LS_PREFIX) === 0) ks.push(k); }
     ks.forEach(function(k) { localStorage.removeItem(k); }); alert('✅'); location.reload(); }
 
-var sortState = { vouchers: { col: 'number', dir: 'desc' }, facilities: { col: 'name', dir: 'asc' }, rf: { col: 'name', dir: 'asc' } };
+var sortState = { vouchers: { col: 'number', dir: 'desc' }, facilities: { col: 'name', dir: 'asc' }, rf: { col: 'name', dir: 'asc' }, rff: { col: 'name', dir: 'asc' } };
 function getVoucherAmount(v) { var t = 0; (v.lines || []).forEach(function(l) { t += Number(l.debit) || 0; }); return t; }
 function isVoucherBalanced(v) { var td = 0, tc = 0; (v.lines || []).forEach(function(l) { td += Number(l.debit) || 0; tc += Number(l.credit) || 0; }); return td === tc && td > 0; }
 function compareVals(a, b) { if (a === undefined || a === null) a = ''; if (b === undefined || b === null) b = '';
@@ -2027,6 +1885,12 @@ function setupRfSorting() { var ths = document.querySelectorAll('#rf-result th.s
         if (sortState.rf.col === col) sortState.rf.dir = sortState.rf.dir === 'asc' ? 'desc' : 'asc';
         else { sortState.rf.col = col; sortState.rf.dir = 'asc'; } runFacilityReport();
     }); }
+function setupRffSorting() { var ths = document.querySelectorAll('#rff-result th.sortable');
+    for (var i = 0; i < ths.length; i++) ths[i].addEventListener('click', function() {
+        var col = this.getAttribute('data-sort');
+        if (sortState.rff.col === col) sortState.rff.dir = sortState.rff.dir === 'asc' ? 'desc' : 'asc';
+        else { sortState.rff.col = col; sortState.rff.dir = 'asc'; } runFacilityFullReport();
+    }); }
 
 function renderFiscalList() {
     var list = DB.load('fiscalPeriods', []); var filter = (document.getElementById('fiscal-filter').value || '').toLowerCase();
@@ -2045,8 +1909,7 @@ function renderFiscalList() {
     });
     var acts = tb.querySelectorAll('.row-btn.approve');
     for (var a = 0; a < acts.length; a++) acts[a].addEventListener('click', function() { state.activePeriodId = this.getAttribute('data-id'); saveState('activePeriodId'); renderFiscalList(); updateTopbarPeriod(); });
-    applyColVisibility('fiscal-table');
-    makeTableResizable(document.getElementById('fiscal-table'));
+    applyColVisibility('fiscal-table'); makeTableResizable(document.getElementById('fiscal-table'));
 }
 function refreshVPeriodSelect() { var list = DB.load('fiscalPeriods', []); var sel = document.getElementById('v-period'); if (!sel) return;
     sel.innerHTML = '<option value="">— بدون دوره —</option>';
@@ -2082,8 +1945,7 @@ function renderPersonsList() {
         document.getElementById('pr-card').value = p.card || ''; document.getElementById('pr-address').value = p.address || '';
         document.querySelector('[data-tab="persons-add"]').click();
     });
-    applyColVisibility('persons-table');
-    makeTableResizable(document.getElementById('persons-table'));
+    applyColVisibility('persons-table'); makeTableResizable(document.getElementById('persons-table'));
 }
 function renderCompaniesList() {
     var list = DB.load('companies', []); var filter = (document.getElementById('comp-filter').value || '').toLowerCase();
@@ -2097,8 +1959,7 @@ function renderCompaniesList() {
         document.getElementById('co-phone').value = c.phone || ''; document.getElementById('co-address').value = c.address || '';
         document.querySelector('[data-tab="comp-add"]').click();
     });
-    applyColVisibility('comp-table');
-    makeTableResizable(document.getElementById('comp-table'));
+    applyColVisibility('comp-table'); makeTableResizable(document.getElementById('comp-table'));
 }
 function refreshBankTypeSelect() { var sel = document.getElementById('ba-type'); if (!sel) return;
     sel.innerHTML = '<option value="">— نوع —</option>';
@@ -2120,8 +1981,7 @@ function renderBankAccountsList() {
         document.getElementById('ba-min-balance').value = b.minBalance ? formatRaw(b.minBalance) : '';
         document.querySelector('[data-tab="ba-add"]').click();
     });
-    applyColVisibility('ba-table');
-    makeTableResizable(document.getElementById('ba-table'));
+    applyColVisibility('ba-table'); makeTableResizable(document.getElementById('ba-table'));
 }
 function refreshCashTypeSelect() { var sel = document.getElementById('cb-type'); if (!sel) return;
     sel.innerHTML = '<option value="">— نوع —</option>';
@@ -2139,8 +1999,7 @@ function renderCashBoxesList() {
         document.getElementById('cb-order').value = (c.order != null ? c.order : '');
         document.querySelector('[data-tab="cb-add"]').click();
     });
-    applyColVisibility('cb-table');
-    makeTableResizable(document.getElementById('cb-table'));
+    applyColVisibility('cb-table'); makeTableResizable(document.getElementById('cb-table'));
 }
 function renderProjectsList() {
     var list = DB.load('projects', []); var filter = (document.getElementById('proj-filter').value || '').toLowerCase();
@@ -2153,8 +2012,7 @@ function renderProjectsList() {
         document.getElementById('pj-id').value = p.id; document.getElementById('pj-name').value = p.name || '';
         document.querySelector('[data-tab="proj-add"]').click();
     });
-    applyColVisibility('proj-table');
-    makeTableResizable(document.getElementById('proj-table'));
+    applyColVisibility('proj-table'); makeTableResizable(document.getElementById('proj-table'));
 }
 function renderChartTree(cid, editable) {
     var box = document.getElementById(cid); if (!box) return;
@@ -2370,21 +2228,15 @@ function renderVoucherList() {
         if (action === 'edit') { loadVoucherForEdit(v); return; }
         if (action === 'approve') {
             var issues = getVoucherIssues(v);
-            if (issues.length > 0) {
-                alert('⚠️ سند قابل تأیید نیست:\n\n• ' + issues.join('\n• '));
-                return;
-            }
-            var l = DB.load('vouchers', []); for (var x = 0; x < l.length; x++) if (l[x].id === id) l[x].status = 'approved'; DB.save('vouchers', l); renderVoucherList();
-            showToast('✅ سند تأیید شد.');
-            return;
+            if (issues.length > 0) { alert('⚠️ سند قابل تأیید نیست:\n\n• ' + issues.join('\n• ')); return; }
+            var l = DB.load('vouchers', []); for (var x = 0; x < l.length; x++) if (l[x].id === id) l[x].status = 'approved'; DB.save('vouchers', l); renderVoucherList(); showToast('✅ سند تأیید شد.'); return;
         }
         if (action === 'unapprove') { if (!confirm('برگشت؟')) return;
             var l2 = DB.load('vouchers', []); for (var y = 0; y < l2.length; y++) if (l2[y].id === id) l2[y].status = 'draft'; DB.save('vouchers', l2); renderVoucherList(); return; }
         if (action === 'delete') { if (!confirm('حذف شود؟')) return;
             var l3 = DB.load('vouchers', []); l3 = l3.filter(function(x) { return x.id !== id; }); DB.save('vouchers', l3); renderVoucherList(); updateHomeWidgets(); return; }
     });
-    applyColVisibility('voucher-table-list');
-    makeTableResizable(document.getElementById('voucher-table-list'));
+    applyColVisibility('voucher-table-list'); makeTableResizable(document.getElementById('voucher-table-list'));
 }
 function findVoucherById(id) { var l = DB.load('vouchers', []); for (var i = 0; i < l.length; i++) if (l[i].id === id) return l[i]; return null; }
 function loadVoucherForEdit(v) {
@@ -2416,13 +2268,7 @@ function persistVoucher(approve) {
     var id = document.getElementById('v-id').value;
     var status = approve ? 'approved' : 'draft';
     var vch = { id: id || uid(), number: num, date: d, type: ty, periodId: pid, desc: ds, lines: valid, status: status };
-    if (approve) {
-        var issues = getVoucherIssues(vch);
-        if (issues.length > 0) {
-            alert('⚠️ سند قابل تأیید نیست:\n\n• ' + issues.join('\n• '));
-            return;
-        }
-    }
+    if (approve) { var issues = getVoucherIssues(vch); if (issues.length > 0) { alert('⚠️ سند قابل تأیید نیست:\n\n• ' + issues.join('\n• ')); return; } }
     var l = DB.load('vouchers', []);
     if (id) { for (var kk = 0; kk < l.length; kk++) if (l[kk].id === id) l[kk] = vch; } else l.push(vch);
     DB.save('vouchers', l);
@@ -2434,6 +2280,11 @@ var currentFacilityId = null; var currentInstallments = [];
 function refreshFacBankSelect() { var sel = document.getElementById('fc-bank'); if (!sel) return; var b = DB.load('bankAccounts', []);
     sel.innerHTML = '<option value="">— بانک —</option>';
     for (var i = 0; i < b.length; i++) { var o = document.createElement('option'); o.value = b[i].id; o.textContent = (b[i].bank || '') + (b[i].account ? ' - ' + b[i].account : ''); sel.appendChild(o); } }
+function refreshRffBankSelect() {
+    var sel = document.getElementById('rff-bank'); if (!sel) return; var b = DB.load('bankAccounts', []);
+    sel.innerHTML = '<option value="">همه</option>';
+    for (var i = 0; i < b.length; i++) { var o = document.createElement('option'); o.value = b[i].id; o.textContent = (b[i].bank || '') + (b[i].account ? ' - ' + b[i].account : ''); sel.appendChild(o); }
+}
 function renderFacilitiesList() {
     var list = DB.load('facilities', []); var filter = (document.getElementById('fac-filter').value || '').toLowerCase();
     var cf = document.getElementById('fac-cat-filter').value; var box = document.getElementById('fac-list-body'); if (!box) return; box.innerHTML = '';
@@ -2559,7 +2410,6 @@ function rollupBalances(accounts, balances) {
     sorted.forEach(function(a) { if (a.parent && rolled[a.parent]) { rolled[a.parent].debit += rolled[a.id].debit; rolled[a.parent].credit += rolled[a.id].credit; } });
     return rolled;
 }
-
 function runAccountReport() {
     var opts = { from: document.getElementById('ra-from').value, to: document.getElementById('ra-to').value, vtype: document.getElementById('ra-vtype').value, periodId: document.getElementById('ra-period').value, cat: document.getElementById('ra-cat').value, nature: document.getElementById('ra-nature').value, level: Number(document.getElementById('ra-level').value) || 3 };
     var accounts = DB.load('accounts', []); var result = computeAccountBalances(opts); var rolled = rollupBalances(accounts, result.balances);
@@ -2621,8 +2471,7 @@ function runTrialBalance() {
         html += '<tr><td>' + esc(row.name) + '</td><td>' + lN + '</td><td class="num dr">' + fmtRep(row.debit) + '</td><td class="num cr">' + fmtRep(row.credit) + '</td><td class="num dr">' + (row.md ? fmtRep(row.md) : '—') + '</td><td class="num cr">' + (row.mc ? fmtRep(row.mc) : '—') + '</td></tr>'; }
     html += '</tbody><tfoot><tr><td colspan="2" style="text-align:left">جمع (' + currencyLabel() + ')</td><td class="num dr">' + fmtRep(tD) + '</td><td class="num cr">' + fmtRep(tC) + '</td><td class="num dr">' + fmtRep(tMD) + '</td><td class="num cr">' + fmtRep(tMC) + '</td></tr></tfoot></table></div>';
     document.getElementById('rt-result').innerHTML = html; document.getElementById('rt-count').textContent = toFa(rows.length);
-    makeTableResizable(document.getElementById('rt-table'));
-    applyColVisibility('rt-table');
+    makeTableResizable(document.getElementById('rt-table')); applyColVisibility('rt-table');
 }
 function runIncompleteReport() {
     var statusF = (document.getElementById('ri-status').value || '');
@@ -2639,20 +2488,30 @@ function runIncompleteReport() {
     });
     rows.sort(function(a, b) { return compareVals(a.v.number, b.v.number); });
     var periods = DB.load('fiscalPeriods', []); var pM = {}; periods.forEach(function(p) { pM[p.id] = p.title; });
-    var html = '<div class="table-wrap"><table class="report-table" id="ri-table"><thead><tr><th>#</th><th>شماره</th><th>تاریخ</th><th>دوره</th><th>شرح</th><th>وضعیت</th><th>مشکلات</th></tr></thead><tbody>';
+    var html = '<div class="table-wrap"><table class="report-table" id="ri-table"><thead><tr><th>#</th><th>شماره</th><th>تاریخ</th><th>مبلغ</th><th>دوره</th><th>شرح</th><th>وضعیت</th><th>مشکلات</th><th>عملیات</th></tr></thead><tbody>';
+    var totalAmt = 0;
     for (var i = 0; i < rows.length; i++) {
-        var r = rows[i]; var v = r.v;
+        var r = rows[i]; var v = r.v; var amt = getVoucherAmount(v); totalAmt += amt;
         var stB = v.status === 'approved' ? '<span class="badge badge-approved">✓</span>' : '<span class="badge badge-draft">پیش‌نویس</span>';
         var iss = '<div class="ri-issues">' + r.issues.map(function(x) { return '<div class="ri-issue-item">' + esc(x) + '</div>'; }).join('') + '</div>';
-        html += '<tr><td class="num">' + toFa(i + 1) + '</td><td dir="ltr">' + toFa(esc(v.number)) + '</td><td dir="ltr">' + toFa(esc(v.date)) + '</td><td>' + esc(pM[v.periodId] || '—') + '</td><td>' + esc(v.desc || '') + '</td><td>' + stB + '</td><td>' + iss + '</td></tr>';
+        var aH = '<div class="row-actions"><button class="row-btn open" data-vid="' + v.id + '" data-action="open-voucher" title="باز کردن سند">✎</button><button class="row-btn open" data-vid="' + v.id + '" data-action="preview-voucher" title="پیش‌نمایش">👁</button></div>';
+        html += '<tr><td class="num">' + toFa(i + 1) + '</td><td dir="ltr">' + toFa(esc(v.number)) + '</td><td dir="ltr">' + toFa(esc(v.date)) + '</td><td class="num" style="font-weight:bold;color:var(--primary-dark)">' + formatMoney(amt) + '</td><td>' + esc(pM[v.periodId] || '—') + '</td><td>' + esc(v.desc || '') + '</td><td>' + stB + '</td><td>' + iss + '</td><td>' + aH + '</td></tr>';
     }
-    if (rows.length === 0) html += '<tr><td colspan="7" class="empty-row">✅ سند ناقصی وجود ندارد.</td></tr>';
-    html += '</tbody></table></div>';
+    if (rows.length === 0) html += '<tr><td colspan="9" class="empty-row">✅ سند ناقصی وجود ندارد.</td></tr>';
+    html += '</tbody>';
+    if (rows.length > 0) html += '<tfoot><tr><td colspan="3" style="text-align:left">جمع (' + currencyLabel() + ')</td><td class="num" style="color:#c0392b;font-weight:bold">' + formatMoney(totalAmt) + '</td><td colspan="5"></td></tr></tfoot>';
+    html += '</table></div>';
     document.getElementById('ri-result').innerHTML = html;
     document.getElementById('ri-count').textContent = toFa(rows.length);
     var unitEl = document.getElementById('ri-unit'); if (unitEl) unitEl.textContent = 'واحد: ' + currencyLabel();
-    makeTableResizable(document.getElementById('ri-table'));
-    applyColVisibility('ri-table');
+    makeTableResizable(document.getElementById('ri-table')); applyColVisibility('ri-table');
+    var btns = document.querySelectorAll('#ri-result [data-action]');
+    for (var bi = 0; bi < btns.length; bi++) btns[bi].addEventListener('click', function() {
+        var vid = this.getAttribute('data-vid'); var act = this.getAttribute('data-action');
+        var v = findVoucherById(vid); if (!v) return;
+        if (act === 'open-voucher') { loadVoucherForEdit(v); }
+        else if (act === 'preview-voucher') { openVoucherPreview(v); }
+    });
 }
 function runFacilityReport() {
     var facilities = DB.load('facilities', []); var cf = document.getElementById('rf-category').value; var sf = document.getElementById('rf-status').value;
@@ -2660,9 +2519,13 @@ function runFacilityReport() {
     facilities.forEach(function(f) { if (cf && (f.category || 'facility') !== cf) return;
         var ins = f.installments || []; var ri = ins.filter(function(x) { return x.status !== 'paid'; });
         var ra = ri.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
-        var lD = ri.length > 0 ? ri[ri.length - 1].date : '—'; var set = ri.length === 0 && ins.length > 0;
+        var lD = ri.length > 0 ? ri[ri.length - 1].date : '—';
+        // اولین قسط پرداخت نشده
+        var unpaidSorted = ri.slice().sort(function(a, b) { return compareVals(a.date, b.date); });
+        var fU = unpaidSorted.length > 0 ? unpaidSorted[0].date : '—';
+        var set = ri.length === 0 && ins.length > 0;
         if (sf === 'settled' && !set) return; if (sf === 'active' && set) return;
-        rows.push({ f: f, rC: ri.length, rA: ra, lD: lD, set: set }); });
+        rows.push({ f: f, rC: ri.length, rA: ra, lD: lD, fU: fU, set: set }); });
     rows.sort(function(a, b) { var va, vb;
         if (st.col === 'name') { va = a.f.name || ''; vb = b.f.name || ''; }
         else if (st.col === 'initial') { va = a.f.initial || 0; vb = b.f.initial || 0; }
@@ -2670,36 +2533,191 @@ function runFacilityReport() {
         else if (st.col === 'remainingCount') { va = a.rC; vb = b.rC; }
         else if (st.col === 'remainingAmount') { va = a.rA; vb = b.rA; }
         else if (st.col === 'lastDate') { va = a.lD; vb = b.lD; }
+        else if (st.col === 'firstUnpaid') { va = a.fU; vb = b.fU; }
         else if (st.col === 'status') { va = a.set ? 'تسویه' : 'جاری'; vb = b.set ? 'تسویه' : 'جاری'; }
         else { va = ''; vb = ''; }
         return st.dir === 'asc' ? compareVals(va, vb) : -compareVals(va, vb); });
-    var html = '<div class="table-wrap"><table class="report-table" id="rf-table"><thead><tr><th class="sortable" data-sort="name">عنوان <span class="sort-ind"></span></th><th class="sortable" data-sort="status">وضعیت <span class="sort-ind"></span></th><th class="sortable" data-sort="initial">مبلغ اولیه <span class="sort-ind"></span></th><th class="sortable" data-sort="paid">پرداخت <span class="sort-ind"></span></th><th class="sortable" data-sort="remainingCount">اقساط باقی <span class="sort-ind"></span></th><th class="sortable" data-sort="remainingAmount">مبلغ باقی <span class="sort-ind"></span></th><th class="sortable" data-sort="lastDate">آخرین قسط <span class="sort-ind"></span></th></tr></thead><tbody>';
+    var html = '<div class="table-wrap"><table class="report-table" id="rf-table"><thead><tr><th class="sortable" data-sort="name">عنوان <span class="sort-ind"></span></th><th class="sortable" data-sort="status">وضعیت <span class="sort-ind"></span></th><th class="sortable" data-sort="initial">مبلغ اولیه <span class="sort-ind"></span></th><th class="sortable" data-sort="paid">پرداخت <span class="sort-ind"></span></th><th class="sortable" data-sort="remainingCount">اقساط باقی <span class="sort-ind"></span></th><th class="sortable" data-sort="remainingAmount">مبلغ باقی <span class="sort-ind"></span></th><th class="sortable" data-sort="firstUnpaid">اولین قسط پرداخت‌نشده <span class="sort-ind"></span></th><th class="sortable" data-sort="lastDate">آخرین قسط <span class="sort-ind"></span></th></tr></thead><tbody>';
     var tr = 0;
     for (var i = 0; i < rows.length; i++) { var r = rows[i]; var f = r.f;
-        html += '<tr><td>' + esc(f.name) + '</td><td>' + (r.set ? '<span class="badge badge-settled">تسویه</span>' : '<span class="badge badge-active">جاری</span>') + '</td><td class="num">' + fmtRep(f.initial || 0) + '</td><td class="num">' + fmtRep(f.paid || 0) + '</td><td class="num">' + toFa(r.rC) + '</td><td class="num">' + fmtRep(r.rA) + '</td><td dir="ltr">' + toFa(r.lD) + '</td></tr>';
+        html += '<tr><td>' + esc(f.name) + '</td><td>' + (r.set ? '<span class="badge badge-settled">تسویه</span>' : '<span class="badge badge-active">جاری</span>') + '</td><td class="num">' + fmtRep(f.initial || 0) + '</td><td class="num">' + fmtRep(f.paid || 0) + '</td><td class="num">' + toFa(r.rC) + '</td><td class="num">' + fmtRep(r.rA) + '</td><td dir="ltr">' + toFa(r.fU) + '</td><td dir="ltr">' + toFa(r.lD) + '</td></tr>';
         tr += r.rA; }
-    html += '</tbody><tfoot><tr><td colspan="5" style="text-align:left">جمع مانده (' + currencyLabel() + ')</td><td class="num">' + fmtRep(tr) + '</td><td></td></tr></tfoot></table></div>';
+    html += '</tbody><tfoot><tr><td colspan="5" style="text-align:left">جمع مانده (' + currencyLabel() + ')</td><td class="num">' + fmtRep(tr) + '</td><td colspan="2"></td></tr></tfoot></table></div>';
     document.getElementById('rf-result').innerHTML = html; document.getElementById('rf-count').textContent = toFa(rows.length);
     setupRfSorting();
     var ths = document.querySelectorAll('#rf-result th.sortable');
     for (var t = 0; t < ths.length; t++) { ths[t].classList.remove('sorted-asc', 'sorted-desc'); if (ths[t].getAttribute('data-sort') === st.col) ths[t].classList.add(st.dir === 'asc' ? 'sorted-asc' : 'sorted-desc'); }
-    makeTableResizable(document.getElementById('rf-table'));
-    applyColVisibility('rf-table');
+    makeTableResizable(document.getElementById('rf-table')); applyColVisibility('rf-table');
 }
+
+/* ===== گزارش جامع تسهیلات ===== */
+function runFacilityFullReport() {
+    var facilities = DB.load('facilities', []);
+    var cf = document.getElementById('rff-category').value;
+    var sf = document.getElementById('rff-status').value;
+    var inf = document.getElementById('rff-inst-status').value;
+    var bf = document.getElementById('rff-bank').value;
+    var fromD = document.getElementById('rff-from').value;
+    var toD = document.getElementById('rff-to').value;
+    var q = (document.getElementById('rff-search').value || '').toLowerCase();
+    var st = sortState.rff;
+    var banks = DB.load('bankAccounts', []);
+    var bankMap = {}; banks.forEach(function(b) { bankMap[b.id] = b; });
+    var today = toJalali(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
+    var tStr = today[0] + '/' + pad2(today[1]) + '/' + pad2(today[2]);
+
+    var rows = [];
+    facilities.forEach(function(f) {
+        if (cf && (f.category || 'facility') !== cf) return;
+        if (bf && f.bankId !== bf) return;
+        if (fromD && f.date && f.date < fromD) return;
+        if (toD && f.date && f.date > toD) return;
+        var ins = f.installments || [];
+        var paidCount = ins.filter(function(x) { return x.status === 'paid'; }).length;
+        var registeredCount = ins.filter(function(x) { return x.status === 'registered'; }).length;
+        var totalAmt = ins.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
+        var paidAmt = ins.filter(function(x) { return x.status === 'paid'; }).reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
+        var unpaidList = ins.filter(function(x) { return x.status !== 'paid'; });
+        var unpaidAmt = unpaidList.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
+        var unpaidSorted = unpaidList.slice().sort(function(a, b) { return compareVals(a.date, b.date); });
+        var firstUnpaidDate = unpaidSorted.length > 0 ? unpaidSorted[0].date : '';
+        var firstUnpaidAmount = unpaidSorted.length > 0 ? Number(unpaidSorted[0].amount) || 0 : 0;
+        var lastPaidDate = '—';
+        var paidSorted = ins.filter(function(x) { return x.status === 'paid' && x.date; }).slice().sort(function(a, b) { return compareVals(b.date, a.date); });
+        if (paidSorted.length > 0) lastPaidDate = paidSorted[0].date;
+        var overdueCount = unpaidList.filter(function(x) { return x.date && x.date < tStr; }).length;
+        var settled = unpaidList.length === 0 && ins.length > 0;
+        var remainingToInit = Number(f.initial || 0) - paidAmt;
+        // فیلتر وضعیت تسویه
+        if (sf === 'settled' && !settled) return;
+        if (sf === 'active' && settled) return;
+        // فیلتر وضعیت اقساط
+        if (inf === 'has-unpaid' && !(unpaidList.length > 0)) return;
+        if (inf === 'has-paid' && !(paidCount > 0)) return;
+        if (inf === 'all-paid' && !(ins.length > 0 && paidCount === ins.length)) return;
+        if (inf === 'no-installments' && ins.length > 0) return;
+        if (inf === 'overdue' && overdueCount === 0) return;
+        // جستجو
+        if (q) {
+            var bankObj = bankMap[f.bankId];
+            var txt = ((f.name || '') + ' ' + (f.date || '') + ' ' + categoryName(f.category) + ' ' + (bankObj ? bankObj.bank : '')).toLowerCase();
+            if (txt.indexOf(q) === -1) return;
+        }
+        rows.push({
+            f: f, bank: bankMap[f.bankId], insCount: ins.length,
+            paidCount: paidCount, registeredCount: registeredCount,
+            totalAmt: totalAmt, paidAmt: paidAmt, unpaidAmt: unpaidAmt,
+            unpaidCount: unpaidList.length, firstUnpaidDate: firstUnpaidDate,
+            firstUnpaidAmount: firstUnpaidAmount, lastPaidDate: lastPaidDate,
+            overdueCount: overdueCount, settled: settled, remaining: remainingToInit
+        });
+    });
+
+    rows.sort(function(a, b) {
+        var va, vb;
+        switch (st.col) {
+            case 'name': va = a.f.name || ''; vb = b.f.name || ''; break;
+            case 'category': va = categoryName(a.f.category); vb = categoryName(b.f.category); break;
+            case 'bank': va = a.bank ? a.bank.bank : ''; vb = b.bank ? b.bank.bank : ''; break;
+            case 'date': va = a.f.date || ''; vb = b.f.date || ''; break;
+            case 'initial': va = Number(a.f.initial || 0); vb = Number(b.f.initial || 0); break;
+            case 'paidAmt': va = a.paidAmt; vb = b.paidAmt; break;
+            case 'unpaidAmt': va = a.unpaidAmt; vb = b.unpaidAmt; break;
+            case 'insCount': va = a.insCount; vb = b.insCount; break;
+            case 'paidCount': va = a.paidCount; vb = b.paidCount; break;
+            case 'unpaidCount': va = a.unpaidCount; vb = b.unpaidCount; break;
+            case 'firstUnpaidDate': va = a.firstUnpaidDate || ''; vb = b.firstUnpaidDate || ''; break;
+            case 'lastPaidDate': va = a.lastPaidDate || ''; vb = b.lastPaidDate || ''; break;
+            case 'overdueCount': va = a.overdueCount; vb = b.overdueCount; break;
+            case 'status': va = a.settled ? 'تسویه' : 'جاری'; vb = b.settled ? 'تسویه' : 'جاری'; break;
+            default: va = ''; vb = '';
+        }
+        return st.dir === 'asc' ? compareVals(va, vb) : -compareVals(va, vb);
+    });
+
+    var html = '<div class="table-wrap"><table class="report-table" id="rff-table"><thead><tr>' +
+        '<th class="sortable" data-sort="name">عنوان <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="category">دسته <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="bank">بانک <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="date">تاریخ <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="initial">مبلغ اولیه <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="paidAmt">پرداخت شده <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="unpaidAmt">باقی‌مانده <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="insCount">تعداد اقساط <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="paidCount">پرداخت‌شده <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="unpaidCount">باقی <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="overdueCount">سررسید گذشته <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="firstUnpaidDate">اولین قسط پرداخت‌نشده <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="lastPaidDate">آخرین قسط پرداخت‌شده <span class="sort-ind"></span></th>' +
+        '<th class="sortable" data-sort="status">وضعیت <span class="sort-ind"></span></th>' +
+        '<th>عملیات</th></tr></thead><tbody>';
+    var sumInit = 0, sumPaid = 0, sumUnpaid = 0, sumInsCount = 0, sumPaidCount = 0, sumUnpaidCount = 0, sumOverdue = 0;
+    for (var i = 0; i < rows.length; i++) {
+        var r = rows[i]; var f = r.f;
+        sumInit += Number(f.initial || 0); sumPaid += r.paidAmt; sumUnpaid += r.unpaidAmt;
+        sumInsCount += r.insCount; sumPaidCount += r.paidCount; sumUnpaidCount += r.unpaidCount; sumOverdue += r.overdueCount;
+        var catB = (f.category === 'scheduled') ? '<span class="badge badge-cat-sch">زمانبندی</span>' : '<span class="badge badge-cat-fac">تسهیلات</span>';
+        var stB = r.settled ? '<span class="badge badge-settled">تسویه</span>' : '<span class="badge badge-active">جاری</span>';
+        var overdue = r.overdueCount > 0 ? '<span class="badge badge-overdue">' + toFa(r.overdueCount) + '</span>' : '۰';
+        var firstUnpaidCell = r.firstUnpaidDate ? (toFa(r.firstUnpaidDate) + (r.firstUnpaidAmount ? ' <span class="muted" style="font-size:0.7rem">(' + fmtRep(r.firstUnpaidAmount) + ')</span>' : '')) : '—';
+        var aH = '<div class="row-actions"><button class="row-btn open" data-fid="' + f.id + '" data-action="rff-inst" title="دفترچه اقساط">📖</button><button class="row-btn edit" data-fid="' + f.id + '" data-action="rff-edit" title="ویرایش">✎</button></div>';
+        html += '<tr>' +
+            '<td><strong>' + esc(f.name) + '</strong></td>' +
+            '<td>' + catB + '</td>' +
+            '<td>' + esc(r.bank ? r.bank.bank : '—') + '</td>' +
+            '<td dir="ltr">' + toFa(esc(f.date || '—')) + '</td>' +
+            '<td class="num">' + fmtRep(f.initial || 0) + '</td>' +
+            '<td class="num" style="color:#1e9e6a">' + fmtRep(r.paidAmt) + '</td>' +
+            '<td class="num" style="color:' + (r.unpaidAmt > 0 ? '#c0392b' : '#1e9e6a') + '">' + fmtRep(r.unpaidAmt) + '</td>' +
+            '<td class="num">' + toFa(r.insCount) + '</td>' +
+            '<td class="num" style="color:#1e9e6a">' + toFa(r.paidCount) + '</td>' +
+            '<td class="num" style="color:#c47c00">' + toFa(r.unpaidCount) + '</td>' +
+            '<td class="num">' + overdue + '</td>' +
+            '<td dir="ltr">' + firstUnpaidCell + '</td>' +
+            '<td dir="ltr">' + toFa(r.lastPaidDate) + '</td>' +
+            '<td>' + stB + '</td>' +
+            '<td>' + aH + '</td>' +
+        '</tr>';
+    }
+    if (rows.length === 0) html += '<tr><td colspan="15" class="empty-row">موردی یافت نشد.</td></tr>';
+    html += '</tbody>';
+    if (rows.length > 0) {
+        html += '<tfoot><tr><td colspan="4" style="text-align:left">جمع کل (' + currencyLabel() + ')</td>' +
+            '<td class="num">' + fmtRep(sumInit) + '</td>' +
+            '<td class="num" style="color:#1e9e6a">' + fmtRep(sumPaid) + '</td>' +
+            '<td class="num" style="color:#c0392b">' + fmtRep(sumUnpaid) + '</td>' +
+            '<td class="num">' + toFa(sumInsCount) + '</td>' +
+            '<td class="num" style="color:#1e9e6a">' + toFa(sumPaidCount) + '</td>' +
+            '<td class="num" style="color:#c47c00">' + toFa(sumUnpaidCount) + '</td>' +
+            '<td class="num">' + toFa(sumOverdue) + '</td>' +
+            '<td colspan="4"></td></tr></tfoot>';
+    }
+    html += '</table></div>';
+    document.getElementById('rff-result').innerHTML = html;
+    document.getElementById('rff-count').textContent = toFa(rows.length);
+    var unitEl = document.getElementById('rff-unit'); if (unitEl) unitEl.textContent = 'واحد: ' + currencyLabel();
+    setupRffSorting();
+    var ths = document.querySelectorAll('#rff-result th.sortable');
+    for (var t = 0; t < ths.length; t++) { ths[t].classList.remove('sorted-asc', 'sorted-desc'); if (ths[t].getAttribute('data-sort') === st.col) ths[t].classList.add(st.dir === 'asc' ? 'sorted-asc' : 'sorted-desc'); }
+    makeTableResizable(document.getElementById('rff-table')); applyColVisibility('rff-table');
+    var btns = document.querySelectorAll('#rff-result [data-action]');
+    for (var bi = 0; bi < btns.length; bi++) btns[bi].addEventListener('click', function() {
+        var fid = this.getAttribute('data-fid'); var act = this.getAttribute('data-action');
+        var f = DB.load('facilities', []).find(function(x) { return x.id === fid; }); if (!f) return;
+        if (act === 'rff-inst') loadFacilityForInstallments(f);
+        else if (act === 'rff-edit') loadFacilityIntoForm(f);
+    });
+}
+
 function clearPersonForm() { var ids = ['pr-id','pr-first','pr-last','pr-father','pr-birth','pr-mobile','pr-phone','pr-bank-title','pr-acc','pr-iban','pr-card','pr-address']; for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = ''; }
 function clearCompanyForm() { var ids = ['co-id','co-name','co-phone','co-address']; for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = ''; }
 function clearBAForm() { var ids = ['ba-id','ba-bank','ba-branch-code','ba-branch-name','ba-account','ba-iban','ba-card','ba-order','ba-min-balance']; for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = ''; document.getElementById('ba-type').value = ''; }
 function clearCBForm() { var ids = ['cb-id','cb-title','cb-unit','cb-order']; for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = ''; document.getElementById('cb-type').value = ''; }
 function clearFiscalForm() { ['fiscal-id','fiscal-title','fiscal-from','fiscal-to'].forEach(function(x) { document.getElementById(x).value = ''; }); }
 function clearFacForm() { ['fc-id','fc-name','fc-date','fc-initial','fc-paid'].forEach(function(x) { document.getElementById(x).value = ''; }); document.getElementById('fc-category').value = 'facility'; document.getElementById('fc-bank').value = ''; document.getElementById('fac-installments-card').style.display = 'none'; currentFacilityId = null; currentInstallments = []; }
-
-/* اجرای resizable روی همه جدول‌ها */
 function makeAllTablesResizable() {
-    ['fiscal-table','persons-table','comp-table','ba-table','cb-table','proj-table','voucher-table-list','rt-table','ri-table','rf-table']
-        .forEach(function(id) {
-            var t = document.getElementById(id);
-            if (t) makeTableResizable(t);
-        });
+    ['fiscal-table','persons-table','comp-table','ba-table','cb-table','proj-table','voucher-table-list','rt-table','ri-table','rf-table','rff-table']
+        .forEach(function(id) { var t = document.getElementById(id); if (t) makeTableResizable(t); });
 }
 
 var deferredInstallPrompt = null;
@@ -2725,6 +2743,7 @@ function init() {
     document.getElementById('ra-hide').checked = state.hideNumbers;
     document.getElementById('rt-hide').checked = state.hideNumbers;
     document.getElementById('rf-hide').checked = state.hideNumbers;
+    document.getElementById('rff-hide').checked = state.hideNumbers;
     document.getElementById('set-sms-auto-read').checked = state.smsAutoRead;
     document.getElementById('sms-auto-read').checked = state.smsAutoRead;
     updateUnitChips();
@@ -2798,9 +2817,9 @@ function init() {
     function onCD(v) { state.currencyDisplay = v; saveState('currencyDisplay'); document.getElementById('set-currency-display').value = v; document.getElementById('set-currency-display2').value = v; updateUnitChips(); updateHomeWidgets(); }
     document.getElementById('set-currency-display').addEventListener('change', function() { onCD(this.value); });
     document.getElementById('set-currency-display2').addEventListener('change', function() { onCD(this.value); });
-    function onHN(v) { state.hideNumbers = v; saveState('hideNumbers'); document.getElementById('set-hide-numbers').checked = v; document.getElementById('ra-hide').checked = v; document.getElementById('rt-hide').checked = v; document.getElementById('rf-hide').checked = v; updateHomeWidgets(); }
+    function onHN(v) { state.hideNumbers = v; saveState('hideNumbers'); document.getElementById('set-hide-numbers').checked = v; document.getElementById('ra-hide').checked = v; document.getElementById('rt-hide').checked = v; document.getElementById('rf-hide').checked = v; document.getElementById('rff-hide').checked = v; updateHomeWidgets(); }
     document.getElementById('set-hide-numbers').addEventListener('change', function() { onHN(this.checked); });
-    ['ra-hide','rt-hide','rf-hide'].forEach(function(id) { var el = document.getElementById(id); if (el) el.addEventListener('change', function() { onHN(this.checked); }); });
+    ['ra-hide','rt-hide','rf-hide','rff-hide'].forEach(function(id) { var el = document.getElementById(id); if (el) el.addEventListener('change', function() { onHN(this.checked); }); });
     document.getElementById('add-bank-type').addEventListener('click', function() { var v = document.getElementById('new-bank-type').value.trim(); if (!v) return; if (state.bankTypes.indexOf(v) !== -1) return; state.bankTypes.push(v); saveState('bankTypes'); document.getElementById('new-bank-type').value = ''; renderChips('bank-types-list', state.bankTypes, 'bankTypes'); });
     document.getElementById('add-cash-type').addEventListener('click', function() { var v = document.getElementById('new-cash-type').value.trim(); if (!v) return; if (state.cashTypes.indexOf(v) !== -1) return; state.cashTypes.push(v); saveState('cashTypes'); document.getElementById('new-cash-type').value = ''; renderChips('cash-types-list', state.cashTypes, 'cashTypes'); });
     document.getElementById('save-fiscal').addEventListener('click', function() { var id = document.getElementById('fiscal-id').value; var t = document.getElementById('fiscal-title').value.trim();
@@ -2927,16 +2946,25 @@ function init() {
     document.getElementById('rt-run').addEventListener('click', runTrialBalance);
     document.getElementById('ri-run').addEventListener('click', runIncompleteReport);
     document.getElementById('rf-run').addEventListener('click', runFacilityReport);
+    document.getElementById('rff-run').addEventListener('click', runFacilityFullReport);
     document.getElementById('ra-print').addEventListener('click', function() { printHtmlReport('#ra-result', 'مرور حساب‌ها'); });
     document.getElementById('rt-print').addEventListener('click', function() { printHtmlReport('#rt-result', 'تراز آزمایشی'); });
     document.getElementById('ri-print').addEventListener('click', function() { printHtmlReport('#ri-result', 'تراکنش‌های تکمیل نشده'); });
     document.getElementById('rf-print').addEventListener('click', function() { printHtmlReport('#rf-result', 'خلاصه تسهیلات'); });
+    document.getElementById('rff-print').addEventListener('click', function() { printHtmlReport('#rff-result', 'گزارش جامع تسهیلات'); });
     document.getElementById('ra-export').addEventListener('click', function() { exportReportTable('#ra-result', 'account-report'); });
     document.getElementById('rt-export').addEventListener('click', function() { exportReportTable('#rt-result', 'trial-balance'); });
     document.getElementById('ri-export').addEventListener('click', function() { exportReportTable('#ri-result', 'incomplete-transactions'); });
     document.getElementById('rf-export').addEventListener('click', function() { exportReportTable('#rf-result', 'facility-summary'); });
+    document.getElementById('rff-export').addEventListener('click', function() { exportReportTable('#rff-result', 'facility-full-report'); });
     document.getElementById('rf-category').addEventListener('change', runFacilityReport);
     document.getElementById('rf-status').addEventListener('change', runFacilityReport);
+    document.getElementById('rff-category').addEventListener('change', runFacilityFullReport);
+    document.getElementById('rff-status').addEventListener('change', runFacilityFullReport);
+    document.getElementById('rff-inst-status').addEventListener('change', runFacilityFullReport);
+    document.getElementById('rff-bank').addEventListener('change', runFacilityFullReport);
+    document.getElementById('rff-search').addEventListener('input', runFacilityFullReport);
+    ['rff-from','rff-to'].forEach(function(id) { var el = document.getElementById(id); if (el) el.addEventListener('input', runFacilityFullReport); });
     updateDateDisplay(); updateTopbarPeriod(); updateHomeWidgets();
     setInterval(function() { updateDateDisplay(); updateTopbarPeriod(); updateHomeWidgets(); }, 60000);
     newVoucherForm(); attachDatePickers();
