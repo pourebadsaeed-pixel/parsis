@@ -3604,18 +3604,52 @@ function aiBuildContext() {
         });
         lines.push('جمع مانده بانک‌ها: ' + formatMoney(totalBank) + ' ' + currencyLabel());
     }
-    var facilities = DB.load('facilities', []);
-    if (facilities.length > 0) {
-        lines.push('\n=== تسهیلات ===');
-        var today = todayJalaliStr();
-        facilities.forEach(function(f) {
-            var ins = f.installments || [];
-            var unpaid = ins.filter(function(x) { return x.status !== 'paid'; });
-            var unpaidAmt = unpaid.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
-            var overdue = unpaid.filter(function(x) { return x.date && x.date < today; }).length;
-            lines.push('- ' + f.name + ' (' + categoryName(f.category) + '): اصل ' + formatMoney(f.initial || 0) + '، پرداخت‌شده ' + formatMoney(f.paid || 0) + '، باقی ' + formatMoney(unpaidAmt) + '، تعداد اقساط باقی ' + unpaid.length + (overdue > 0 ? '، سررسید گذشته ' + overdue : ''));
+    _aiSplitTableRow
+var facilities = DB.load('facilities', []);
+if (facilities.length > 0) {
+    lines.push('\n=== تسهیلات و دفترچه اقساط ===');
+    var today = todayJalaliStr();
+    var banks = DB.load('bankAccounts', []);
+    var bankMap = {}; banks.forEach(function(b) { bankMap[b.id] = b; });
+
+    facilities.forEach(function(f) {
+        var ins = f.installments || [];
+        var unpaid = ins.filter(function(x) { return x.status !== 'paid'; });
+        var unpaidAmt = unpaid.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
+        var overdue = unpaid.filter(function(x) { return x.date && x.date < today; }).length;
+        var bk = bankMap[f.bankId];
+        lines.push('\n▸ تسهیلات: «' + f.name + '»');
+        lines.push('  دسته: ' + categoryName(f.category) + (bk ? ' | بانک: ' + (bk.bank || '') + (bk.account ? ' (' + bk.account + ')' : '') : ''));
+        lines.push('  مبلغ اولیه: ' + formatMoney(f.initial || 0) + ' ' + currencyLabel() + ' | پرداخت‌شده: ' + formatMoney(f.paid || 0) + ' | باقی‌مانده: ' + formatMoney(unpaidAmt) + (overdue > 0 ? ' | ⚠️ سررسید گذشته: ' + overdue + ' قسط' : ''));
+
+        if (ins.length === 0) {
+            lines.push('  (بدون قسط)');
+            return;
+        }
+
+        // مرتب‌سازی بر اساس تاریخ
+        var sorted = ins.slice().sort(function(a, b) { return compareVals(a.date, b.date); });
+
+        // جدول کامل اقساط (فقط پرداخت‌نشده + ۱۰ پرداخت آخر برای صرفه‌جویی توکن)
+        var unpaidSorted = sorted.filter(function(x) { return x.status !== 'paid'; });
+        var paidSorted = sorted.filter(function(x) { return x.status === 'paid'; }).slice(-10);
+
+        lines.push('  اقساط پرداخت‌نشده (' + unpaidSorted.length + ' قسط):');
+        if (unpaidSorted.length === 0) lines.push('    ✓ همه پرداخت شده');
+        else unpaidSorted.forEach(function(x, i) {
+            var status = (x.date && x.date < today) ? '⚠️ سررسید گذشته' : 'در انتظار';
+            lines.push('    ' + (i+1) + '. تاریخ ' + x.date + ' | مبلغ ' + formatMoney(x.amount || 0) + ' ' + currencyLabel() + ' | ' + status);
         });
-    }
+
+        if (paidSorted.length > 0) {
+            lines.push('  آخرین اقساط پرداخت‌شده:');
+            paidSorted.forEach(function(x) {
+                lines.push('    ✓ ' + x.date + ' | ' + formatMoney(x.amount || 0) + ' ' + currencyLabel());
+            });
+        }
+    });
+}
+  
     var sources = DB.load('cashFlowSources', []);
     if (sources.length > 0) {
         lines.push('\n=== منابع دریافتنی ===');
