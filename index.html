@@ -412,9 +412,35 @@ body.col-resizing * { cursor:col-resize !important; }
     .card { box-shadow:none !important; border:none !important; padding:0 !important; margin-bottom:8px !important; }
 }
 
-/* ================================================================== */
+/* ============ Home widgets layout ============ */
+.home-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    align-items: start;
+}
+@media (max-width: 760px) {
+    .home-grid { grid-template-columns: 1fr; }
+}
+.home-grid .widget-card { margin-bottom: 0; }
+.home-grid .widget-card.widget-wide { grid-column: 1 / -1; }
+
+/* ============ Estimate form ============ */
+.est-item-row {
+    padding: 8px 10px;
+    background: var(--bg);
+    border-radius: 10px;
+    margin-bottom: 4px;
+    display: grid;
+    grid-template-columns: 40px 1fr 1fr auto;
+    gap: 6px;
+    align-items: center;
+    font-size: 0.82rem;
+}
+.est-item-row input { padding:6px 8px; font-size:0.8rem; border:1px solid var(--border); border-radius:7px; background:var(--card); }
+@media (max-width:600px) { .est-item-row { grid-template-columns:1fr 1fr; } }
+
 /* ==================== دستیار AI — طراحی جدید ==================== */
-/* ================================================================== */
 .ai-fab {
     position:fixed; bottom:22px; left:22px; width:60px; height:60px;
     border-radius:50%;
@@ -638,7 +664,7 @@ body.col-resizing * { cursor:col-resize !important; }
     font-family:inherit; background:none; padding:0; color:inherit;
 }
 
-/* ---- جدول‌های AI — طراحی ویژه ---- */
+/* ---- جدول‌های AI ---- */
 .ai-msg.assistant .ai-table-wrap {
     overflow-x:auto; margin:14px 0;
     border-radius:14px;
@@ -811,6 +837,7 @@ body.col-resizing * { cursor:col-resize !important; }
                 <button data-page="cash-types">💰 انواع صندوق</button>
                 <button data-page="currency">💱 ارز و واحد پول</button>
                 <button data-page="fiscal">📅 دوره مالی</button>
+                <button data-page="chart-define">✏️ تعریف حساب‌ها</button>
             </div>
         </div>
         <div class="nav-group collapsed"><button class="nav-group-title"><span>🗂 اطلاعات پایه</span><span class="caret">▾</span></button>
@@ -820,23 +847,20 @@ body.col-resizing * { cursor:col-resize !important; }
                 <button data-page="bank-accounts">🏦 حساب‌های بانکی</button>
                 <button data-page="cash-boxes">💰 صندوق‌ها</button>
                 <button data-page="projects">📁 پروژه‌ها</button>
-                <button data-page="cashflow-sources">📌 منابع دریافتنی</button>
             </div>
         </div>
-        <div class="nav-group collapsed"><button class="nav-group-title"><span>🏦 تسهیلات</span><span class="caret">▾</span></button>
-            <div class="nav-group-items"><button data-page="facilities">🏦 تسهیلات</button></div>
-        </div>
-        <div class="nav-group collapsed"><button class="nav-group-title"><span>🌳 کدینگ حساب‌ها</span><span class="caret">▾</span></button>
+        <div class="nav-group collapsed"><button class="nav-group-title"><span>💧 مدیریت نقدینگی</span><span class="caret">▾</span></button>
             <div class="nav-group-items">
-                <button data-page="chart-list">📋 فهرست حساب‌ها</button>
-                <button data-page="chart-define">✏️ تعریف حساب‌ها</button>
+                <button data-page="estimate-daily">📝 برآورد هزینه‌های روزانه</button>
+                <button data-page="cashflow-sources">📌 برآورد منابع دریافتنی</button>
+                <button data-page="facilities">🏦 تسهیلات</button>
             </div>
         </div>
         <div class="nav-group collapsed"><button class="nav-group-title"><span>📝 عملیات</span><span class="caret">▾</span></button>
             <div class="nav-group-items">
                 <button data-page="voucher-list">📄 فهرست اسناد</button>
                 <button data-page="voucher-new">✏️ صدور سند</button>
-                <button data-page="templates">🧩 الگوها</button>
+                <button data-page="templates">🧩 الگوهای سند و شرح استاندارد</button>
                 <button data-page="sms" id="nav-sms-btn">📱 پیامک بانکی <span class="nav-badge hidden" id="sms-nav-badge">۰</span></button>
             </div>
         </div>
@@ -861,11 +885,13 @@ body.col-resizing * { cursor:col-resize !important; }
 </div>
 
 <section id="page-home" class="page active">
-    <div class="card widget-card" data-widget="bankTotal"><h3 style="margin-bottom:10px;color:var(--primary-dark);font-size:0.95rem">🏦 مانده کل بانک</h3><div id="home-bank-total" style="font-size:1.4rem;font-weight:bold;text-align:center;padding:14px;background:var(--primary-soft);border-radius:12px;color:var(--primary-dark);border:1px solid var(--primary-light)">۰</div></div>
-    <div class="card widget-card" data-widget="bankBalances"><h3 style="margin-bottom:10px;color:var(--primary-dark);font-size:0.95rem">🏦 مانده حساب‌ها</h3><div id="home-bank-balances"></div></div>
-    <div class="card widget-card" data-widget="cashBalances"><h3 style="margin-bottom:10px;color:var(--primary-dark);font-size:0.95rem">💰 صندوق‌ها</h3><div id="home-cash-balances"></div></div>
-    <div class="card widget-card" data-widget="upcomingInstallments"><h3 style="margin-bottom:10px;color:var(--primary-dark);font-size:0.95rem">⏰ اقساط ۳ روز آینده</h3><div id="home-upcoming-installments"></div><div id="home-upcoming-total" class="home-widget-total hidden"><span>جمع:</span><span id="home-upcoming-total-amount">۰</span></div></div>
-    <div class="card widget-card" data-widget="birthdays"><h3 style="margin-bottom:10px;color:var(--primary-dark);font-size:0.95rem">🎂 تولدهای پیش‌رو</h3><div id="home-birthdays"></div></div>
+    <div class="home-grid">
+        <div class="card widget-card" data-widget="bankTotal"><h3 style="margin-bottom:10px;color:var(--primary-dark);font-size:0.95rem">🏦 مانده کل بانک</h3><div id="home-bank-total" style="font-size:1.4rem;font-weight:bold;text-align:center;padding:14px;background:var(--primary-soft);border-radius:12px;color:var(--primary-dark);border:1px solid var(--primary-light)">۰</div></div>
+        <div class="card widget-card" data-widget="cashBalances"><h3 style="margin-bottom:10px;color:var(--primary-dark);font-size:0.95rem">💰 صندوق‌ها</h3><div id="home-cash-balances"></div></div>
+        <div class="card widget-card" data-widget="bankBalances"><h3 style="margin-bottom:10px;color:var(--primary-dark);font-size:0.95rem">🏦 مانده حساب‌ها</h3><div id="home-bank-balances"></div></div>
+        <div class="card widget-card" data-widget="upcomingInstallments"><h3 style="margin-bottom:10px;color:var(--primary-dark);font-size:0.95rem">⏰ اقساط ۳ روز آینده</h3><div id="home-upcoming-installments"></div><div id="home-upcoming-total" class="home-widget-total hidden"><span>جمع:</span><span id="home-upcoming-total-amount">۰</span></div></div>
+        <div class="card widget-card widget-wide" data-widget="birthdays"><h3 style="margin-bottom:10px;color:var(--primary-dark);font-size:0.95rem">🎂 تولدهای پیش‌رو</h3><div id="home-birthdays"></div></div>
+    </div>
 </section>
 
 <section id="page-language" class="page"><h2>🌐 زبان</h2><div class="card"><div class="field"><label>انتخاب زبان</label><select id="set-language"><option value="fa">فارسی</option><option value="en">English</option></select></div></div></section>
@@ -989,7 +1015,29 @@ body.col-resizing * { cursor:col-resize !important; }
     </div></div>
 </section>
 
-<section id="page-cashflow-sources" class="page"><h2>📌 منابع دریافتنی</h2>
+<!-- ============ ماژول مدیریت نقدینگی ============ -->
+<section id="page-estimate-daily" class="page"><h2>📝 برآورد هزینه‌های روزانه</h2>
+    <div class="tabs"><button class="tab-btn active" data-tab="est-list">📋 فهرست</button><button class="tab-btn" data-tab="est-add">✏️ تعریف</button></div>
+    <div id="tab-est-list" class="tab-content active"><div class="card">
+        <div class="list-header"><span class="count-badge" id="est-count">۰</span><input type="text" class="filter-input" id="est-filter" placeholder="🔍 جستجو"><button class="export-btn" data-export="dailyEstimates">📊 اکسل</button></div>
+        <div id="est-list-body"></div>
+    </div></div>
+    <div id="tab-est-add" class="tab-content"><div class="card">
+        <input type="hidden" id="est-id">
+        <div class="field"><label>دوره مالی</label><select id="est-period"><option value="">— انتخاب دوره —</option></select></div>
+        <div class="grid-2"><div class="field"><label>از تاریخ</label><input type="text" id="est-from" class="date-picker" dir="ltr"></div><div class="field"><label>تا تاریخ</label><input type="text" id="est-to" class="date-picker" dir="ltr"></div></div>
+        <div class="grid-2"><div class="field"><label>مبلغ تخمینی کل</label><input type="text" id="est-total" class="money-input" inputmode="numeric" dir="ltr"></div><div class="field"><label>توضیحات</label><input type="text" id="est-desc"></div></div>
+        <h3 style="margin:12px 0 8px;color:var(--primary-dark);font-size:0.9rem">آیتم‌های برآورد</h3>
+        <div id="est-items"></div>
+        <div class="form-buttons">
+            <button id="est-add-item" class="btn-secondary btn-mini">+ افزودن آیتم</button>
+            <button id="est-auto-gen" class="btn-secondary btn-mini">🔄 تولید خودکار</button>
+        </div>
+        <div class="form-buttons"><button id="save-est" class="btn-primary">💾 ذخیره</button><button id="new-est" class="btn-secondary">جدید</button></div>
+    </div></div>
+</section>
+
+<section id="page-cashflow-sources" class="page"><h2>📌 برآورد منابع دریافتنی</h2>
     <p class="muted" style="margin-bottom:12px;font-size:0.8rem">منابع دریافتنی، مبالغی هستند که انتظار دارید در آینده دریافت کنید (مثل طلب از مشتری، درآمد پروژه در جریان، چک دریافتی). این اقلام در گزارش «وضعیت نقدینگی» به صورت مثبت نمایش داده می‌شوند.</p>
     <div class="tabs"><button class="tab-btn active" data-tab="cfs-list">📋 فهرست</button><button class="tab-btn" data-tab="cfs-add">✏️ تعریف</button></div>
     <div id="tab-cfs-list" class="tab-content active"><div class="card">
@@ -1040,12 +1088,6 @@ body.col-resizing * { cursor:col-resize !important; }
         <div class="form-buttons" style="margin-top:10px"><button id="fac-save-inst" class="btn-primary">💾 ذخیره اقساط</button></div>
     </div>
 </section>
-
-<section id="page-chart-list" class="page"><h2>📋 فهرست حساب‌ها</h2><div class="card">
-    <div class="list-header"><span class="count-badge" id="chartlist-count">۰</span><input type="text" class="filter-input" id="chartlist-search" placeholder="🔍 جستجو"><button class="export-btn" data-export="accounts">📊 اکسل</button></div>
-    <div class="form-buttons" style="margin-bottom:10px"><button id="cl-expand" class="btn-secondary btn-mini">باز کردن</button><button id="cl-collapse" class="btn-secondary btn-mini">بستن</button></div>
-    <div id="chart-list-tree" class="tree"></div>
-</div></section>
 
 <section id="page-chart-define" class="page"><h2>✏️ تعریف حساب‌ها</h2>
     <div class="card">
@@ -1106,8 +1148,8 @@ body.col-resizing * { cursor:col-resize !important; }
     </div>
 </section>
 
-<section id="page-templates" class="page"><h2>🧩 الگوها</h2>
-    <div class="tabs"><button class="tab-btn active" data-tab="tpl-list">📋 الگوها</button><button class="tab-btn" data-tab="tpl-add">✏️ تعریف</button><button class="tab-btn" data-tab="desc-list">💬 شرح‌ها</button></div>
+<section id="page-templates" class="page"><h2>🧩 الگوهای سند و شرح استاندارد</h2>
+    <div class="tabs"><button class="tab-btn active" data-tab="tpl-list">📋 الگوهای سند</button><button class="tab-btn" data-tab="tpl-add">✏️ تعریف الگو</button><button class="tab-btn" data-tab="desc-list">💬 شرح‌های استاندارد</button></div>
     <div id="tab-tpl-list" class="tab-content active"><div class="card">
         <div class="list-header"><span class="count-badge" id="tpl-count">۰</span><button class="export-btn" id="tpl-load-defaults">📥 افزودن پیش‌فرض‌ها</button></div>
         <div id="tpl-list-body"></div>
@@ -1223,12 +1265,8 @@ body.col-resizing * { cursor:col-resize !important; }
             <div class="field"><label>دسته</label><select id="rff-category"><option value="">همه</option><option value="facility">تسهیلات</option><option value="scheduled">زمانبندی</option></select></div>
             <div class="field"><label>وضعیت تسویه</label><select id="rff-status"><option value="">همه</option><option value="active">در جریان</option><option value="settled">تسویه شده</option></select></div>
             <div class="field"><label>وضعیت اقساط</label><select id="rff-inst-status">
-                <option value="">همه</option>
-                <option value="has-unpaid">دارای قسط پرداخت‌نشده</option>
-                <option value="has-paid">دارای قسط پرداخت‌شده</option>
-                <option value="all-paid">همه اقساط پرداخت شده</option>
-                <option value="no-installments">بدون قسط</option>
-                <option value="overdue">دارای قسط سررسید گذشته</option>
+                <option value="">کل اقساط</option>
+                <option value="has-unpaid">فقط اقساط پرداخت‌نشده</option>
             </select></div>
         </div>
         <div class="grid-3">
@@ -1370,7 +1408,7 @@ body.col-resizing * { cursor:col-resize !important; }
 </div>
 
 <script>
-console.log('✅ پارسیس PWA v14 — AvalAI Edition + Markdown Chat');
+console.log('✅ پارسیس PWA v15 — مدیریت نقدینگی + AI کامل');
 var LS_PREFIX = 'parsis.';
 var DB = {
     load: function(k, f) { try { var r = localStorage.getItem(LS_PREFIX + k); return r ? JSON.parse(r) : f; } catch(e) { return f; } },
@@ -2406,7 +2444,6 @@ function goToPage(name) {
     var btns = document.querySelectorAll('.nav-group-items button');
     for (var j = 0; j < btns.length; j++) btns[j].classList.toggle('active', btns[j].getAttribute('data-page') === name);
     closeSidebar();
-    if (name === 'chart-list') renderChartTree('chart-list-tree', false);
     if (name === 'chart-define') renderChartTree('chart-tree', true);
     if (name === 'voucher-list') { refreshPeriodFilters(); renderVoucherList(); }
     if (name === 'voucher-new') { refreshTemplateSelect(); if (voucherLines.length === 0) newVoucherForm(); else renderVoucherLines(); }
@@ -2418,6 +2455,7 @@ function goToPage(name) {
     if (name === 'bank-accounts') { renderBankAccountsList(); refreshBankTypeSelect(); }
     if (name === 'cash-boxes') { renderCashBoxesList(); refreshCashTypeSelect(); }
     if (name === 'projects') renderProjectsList();
+    if (name === 'estimate-daily') { refreshEstPeriodSelect(); renderEstimateList(); }
     if (name === 'cashflow-sources') { refreshCfsMoeinSelect(); renderCfsList(); }
     if (name === 'facilities') { renderFacilitiesList(); refreshFacBankSelect(); }
     if (name === 'report-cashflow') { if (!document.getElementById('cf-from').value) { var t = todayJalaliStr(); document.getElementById('cf-from').value = t; document.getElementById('cf-to').value = addJalaliDays(t, 30); } runCashFlowReport(); }
@@ -2624,6 +2662,164 @@ function renderProjectsList() {
     });
     applyColVisibility('proj-table'); makeTableResizable(document.getElementById('proj-table'));
 }
+
+/* ==================== برآورد هزینه‌های روزانه ==================== */
+var estimateItems = [];
+function refreshEstPeriodSelect() {
+    var sel = document.getElementById('est-period'); if (!sel) return;
+    var list = DB.load('fiscalPeriods', []); var v = sel.value;
+    sel.innerHTML = '<option value="">— انتخاب دوره —</option>';
+    list.forEach(function(p) { var o = document.createElement('option'); o.value = p.id; o.textContent = p.title + ' (' + p.from + ' - ' + p.to + ')'; sel.appendChild(o); });
+    sel.value = v || state.activePeriodId || '';
+}
+function renderEstimateItems() {
+    var box = document.getElementById('est-items'); if (!box) return; box.innerHTML = '';
+    if (estimateItems.length === 0) estimateItems.push({ id: uid(), date: '', amount: 0 });
+    for (var i = 0; i < estimateItems.length; i++) { (function(idx) {
+        var it = estimateItems[idx];
+        var row = document.createElement('div'); row.className = 'est-item-row';
+        var n = document.createElement('span'); n.textContent = '#' + toFa(idx + 1); n.style.fontWeight = 'bold';
+        var iD = document.createElement('input'); iD.type = 'text'; iD.className = 'date-picker'; iD.placeholder = 'تاریخ'; iD.value = it.date || '';
+        iD.addEventListener('input', function() { it.date = normalizeDigits(this.value); });
+        var iA = document.createElement('input'); iA.type = 'text'; iA.inputMode = 'numeric'; iA.dir = 'ltr'; iA.placeholder = 'مبلغ'; iA.value = it.amount ? formatRaw(it.amount) : '';
+        iA.addEventListener('input', function() { var v = normalizeDigits(this.value); var r = v.replace(/[^\d]/g, ''); this.value = r; it.amount = Number(r) || 0; });
+        iA.addEventListener('blur', function() { var v = Number(normalizeDigits(this.value).replace(/[^\d]/g, '')) || 0; this.value = v ? formatRaw(v) : ''; it.amount = v; });
+        var del = document.createElement('button'); del.className = 'row-btn del'; del.textContent = '×';
+        del.addEventListener('click', function() { if (!confirm('حذف شود؟')) return; estimateItems.splice(idx, 1); renderEstimateItems(); });
+        row.appendChild(n); row.appendChild(iD); row.appendChild(iA); row.appendChild(del);
+        box.appendChild(row); attachDatePickers();
+    })(i); }
+}
+function autoGenerateEstimate() {
+    var fromD = normalizeDigits(document.getElementById('est-from').value.trim());
+    var toD = normalizeDigits(document.getElementById('est-to').value.trim());
+    var total = parseMoney(normalizeDigits(document.getElementById('est-total').value));
+    if (!fromD || !toD) { alert('ابتدا از تاریخ و تا تاریخ را وارد کنید.'); return; }
+    if (!total) { alert('ابتدا مبلغ تخمینی کل را وارد کنید.'); return; }
+    if (fromD > toD) { alert('تاریخ شروع باید قبل از پایان باشد.'); return; }
+    var mode = prompt('نحوه تولید تاریخ‌ها را انتخاب کنید:\n1 - روزانه\n2 - هفتگی\n3 - ماهانه', '1');
+    if (!mode) return;
+    mode = mode.trim();
+    var p1 = fromD.split('/').map(Number); var p2 = toD.split('/').map(Number);
+    var items = [];
+    if (mode === '1') {
+        var days = jalaliDiff(p1[0], p1[1], p1[2], p2[0], p2[1], p2[2]) + 1;
+        if (days <= 0) { alert('بازه نامعتبر.'); return; }
+        var each = Math.floor(total / days); var rem = total - each * days;
+        for (var d = 0; d < days; d++) {
+            var date = addJalaliDays(fromD, d);
+            var amt = each + (d === days - 1 ? rem : 0);
+            items.push({ id: uid(), date: date, amount: amt });
+        }
+    } else if (mode === '2') {
+        var weeks = Math.ceil((jalaliDiff(p1[0], p1[1], p1[2], p2[0], p2[1], p2[2]) + 1) / 7);
+        if (weeks <= 0) { alert('بازه نامعتبر.'); return; }
+        var eachW = Math.floor(total / weeks); var remW = total - eachW * weeks;
+        for (var w = 0; w < weeks; w++) {
+            var dateW = addJalaliDays(fromD, w * 7);
+            if (dateW > toD) break;
+            var amtW = eachW + (w === weeks - 1 ? remW : 0);
+            items.push({ id: uid(), date: dateW, amount: amtW });
+        }
+    } else if (mode === '3') {
+        var y1 = p1[0], m1 = p1[1], d1 = 1;
+        var y2 = p2[0], m2 = p2[1], d2 = 1;
+        var months = (y2 - y1) * 12 + (m2 - m1) + 1;
+        if (months <= 0) { alert('بازه نامعتبر.'); return; }
+        var eachM = Math.floor(total / months); var remM = total - eachM * months;
+        for (var mi = 0; mi < months; mi++) {
+            var cy = y1, cm = m1 + mi;
+            while (cm > 12) { cm -= 12; cy++; }
+            var dateM = cy + '/' + pad2(cm) + '/01';
+            if (dateM > toD) break;
+            var amtM = eachM + (mi === months - 1 ? remM : 0);
+            items.push({ id: uid(), date: dateM, amount: amtM });
+        }
+    } else {
+        alert('گزینه نامعتبر.');
+        return;
+    }
+    estimateItems = items;
+    renderEstimateItems();
+    showToast('✅ ' + toFa(items.length) + ' آیتم تولید شد.');
+}
+function renderEstimateList() {
+    var list = DB.load('dailyEstimates', []); var filter = (document.getElementById('est-filter').value || '').toLowerCase();
+    var box = document.getElementById('est-list-body'); if (!box) return; box.innerHTML = '';
+    var periods = DB.load('fiscalPeriods', []); var pMap = {}; periods.forEach(function(p) { pMap[p.id] = p.title; });
+    var shown = 0;
+    list.sort(function(a, b) { return compareVals(b.from, a.from); });
+    list.forEach(function(est) {
+        var txt = ((est.desc || '') + ' ' + (pMap[est.periodId] || '') + ' ' + (est.from || '') + ' ' + (est.to || '')).toLowerCase();
+        if (filter && txt.indexOf(filter) === -1) return;
+        shown++;
+        var items = est.items || [];
+        var total = items.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
+        var card = document.createElement('div'); card.className = 'card';
+        card.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">' +
+            '<div><strong style="font-size:1rem">' + esc(est.desc || 'بدون توضیحات') + '</strong></div>' +
+            '<div class="row-actions"><button class="row-btn open" data-id="' + est.id + '" data-action="edit">✎</button><button class="row-btn del" data-id="' + est.id + '" data-action="delete">×</button></div></div>' +
+            '<div class="facility-summary">' +
+            '<div class="item"><div class="lbl">دوره مالی</div><div class="val">' + esc(pMap[est.periodId] || '—') + '</div></div>' +
+            '<div class="item"><div class="lbl">از تاریخ</div><div class="val" dir="ltr">' + toFa(esc(est.from || '—')) + '</div></div>' +
+            '<div class="item"><div class="lbl">تا تاریخ</div><div class="val" dir="ltr">' + toFa(esc(est.to || '—')) + '</div></div>' +
+            '<div class="item"><div class="lbl">مبلغ تخمینی</div><div class="val">' + formatMoney(est.total || 0) + '</div></div>' +
+            '<div class="item"><div class="lbl">جمع آیتم‌ها</div><div class="val" style="color:var(--accent)">' + formatMoney(total) + '</div></div>' +
+            '<div class="item"><div class="lbl">تعداد آیتم</div><div class="val">' + toFa(items.length) + '</div></div>' +
+            '</div>';
+        box.appendChild(card);
+    });
+    if (shown === 0) box.innerHTML = '<div class="card"><p class="muted" style="text-align:center">موردی ثبت نشده.</p></div>';
+    document.getElementById('est-count').textContent = toFa(shown);
+    var btns = box.querySelectorAll('[data-action]');
+    for (var i = 0; i < btns.length; i++) btns[i].addEventListener('click', function() {
+        var id = this.getAttribute('data-id'); var action = this.getAttribute('data-action');
+        var est = DB.load('dailyEstimates', []).find(function(x) { return x.id === id; }); if (!est) return;
+        if (action === 'edit') {
+            document.getElementById('est-id').value = est.id;
+            document.getElementById('est-period').value = est.periodId || '';
+            document.getElementById('est-from').value = est.from || '';
+            document.getElementById('est-to').value = est.to || '';
+            document.getElementById('est-total').value = est.total ? formatRaw(est.total) : '';
+            document.getElementById('est-desc').value = est.desc || '';
+            estimateItems = JSON.parse(JSON.stringify(est.items || []));
+            renderEstimateItems();
+            document.querySelector('[data-tab="est-add"]').click();
+        } else if (action === 'delete') {
+            if (!confirm('حذف شود؟')) return;
+            var l = DB.load('dailyEstimates', []).filter(function(x) { return x.id !== id; });
+            DB.save('dailyEstimates', l); renderEstimateList();
+        }
+    });
+}
+function clearEstForm() {
+    document.getElementById('est-id').value = '';
+    document.getElementById('est-period').value = '';
+    document.getElementById('est-from').value = '';
+    document.getElementById('est-to').value = '';
+    document.getElementById('est-total').value = '';
+    document.getElementById('est-desc').value = '';
+    estimateItems = []; renderEstimateItems();
+}
+function saveEstimate() {
+    var id = document.getElementById('est-id').value;
+    var periodId = document.getElementById('est-period').value;
+    var from = normalizeDigits(document.getElementById('est-from').value.trim());
+    var to = normalizeDigits(document.getElementById('est-to').value.trim());
+    var total = parseMoney(normalizeDigits(document.getElementById('est-total').value));
+    var desc = document.getElementById('est-desc').value.trim();
+    if (!from || !to) { alert('از تاریخ و تا تاریخ اجباری است.'); return; }
+    if (!total) { alert('مبلغ تخمینی اجباری است.'); return; }
+    var o = { id: id || uid(), periodId: periodId, from: from, to: to, total: total, desc: desc,
+        items: estimateItems.map(function(it) { return { id: it.id, date: it.date, amount: Number(it.amount) || 0 }; }) };
+    var l = DB.load('dailyEstimates', []);
+    if (id) { for (var i = 0; i < l.length; i++) if (l[i].id === id) l[i] = o; } else l.push(o);
+    DB.save('dailyEstimates', l);
+    showToast('✅ ذخیره شد');
+    clearEstForm(); renderEstimateList();
+    document.querySelector('[data-tab="est-list"]').click();
+}
+
 function refreshCfsMoeinSelect() {
     var sel = document.getElementById('cfs-moein'); if (!sel) return;
     var v = sel.value;
@@ -2758,12 +2954,24 @@ function runCashFlowReport() {
         if (inst.date < fromDate || inst.date > toDate) return;
         facilityInsts.push({ f: f, inst: inst });
     }); });
+    var estimates = DB.load('dailyEstimates', []);
+    var estimateItems = [];
+    estimates.forEach(function(est) {
+        (est.items || []).forEach(function(it) {
+            if (!it.date) return;
+            if (it.date < fromDate || it.date > toDate) return;
+            estimateItems.push({ est: est, item: it });
+        });
+    });
     var items = [];
     sourcesInRange.forEach(function(s) {
         items.push({ type: 'source', date: s.expectedDate || fromDate, sortDate: s.expectedDate || (fromDate + '~'), amount: Number(s.amount) || 0, label: '📥 ' + getSourceLabel(s), notes: s.notes || '' });
     });
     facilityInsts.forEach(function(item) {
         items.push({ type: 'facility', date: item.inst.date, sortDate: item.inst.date, amount: -Number(item.inst.amount || 0), label: '💸 قسط ' + item.f.name, notes: item.inst.status === 'registered' ? 'قسط ثبت‌شده' : '' });
+    });
+    estimateItems.forEach(function(item) {
+        items.push({ type: 'estimate', date: item.item.date, sortDate: item.item.date, amount: -Number(item.item.amount || 0), label: '📝 برآورد ' + (item.est.desc || ''), notes: '' });
     });
     items.sort(function(a, b) { return compareVals(a.sortDate, b.sortDate); });
     var html = '<div class="cf-report"><div class="table-wrap">';
@@ -2786,11 +2994,11 @@ function runCashFlowReport() {
     items.forEach(function(it) {
         running += it.amount;
         var amtCls = ''; var amtText = '';
-        if (it.type === 'facility') { amtCls = 'cf-neg'; amtText = '(' + formatMoney(Math.abs(it.amount)) + ')'; }
+        if (it.type === 'facility' || it.type === 'estimate') { amtCls = 'cf-neg'; amtText = '(' + formatMoney(Math.abs(it.amount)) + ')'; }
         else { amtCls = 'cf-pos'; amtText = formatMoney(it.amount); }
         var balCls = running < 0 ? 'cf-neg' : '';
         var balText = running < 0 ? '(' + formatMoney(Math.abs(running)) + ')' : formatMoney(running);
-        var rowCls = it.type === 'facility' ? 'cf-fac-row' : 'cf-source-row';
+        var rowCls = it.type === 'facility' ? 'cf-fac-row' : (it.type === 'estimate' ? 'cf-est-row' : 'cf-source-row');
         var label = it.label + (it.notes ? ' <span class="muted" style="font-size:0.72rem">(' + esc(it.notes) + ')</span>' : '');
         html += '<tr class="' + rowCls + '">';
         html += '<td class="cf-cat">' + label + '</td>';
@@ -2928,10 +3136,6 @@ function computeFacilityRows() {
         if (sf === 'settled' && !settled) return;
         if (sf === 'active' && settled) return;
         if (inf === 'has-unpaid' && !(unpaidList.length > 0)) return;
-        if (inf === 'has-paid' && !(paidCount > 0)) return;
-        if (inf === 'all-paid' && !(ins.length > 0 && paidCount === ins.length)) return;
-        if (inf === 'no-installments' && ins.length > 0) return;
-        if (inf === 'overdue' && overdueCount === 0) return;
         if (q) {
             var bankObj = bankMap[f.bankId];
             var txt = ((f.name || '') + ' ' + (f.date || '') + ' ' + categoryName(f.category) + ' ' + (bankObj ? bankObj.bank : '')).toLowerCase();
@@ -3244,7 +3448,7 @@ function buildNode(node, all, level, editable) {
 }
 function setAllExpanded(val) { var accounts = DB.load('accounts', []); state.expandedNodes = {};
     if (val) for (var i = 0; i < accounts.length; i++) state.expandedNodes[accounts[i].id] = true;
-    saveState('expandedNodes'); renderChartTree('chart-tree', true); renderChartTree('chart-list-tree', false); }
+    saveState('expandedNodes'); renderChartTree('chart-tree', true); }
 function openChartForm(id, level, parentId) {
     var card = document.getElementById('chart-form-card'); var accounts = DB.load('accounts', []);
     var node = id ? accounts.find(function(a) { return a.id === id; }) : null; card.style.display = 'block';
@@ -3296,7 +3500,7 @@ function loadDefaultChart() {
     add('5-01-007', 'حقوق و دستمزد', k51, 'temporary', 'debit', ['project']);
     DB.save('accounts', accounts); showToast('✅ بارگذاری شد.');
     state.expandedNodes = {}; saveState('expandedNodes');
-    renderChartTree('chart-tree', true); renderChartTree('chart-list-tree', false);
+    renderChartTree('chart-tree', true);
     document.getElementById('load-default-chart').disabled = true; refreshTemplateSelect();
 }
 var voucherLines = []; var currentVoucherStatus = 'draft';
@@ -3570,7 +3774,7 @@ function refreshReportPeriodSelects() {
         sel.innerHTML = '<option value="">همه</option>'; for (var i = 0; i < ps.length; i++) { var o = document.createElement('option'); o.value = ps[i].id; o.textContent = ps[i].title; sel.appendChild(o); } sel.value = v; });
 }
 
-/* ==================== دستیار هوشمند — AvalAI + Markdown ==================== */
+/* ==================== دستیار هوشمند — دسترسی کامل + Markdown ==================== */
 var AI = {
     provider: DB.load('ai.provider', 'avalai'),
     apiKey: DB.load('ai.apiKey', ''),
@@ -3592,6 +3796,20 @@ function aiBuildContext() {
     lines.push('تاریخ امروز: ' + todayJalaliStr());
     var period = DB.load('fiscalPeriods', []).find(function(p) { return p.id === state.activePeriodId; });
     if (period) lines.push('دوره مالی فعال: ' + period.title + ' (از ' + period.from + ' تا ' + period.to + ')');
+
+    // ========== اطلاعات پایه ==========
+    var persons = DB.load('persons', []);
+    if (persons.length > 0) {
+        lines.push('\n=== اشخاص ===');
+        persons.forEach(function(p) {
+            lines.push('- ' + (p.first || '') + ' ' + (p.last || '') + ' | پدر: ' + (p.father || '—') + ' | تولد: ' + (p.birth || '—') + ' | موبایل: ' + (p.mobile || '—') + ' | تلفن: ' + (p.phone || '—') + ' | حساب: ' + (p.acc || '—') + ' | شبا: ' + (p.iban || '—') + ' | کارت: ' + (p.card || '—') + ' | آدرس: ' + (p.address || '—'));
+        });
+    }
+    var companies = DB.load('companies', []);
+    if (companies.length > 0) {
+        lines.push('\n=== شرکت‌ها ===');
+        companies.forEach(function(c) { lines.push('- ' + (c.name || '') + ' | تلفن: ' + (c.phone || '—') + ' | آدرس: ' + (c.address || '—')); });
+    }
     var banks = DB.load('bankAccounts', []);
     if (banks.length > 0) {
         lines.push('\n=== حساب‌های بانکی ===');
@@ -3600,93 +3818,133 @@ function aiBuildContext() {
         banks.forEach(function(b) {
             var bal = getBankBalance(b.id);
             totalBank += bal;
-            lines.push('- ' + (b.bank || '—') + (b.branchName ? ' / ' + b.branchName : '') + (b.account ? ' / ' + b.account : '') + ': ' + formatMoney(bal) + ' ' + currencyLabel());
+            lines.push('- ' + (b.bank || '—') + (b.branchName ? ' / ' + b.branchName : '') + (b.account ? ' / حساب ' + b.account : '') + (b.iban ? ' / شبا ' + b.iban : '') + (b.card ? ' / کارت ' + b.card : '') + ': مانده ' + formatMoney(bal) + ' ' + currencyLabel());
         });
         lines.push('جمع مانده بانک‌ها: ' + formatMoney(totalBank) + ' ' + currencyLabel());
     }
-    _aiSplitTableRow
-var facilities = DB.load('facilities', []);
-if (facilities.length > 0) {
-    lines.push('\n=== تسهیلات و دفترچه اقساط ===');
-    var today = todayJalaliStr();
-    var banks = DB.load('bankAccounts', []);
-    var bankMap = {}; banks.forEach(function(b) { bankMap[b.id] = b; });
+    var cashBoxes = DB.load('cashBoxes', []);
+    if (cashBoxes.length > 0) {
+        lines.push('\n=== صندوق‌ها ===');
+        var totalCash = 0;
+        cashBoxes.sort(function(a, b) { return (Number(a.order) || 9999) - (Number(b.order) || 9999); });
+        cashBoxes.forEach(function(c) { var bal = getCashBoxBalance(c.id); totalCash += bal; lines.push('- ' + (c.title || '') + ' | نوع: ' + (c.type || '—') + ' | واحد: ' + (c.unit || '—') + ': مانده ' + formatMoney(bal) + ' ' + currencyLabel()); });
+        lines.push('جمع صندوق‌ها: ' + formatMoney(totalCash) + ' ' + currencyLabel());
+    }
+    var projects = DB.load('projects', []);
+    if (projects.length > 0) { lines.push('\n=== پروژه‌ها ==='); projects.forEach(function(p) { lines.push('- ' + (p.name || '')); }); }
 
-    facilities.forEach(function(f) {
-        var ins = f.installments || [];
-        var unpaid = ins.filter(function(x) { return x.status !== 'paid'; });
-        var unpaidAmt = unpaid.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
-        var overdue = unpaid.filter(function(x) { return x.date && x.date < today; }).length;
-        var bk = bankMap[f.bankId];
-        lines.push('\n▸ تسهیلات: «' + f.name + '»');
-        lines.push('  دسته: ' + categoryName(f.category) + (bk ? ' | بانک: ' + (bk.bank || '') + (bk.account ? ' (' + bk.account + ')' : '') : ''));
-        lines.push('  مبلغ اولیه: ' + formatMoney(f.initial || 0) + ' ' + currencyLabel() + ' | پرداخت‌شده: ' + formatMoney(f.paid || 0) + ' | باقی‌مانده: ' + formatMoney(unpaidAmt) + (overdue > 0 ? ' | ⚠️ سررسید گذشته: ' + overdue + ' قسط' : ''));
-
-        if (ins.length === 0) {
-            lines.push('  (بدون قسط)');
-            return;
-        }
-
-        // مرتب‌سازی بر اساس تاریخ
-        var sorted = ins.slice().sort(function(a, b) { return compareVals(a.date, b.date); });
-
-        // جدول کامل اقساط (فقط پرداخت‌نشده + ۱۰ پرداخت آخر برای صرفه‌جویی توکن)
-        var unpaidSorted = sorted.filter(function(x) { return x.status !== 'paid'; });
-        var paidSorted = sorted.filter(function(x) { return x.status === 'paid'; }).slice(-10);
-
-        lines.push('  اقساط پرداخت‌نشده (' + unpaidSorted.length + ' قسط):');
-        if (unpaidSorted.length === 0) lines.push('    ✓ همه پرداخت شده');
-        else unpaidSorted.forEach(function(x, i) {
-            var status = (x.date && x.date < today) ? '⚠️ سررسید گذشته' : 'در انتظار';
-            lines.push('    ' + (i+1) + '. تاریخ ' + x.date + ' | مبلغ ' + formatMoney(x.amount || 0) + ' ' + currencyLabel() + ' | ' + status);
-        });
-
-        if (paidSorted.length > 0) {
-            lines.push('  آخرین اقساط پرداخت‌شده:');
-            paidSorted.forEach(function(x) {
-                lines.push('    ✓ ' + x.date + ' | ' + formatMoney(x.amount || 0) + ' ' + currencyLabel());
+    // ========== تسهیلات ==========
+    var facilities = DB.load('facilities', []);
+    if (facilities.length > 0) {
+        lines.push('\n=== تسهیلات و دفترچه اقساط ===');
+        var today = todayJalaliStr();
+        var bankMap = {}; banks.forEach(function(b) { bankMap[b.id] = b; });
+        facilities.forEach(function(f) {
+            var ins = f.installments || [];
+            var unpaid = ins.filter(function(x) { return x.status !== 'paid'; });
+            var unpaidAmt = unpaid.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
+            var overdue = unpaid.filter(function(x) { return x.date && x.date < today; }).length;
+            var bk = bankMap[f.bankId];
+            lines.push('\n▸ تسهیلات: «' + f.name + '»');
+            lines.push('  دسته: ' + categoryName(f.category) + (bk ? ' | بانک: ' + (bk.bank || '') + (bk.account ? ' (' + bk.account + ')' : '') : ''));
+            lines.push('  مبلغ اولیه: ' + formatMoney(f.initial || 0) + ' ' + currencyLabel() + ' | پرداخت‌شده: ' + formatMoney(f.paid || 0) + ' | باقی‌مانده: ' + formatMoney(unpaidAmt) + (overdue > 0 ? ' | ⚠️ سررسید گذشته: ' + overdue + ' قسط' : ''));
+            if (ins.length === 0) { lines.push('  (بدون قسط)'); return; }
+            var sorted = ins.slice().sort(function(a, b) { return compareVals(a.date, b.date); });
+            var unpaidSorted = sorted.filter(function(x) { return x.status !== 'paid'; });
+            var paidSorted = sorted.filter(function(x) { return x.status === 'paid'; }).slice(-10);
+            lines.push('  اقساط پرداخت‌نشده (' + unpaidSorted.length + ' قسط):');
+            if (unpaidSorted.length === 0) lines.push('    ✓ همه پرداخت شده');
+            else unpaidSorted.forEach(function(x, i) {
+                var status = (x.date && x.date < today) ? '⚠️ سررسید گذشته' : 'در انتظار';
+                lines.push('    ' + (i+1) + '. تاریخ ' + x.date + ' | مبلغ ' + formatMoney(x.amount || 0) + ' ' + currencyLabel() + ' | ' + status);
             });
-        }
-    });
-}
-  
+            if (paidSorted.length > 0) {
+                lines.push('  آخرین اقساط پرداخت‌شده:');
+                paidSorted.forEach(function(x) { lines.push('    ✓ ' + x.date + ' | ' + formatMoney(x.amount || 0) + ' ' + currencyLabel()); });
+            }
+        });
+    }
+
+    // ========== منابع دریافتنی ==========
     var sources = DB.load('cashFlowSources', []);
     if (sources.length > 0) {
-        lines.push('\n=== منابع دریافتنی ===');
+        lines.push('\n=== برآورد منابع دریافتنی ===');
         var accounts = DB.load('accounts', []);
         sources.forEach(function(s) {
             var lbl = getAccountLabel(s.moeinId, accounts);
             if (s.linkType && s.detailId) lbl += ' / ' + getDetailLabel(s.linkType, s.detailId);
-            lines.push('- ' + lbl + ': ' + formatMoney(s.amount || 0) + '، تاریخ احتمالی ' + (s.expectedDate || '—'));
+            lines.push('- ' + lbl + ': ' + formatMoney(s.amount || 0) + '، تاریخ احتمالی ' + (s.expectedDate || '—') + (s.notes ? '، توضیحات: ' + s.notes : ''));
         });
     }
+
+    // ========== برآورد هزینه‌های روزانه ==========
+    var estimates = DB.load('dailyEstimates', []);
+    if (estimates.length > 0) {
+        lines.push('\n=== برآورد هزینه‌های روزانه ===');
+        estimates.forEach(function(est) {
+            lines.push('▸ برآورد: «' + (est.desc || 'بدون توضیحات') + '» | دوره: ' + (est.from || '—') + ' تا ' + (est.to || '—') + ' | مبلغ تخمینی کل: ' + formatMoney(est.total || 0) + ' ' + currencyLabel() + ' | تعداد آیتم: ' + (est.items || []).length);
+            (est.items || []).slice(0, 30).forEach(function(it) { lines.push('    • ' + (it.date || '—') + ' : ' + formatMoney(it.amount || 0) + ' ' + currencyLabel()); });
+            if ((est.items || []).length > 30) lines.push('    ... و ' + ((est.items || []).length - 30) + ' آیتم دیگر');
+        });
+    }
+
+    // ========== اسناد حسابداری با جزئیات سطح ۴ ==========
     var vouchers = DB.load('vouchers', []).filter(function(v) { return v.status === 'approved'; });
     if (vouchers.length > 0) {
-        lines.push('\n=== آخرین ۲۵ سند تأییدشده ===');
-        var recent = vouchers.slice().sort(function(a, b) { return compareVals(b.date, a.date); }).slice(0, 25);
+        lines.push('\n=== آخرین ۳۰ سند تأییدشده (با تفصیلی سطح ۴) ===');
+        var recent = vouchers.slice().sort(function(a, b) { return compareVals(b.date, a.date); }).slice(0, 30);
         var accounts2 = DB.load('accounts', []);
         recent.forEach(function(v) {
-            var lines2 = (v.lines || []).map(function(l) {
+            var lineDescs = (v.lines || []).map(function(l) {
                 var acc = accounts2.find(function(a) { return a.id === l.account; });
                 var side = (Number(l.debit) || 0) > 0 ? 'بد' : 'بس';
                 var amt = (Number(l.debit) || 0) || (Number(l.credit) || 0);
-                return side + ' ' + (acc ? acc.name : '؟') + ' ' + formatMoney(amt);
+                var detailStr = '';
+                if (l.details) Object.keys(l.details).forEach(function(lt) {
+                    var did = l.details[lt];
+                    if (did) detailStr += ' [' + linkTypeName(lt) + ': ' + getDetailLabel(lt, did) + ']';
+                });
+                var descStr = l.description ? ' (' + l.description + ')' : '';
+                return side + ' ' + (acc ? acc.name : '؟') + detailStr + ' ' + formatMoney(amt) + descStr;
             }).join(' | ');
-            lines.push('- ' + v.date + ' #' + v.number + ' "' + (v.desc || '') + '": ' + lines2);
+            lines.push('- ' + v.date + ' #' + v.number + ' "' + (v.desc || '') + '": ' + lineDescs);
         });
     }
+
+    // ========== خلاصه تراز ==========
+    var allVouchers = DB.load('vouchers', []).filter(function(v) { return v.status === 'approved'; });
+    if (allVouchers.length > 0) {
+        lines.push('\n=== خلاصه تراز (کل اسناد تأییدشده) ===');
+        var accounts3 = DB.load('accounts', []);
+        var balances = {};
+        allVouchers.forEach(function(v) { (v.lines || []).forEach(function(l) {
+            if (!l.account) return;
+            var acc = accounts3.find(function(a) { return a.id === l.account; });
+            if (!acc) return;
+            var key = acc.name;
+            if (!balances[key]) balances[key] = { debit: 0, credit: 0 };
+            balances[key].debit += Number(l.debit) || 0;
+            balances[key].credit += Number(l.credit) || 0;
+        }); });
+        Object.keys(balances).forEach(function(k) {
+            var b = balances[k];
+            lines.push('- ' + k + ': بدهکار ' + formatMoney(b.debit) + ' | بستانکار ' + formatMoney(b.credit) + ' | مانده ' + formatMoney(b.debit - b.credit));
+        });
+    }
+
     return lines.join('\n');
 }
 function aiBuildSystemPrompt() {
     return 'تو «پارسیس یار» هستی، دستیار هوشمند یک نرم‌افزار حسابداری شخصی فارسی.\n' +
-        'وظیفه‌ات کمک به کاربر برای درک وضعیت مالی، تحلیل هزینه‌ها، بررسی اقساط و پاسخ به سوالات حسابداری است.\n\n' +
+        'وظیفه‌ات کمک به کاربر برای درک وضعیت مالی، تحلیل هزینه‌ها، بررسی اقساط، بررسی اسناد و پاسخ به سوالات حسابداری است.\n\n' +
         'قواعد:\n' +
         '۱. همیشه فارسی روان و محترمانه پاسخ بده.\n' +
-        '۲. پاسخ‌ها را کوتاه و کاربردی نگه‌دار (حداکثر ۲۵۰ کلمه، مگر اینکه خواسته شود).\n' +
+        '۲. پاسخ‌ها را کوتاه و کاربردی نگه‌دار (حداکثر ۳۰۰ کلمه، مگر اینکه خواسته شود).\n' +
         '۳. اعداد را با جداکننده هزارگان و واحد پول (' + currencyLabel() + ') بنویس.\n' +
         '۴. اگر داده‌ای در اختیار نداری، صادقانه بگو؛ هیچوقت عدد جعل نکن.\n' +
         '۵. اگر سوال خارج از حسابداری است، مودبانه بگو که تخصصت مالی است.\n' +
-        '۶. برای پیشنهادهای مالی، دلیل بیاور.\n\n' +
+        '۶. برای پیشنهادهای مالی، دلیل بیاور.\n' +
+        '۷. تو به تمام اطلاعات ثبت‌شده دسترسی داری: اشخاص، شرکت‌ها، حساب‌های بانکی، صندوق‌ها، پروژه‌ها، تسهیلات با تمام اقساط، منابع دریافتنی، برآورد هزینه‌های روزانه، اسناد حسابداری با تمام جزئیات سطح ۴ (تفصیلی)، و خلاصه تراز. از این اطلاعات برای پاسخ دقیق استفاده کن.\n\n' +
         'قالب‌بندی (Markdown):\n' +
         '- برای مقایسه یا نمایش چند مقدار، از جدول Markdown استفاده کن:\n' +
         '  | عنوان | مقدار |\n' +
@@ -3708,39 +3966,22 @@ function _aiSplitTableRow(line) {
 function renderAIMarkdown(text) {
     if (!text) return '';
     var raw = String(text);
-
-    // 1) استخراج بلوک‌های کد ```lang ... ```
     var codeBlocks = [];
     raw = raw.replace(/```([a-zA-Z0-9_+\-#]*)\n?([\s\S]*?)```/g, function(m, lang, code) {
         codeBlocks.push({ lang: lang || '', code: code.replace(/\n$/, '') });
         return '\u0000CODE' + (codeBlocks.length - 1) + '\u0000';
     });
-
-    // 2) Escape HTML
     var html = esc(raw);
-
-    // 3) Inline code `...`
     html = html.replace(/`([^`\n]+)`/g, '<code class="ai-inline-code">$1</code>');
-
-    // 4) Bold **...**
     html = html.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
-
-    // 5) Italic *...*
     html = html.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
-
-    // 6) Links [text](url)
-    html = html.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,
-        '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-
-    // 7) Headers
+    html = html.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
     html = html.replace(/^#{6}\s+(.+)$/gm, '<h6 class="ai-h">$1</h6>');
     html = html.replace(/^#{5}\s+(.+)$/gm, '<h5 class="ai-h">$1</h5>');
     html = html.replace(/^#{4}\s+(.+)$/gm, '<h4 class="ai-h">$1</h4>');
     html = html.replace(/^#{3}\s+(.+)$/gm, '<h4 class="ai-h">$1</h4>');
     html = html.replace(/^#{2}\s+(.+)$/gm, '<h3 class="ai-h">$1</h3>');
     html = html.replace(/^#{1}\s+(.+)$/gm, '<h2 class="ai-h">$1</h2>');
-
-    // 8) جدول‌ها
     var lines = html.split('\n');
     var out = [], i = 0;
     var isSep = /^\s*\|?[\s:*-]+\|[\s:*-|]+\|?\s*$/;
@@ -3767,8 +4008,6 @@ function renderAIMarkdown(text) {
         } else { out.push(ln); i++; }
     }
     html = out.join('\n');
-
-    // 9) لیست‌ها
     html = html.replace(/(?:^|\n)((?:[ \t]*[-*]\s+.+(?:\n|$))+)/g, function(m, block) {
         var items = block.split('\n').filter(function(l) { return l.trim(); })
             .map(function(l) { return '<li>' + l.replace(/^[ \t]*[-*]\s+/, '') + '</li>'; });
@@ -3779,15 +4018,12 @@ function renderAIMarkdown(text) {
             .map(function(l) { return '<li>' + l.replace(/^[ \t]*\d+\.\s+/, '') + '</li>'; });
         return '\n<ol class="ai-ol">' + items.join('') + '</ol>\n';
     });
-
-    // 10) بازگرداندن بلوک‌های کد
     html = html.replace(/\u0000CODE(\d+)\u0000/g, function(m, idx) {
         var cb = codeBlocks[Number(idx)];
         var langLabel = cb.lang ? '<div class="ai-code-lang">' + esc(cb.lang) + '</div>' : '';
         return '<div class="ai-code-wrap">' + langLabel +
                '<pre class="ai-code"><code>' + esc(cb.code) + '</code></pre></div>';
     });
-
     return html;
 }
 
@@ -3803,7 +4039,7 @@ async function aiCallAPI(userMessage) {
         var resA = await fetch('https://api.avalai.ir/v1/chat/completions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.apiKey },
-            body: JSON.stringify({ model: AI.model || 'gpt-4o-mini', messages: msgsA, temperature: 0.3, max_tokens: 900 })
+            body: JSON.stringify({ model: AI.model || 'gpt-4o-mini', messages: msgsA, temperature: 0.3, max_tokens: 1200 })
         });
         if (!resA.ok) { var tA = await resA.text(); throw new Error('AvalAI ' + resA.status + ': ' + tA.substring(0, 250)); }
         var dataA = await resA.json();
@@ -3813,7 +4049,7 @@ async function aiCallAPI(userMessage) {
         var res = await fetch('https://api.chatanywhere.tech/v1/chat/completions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.apiKey },
-            body: JSON.stringify({ model: AI.model || 'deepseek-chat', messages: msgs, temperature: 0.3, max_tokens: 900 })
+            body: JSON.stringify({ model: AI.model || 'deepseek-chat', messages: msgs, temperature: 0.3, max_tokens: 1200 })
         });
         if (!res.ok) { var t = await res.text(); throw new Error('ChatAnywhere ' + res.status + ': ' + t.substring(0, 200)); }
         var data = await res.json();
@@ -3823,7 +4059,7 @@ async function aiCallAPI(userMessage) {
         var res2 = await fetch('https://api.deepseek.com/v1/chat/completions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.apiKey },
-            body: JSON.stringify({ model: AI.model || 'deepseek-chat', messages: msgs2, temperature: 0.3, max_tokens: 900 })
+            body: JSON.stringify({ model: AI.model || 'deepseek-chat', messages: msgs2, temperature: 0.3, max_tokens: 1200 })
         });
         if (!res2.ok) { var t2 = await res2.text(); throw new Error('DeepSeek ' + res2.status + ': ' + t2.substring(0, 200)); }
         var data2 = await res2.json();
@@ -3833,7 +4069,7 @@ async function aiCallAPI(userMessage) {
         var res3 = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.apiKey },
-            body: JSON.stringify({ model: AI.model || 'openai/gpt-oss-120b', messages: msgs3, temperature: 0.3, max_tokens: 900 })
+            body: JSON.stringify({ model: AI.model || 'openai/gpt-oss-120b', messages: msgs3, temperature: 0.3, max_tokens: 1200 })
         });
         if (!res3.ok) { var t3 = await res3.text(); throw new Error('Groq ' + res3.status + ': ' + t3.substring(0, 200)); }
         var data3 = await res3.json();
@@ -3849,7 +4085,7 @@ function aiRender() {
         return;
     }
     if (AI.history.length === 0) {
-        box.innerHTML = '<div class="ai-msg system">سلام! من پارسیس یار هستم 🤖 — هر سوالی درباره وضعیت مالی‌ات داری بپرس.</div>';
+        box.innerHTML = '<div class="ai-msg system">سلام! من پارسیس یار هستم 🤖 — به تمام اطلاعات مالی تو دسترسی دارم. هر سوالی داری بپرس.</div>';
         return;
     }
     var html = '';
@@ -3991,11 +4227,9 @@ function init() {
     document.getElementById('side-collapse').addEventListener('click', function() { document.querySelectorAll('.nav-group').forEach(function(g) { g.classList.add('collapsed'); }); });
     document.getElementById('cd-expand').addEventListener('click', function() { setAllExpanded(true); });
     document.getElementById('cd-collapse').addEventListener('click', function() { setAllExpanded(false); });
-    document.getElementById('cl-expand').addEventListener('click', function() { setAllExpanded(true); });
-    document.getElementById('cl-collapse').addEventListener('click', function() { setAllExpanded(false); });
     document.getElementById('ra-expand').addEventListener('click', function() { state.reportExpandedNodes = {}; if (window._renderAccountReportTree) window._renderAccountReportTree(); });
     document.getElementById('ra-collapse').addEventListener('click', function() { var accounts = DB.load('accounts', []); var nodes = {}; accounts.forEach(function(a) { nodes[a.id] = false; }); state.reportExpandedNodes = nodes; if (window._renderAccountReportTree) window._renderAccountReportTree(); });
-    ['charttree-search','chartlist-search'].forEach(function(id) { var el = document.getElementById(id); if (el) el.addEventListener('input', function() { renderChartTree(id === 'charttree-search' ? 'chart-tree' : 'chart-list-tree', id === 'charttree-search'); }); });
+    ['charttree-search'].forEach(function(id) { var el = document.getElementById(id); if (el) el.addEventListener('input', function() { renderChartTree('chart-tree', true); }); });
     document.getElementById('fiscal-filter').addEventListener('input', renderFiscalList);
     document.getElementById('persons-filter').addEventListener('input', renderPersonsList);
     document.getElementById('comp-filter').addEventListener('input', renderCompaniesList);
@@ -4005,6 +4239,7 @@ function init() {
     document.getElementById('fac-filter').addEventListener('input', renderFacilitiesList);
     document.getElementById('fac-cat-filter').addEventListener('change', renderFacilitiesList);
     document.getElementById('cfs-filter').addEventListener('input', renderCfsList);
+    document.getElementById('est-filter').addEventListener('input', renderEstimateList);
     document.getElementById('vlist-search').addEventListener('input', renderVoucherList);
     var eB = document.querySelectorAll('.export-btn[data-export]');
     for (var e = 0; e < eB.length; e++) eB[e].addEventListener('click', function() { exportToCsv(this.getAttribute('data-export'), this.getAttribute('data-export')); });
@@ -4111,6 +4346,13 @@ function init() {
         DB.save('projects', l); showToast('✅'); document.getElementById('pj-id').value = ''; document.getElementById('pj-name').value = '';
         renderProjectsList(); document.querySelector('[data-tab="proj-list"]').click(); });
     document.getElementById('new-project').addEventListener('click', function() { document.getElementById('pj-id').value = ''; document.getElementById('pj-name').value = ''; });
+
+    // برآورد هزینه‌های روزانه
+    document.getElementById('est-add-item').addEventListener('click', function() { estimateItems.push({ id: uid(), date: '', amount: 0 }); renderEstimateItems(); });
+    document.getElementById('est-auto-gen').addEventListener('click', autoGenerateEstimate);
+    document.getElementById('save-est').addEventListener('click', saveEstimate);
+    document.getElementById('new-est').addEventListener('click', clearEstForm);
+
     document.getElementById('load-default-chart').addEventListener('click', loadDefaultChart);
     document.getElementById('add-group').addEventListener('click', function() { openChartForm(null, 1, null); });
     document.getElementById('save-chart').addEventListener('click', function() { var id = document.getElementById('ch-id').value;
@@ -4125,7 +4367,7 @@ function init() {
         var l = DB.load('accounts', []);
         if (id) { for (var i = 0; i < l.length; i++) if (l[i].id === id) l[i] = o; } else l.push(o);
         DB.save('accounts', l); showToast('✅'); document.getElementById('chart-form-card').style.display = 'none';
-        renderChartTree('chart-tree', true); renderChartTree('chart-list-tree', false);
+        renderChartTree('chart-tree', true);
         document.getElementById('load-default-chart').disabled = true; refreshTemplateSelect(); });
     document.getElementById('cancel-chart').addEventListener('click', function() { document.getElementById('chart-form-card').style.display = 'none'; });
     document.getElementById('add-line').addEventListener('click', function() { voucherLines.push({ id: uid(), account: '', details: {}, debit: 0, credit: 0, trackingNumber: '', trackingDate: '', description: '' }); renderVoucherLines(); });
@@ -4157,6 +4399,7 @@ function init() {
     attachMoneyInput(document.getElementById('fc-initial'), function(v) { renderInstallmentsTotals(); });
     attachMoneyInput(document.getElementById('ba-min-balance'));
     attachMoneyInput(document.getElementById('cfs-amount'));
+    attachMoneyInput(document.getElementById('est-total'));
     document.getElementById('cfs-moein').addEventListener('change', onCfsMoeinChange);
     document.getElementById('save-cfs').addEventListener('click', saveCfsSource);
     document.getElementById('new-cfs').addEventListener('click', clearCfsForm);
@@ -4231,7 +4474,8 @@ function init() {
     document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'visible') autoRead(); });
     aiInit();
     aiRender();
-    console.log('🎉 آماده — AvalAI + Markdown Chat v14');
+    renderEstimateItems();
+    console.log('🎉 آماده — v15 کامل');
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
