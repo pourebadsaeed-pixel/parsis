@@ -1033,7 +1033,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 </div>
 
 <script>
-console.log('✅ پارسیس PWA v20 — Cloudflare Worker');
+console.log('✅ پارسیس PWA v21 — بدون Cloudflare Worker');
 var LS_PREFIX = 'parsis.';
 var DB = {
     load: function(k, f) { try { var r = localStorage.getItem(LS_PREFIX + k); return r ? JSON.parse(r) : f; } catch(e) { return f; } },
@@ -1682,7 +1682,7 @@ function updateHomeWidgets() {
 }
 
 /* =================================================================
-   ============ Live Rates — Cloudflare Worker Connected ===========
+   ============ Live Rates — بدون Worker، با پروکسی رایگان ==========
    ================================================================= */
 var TGJU_ASSETS = [
     { key: 'price_dollar_rl', label: '💵 دلار آمریکا' },
@@ -1695,8 +1695,13 @@ var TGJU_ASSETS = [
     { key: 'rob_sekke', label: '🪙 ربع سکه' }
 ];
 
-/* ⭐ URL شخصی Cloudflare Worker شما */
-var TGJU_WORKER_URL = 'https://tgju-proxy.pourebadsaeed.workers.dev';
+/* ⭐ پروکسی‌های CORS رایگان — بدون نیاز به تنظیمات */
+var CORS_PROXIES = [
+    function(url) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url); },
+    function(url) { return 'https://corsproxy.io/?url=' + encodeURIComponent(url); },
+    function(url) { return 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(url); },
+    function(url) { return 'https://cors.eu.org/' + url; }
+];
 
 var LIVE_RATES_CACHE = DB.load('liveRatesCache', { values: {}, ts: 0, prev: {} });
 
@@ -1738,35 +1743,23 @@ function parseTGJUResponse(data, assetKey) {
     return (isFinite(p) && p > 0) ? p : 0;
 }
 
-/* ⭐ اصل: اول از Worker شخصی، سپس fallback ها */
+/* ⭐ اولویت: مستقیم → پروکسی‌های عمومی */
 async function fetchTGJURate(assetKey) {
-    /* ۱) از Cloudflare Worker (روش اصلی و مطمئن) */
-    if (TGJU_WORKER_URL) {
-        var workerUrl = TGJU_WORKER_URL + '/?items=' + encodeURIComponent(assetKey);
-        var dW = await tryFetchJson(workerUrl, 9000);
-        var pW = parseTGJUResponse(dW, assetKey);
-        if (pW > 0) return pW;
-    }
-    /* ۲) تلاش مستقیم */
-    var direct = [
+    var directUrls = [
         'https://call1.tgju.org/ajax.json?items=' + assetKey,
         'https://call2.tgju.org/ajax.json?items=' + assetKey
     ];
-    for (var i = 0; i < direct.length; i++) {
-        var d1 = await tryFetchJson(direct[i], 4000);
+    /* ۱) تلاش مستقیم */
+    for (var i = 0; i < directUrls.length; i++) {
+        var d1 = await tryFetchJson(directUrls[i], 4000);
         var p1 = parseTGJUResponse(d1, assetKey);
         if (p1 > 0) return p1;
     }
-    /* ۳) پروکسی‌های عمومی */
-    var target = 'https://call2.tgju.org/ajax.json?items=' + assetKey;
-    var proxyBuilders = [
-        function(u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
-        function(u) { return 'https://corsproxy.io/?url=' + encodeURIComponent(u); }
-    ];
-    for (var pi = 0; pi < proxyBuilders.length; pi++) {
+    /* ۲) تلاش از طریق پروکسی‌های عمومی */
+    for (var j = 0; j < CORS_PROXIES.length; j++) {
         var proxied;
-        try { proxied = proxyBuilders[pi](target); } catch(e) { continue; }
-        var d2 = await tryFetchJson(proxied, 5000);
+        try { proxied = CORS_PROXIES[j](directUrls[1]); } catch(e) { continue; }
+        var d2 = await tryFetchJson(proxied, 6000);
         var p2 = parseTGJUResponse(d2, assetKey);
         if (p2 > 0) return p2;
     }
@@ -1980,17 +1973,18 @@ function renderDailyCloseHistory() {
 
 /* ==================== Report: Rates Range (TGJU) ==================== */
 async function fetchRateRange(assetKey, days) {
-    /* اول از Worker شخصی */
-    if (TGJU_WORKER_URL) {
-        var wUrl = TGJU_WORKER_URL + '/?items=' + encodeURIComponent(assetKey) + '&days=' + days;
-        var dw = await tryFetchJson(wUrl, 9000);
-        if (dw) return dw;
+    var target = 'https://call2.tgju.org/ajax.json?items=' + assetKey + '&days=' + days;
+    /* ۱) تلاش مستقیم */
+    var dDirect = await tryFetchJson(target, 5000);
+    if (dDirect) return dDirect;
+    /* ۲) تلاش از طریق پروکسی‌های عمومی */
+    for (var i = 0; i < CORS_PROXIES.length; i++) {
+        var proxied;
+        try { proxied = CORS_PROXIES[i](target); } catch(e) { continue; }
+        var d = await tryFetchJson(proxied, 7000);
+        if (d) return d;
     }
-    var url = 'https://call2.tgju.org/ajax.json?items=' + assetKey + '&days=' + days;
-    var proxied = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
-    var d = await tryFetchJson(proxied, 7000);
-    if (d) return d;
-    return await tryFetchJson(url, 5000);
+    return null;
 }
 async function runRatesReport() {
     var asset = document.getElementById('rr-asset').value;
@@ -4014,7 +4008,7 @@ function init() {
     aiInit();
     aiRender();
     renderEstimateItems();
-    console.log('🎉 v20 آماده — Cloudflare Worker + ' + TGJU_WORKER_URL);
+    console.log('🎉 نسخه ۲۱ آماده — بدون Worker، با پروکسی رایگان');
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
