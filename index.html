@@ -340,16 +340,13 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .cf-legend .lg.fac .dot { background:#e5484d; }
 .cf-legend .lg.est .dot { background:#e8a33d; }
 @media print { .topbar, .sidebar, .overlay, .install-banner, .tabs, .form-buttons, .list-header, .col-toggle-btn, .export-btn, .ai-fab { display:none !important; } .content { padding:0 !important; max-width:100% !important; } .card { box-shadow:none !important; border:none !important; padding:0 !important; } }
-
 .home-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
 @media (max-width: 760px) { .home-grid { grid-template-columns: 1fr; } }
 .home-grid .widget-card { margin-bottom: 0; }
 .home-grid .widget-card.widget-wide { grid-column: 1 / -1; }
-
 .est-item-row { padding: 8px 10px; background: var(--bg); border-radius: 10px; margin-bottom: 4px; display: grid; grid-template-columns: 40px 1fr 1fr auto; gap: 6px; align-items: center; font-size: 0.82rem; }
 .est-item-row input { padding:6px 8px; font-size:0.8rem; border:1px solid var(--border); border-radius:7px; background:var(--card); }
 @media (max-width:600px) { .est-item-row { grid-template-columns:1fr 1fr; } }
-
 .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin-bottom:12px; }
 .kpi-card { background:linear-gradient(135deg, #fff 0%, var(--primary-soft) 100%); border:1px solid var(--primary-light); border-radius:14px; padding:16px; box-shadow:var(--shadow-sm); position:relative; overflow:hidden; }
 .kpi-card::before { content:''; position:absolute; top:0; right:0; width:4px; height:100%; background:linear-gradient(180deg, var(--primary), var(--primary-dark)); }
@@ -381,26 +378,22 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .top-exp-item .rank { width:24px; height:24px; border-radius:50%; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.75rem; flex-shrink:0; }
 .top-exp-item .name { flex:1; }
 .top-exp-item .amt { font-weight:bold; color:#c0392b; white-space:nowrap; }
-
 .widget-order-row { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--bg); border-radius:8px; margin-bottom:6px; font-size:0.85rem; }
 .widget-order-row .wo-name { flex:1; font-weight:bold; color:var(--primary-dark); }
 .widget-order-row .wo-btns { display:flex; gap:4px; }
 .widget-order-row .wo-btn { background:var(--primary-light); color:var(--primary-dark); border:none; width:30px; height:30px; border-radius:7px; font-weight:bold; cursor:pointer; }
 .widget-order-row .wo-btn:disabled { opacity:0.35; cursor:not-allowed; }
-
-.rate-row { display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:var(--bg); border-radius:10px; margin-bottom:6px; gap:8px; }
+.rate-row { display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:var(--bg); border-radius:10px; margin-bottom:6px; gap:8px; flex-wrap:wrap; }
 .rate-row .name { font-weight:bold; font-size:0.88rem; }
 .rate-row .amount { font-weight:bold; font-size:0.95rem; color:var(--primary-dark); white-space:nowrap; }
 .rate-row .rate-chg { font-size:0.72rem; padding:2px 8px; border-radius:10px; font-weight:bold; }
 .rate-row .rate-chg.up { background:#e6f6ee; color:#1e9e6a; }
 .rate-row .rate-chg.down { background:#fdeaea; color:#c0392b; }
 .rate-row .rate-chg.same { background:var(--bg); color:var(--text-muted); }
-
 .close-price-row { display:grid; grid-template-columns:1fr auto; gap:8px; padding:10px 12px; background:var(--bg); border-radius:10px; margin-bottom:6px; align-items:center; font-size:0.85rem; }
 .close-price-row .cp-name { font-weight:bold; }
 .close-price-row .cp-amount { font-weight:bold; color:var(--primary-dark); direction:ltr; }
 .close-price-row .cp-actions { display:flex; gap:4px; }
-
 .ai-fab { position:fixed; bottom:22px; left:22px; width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, #667eea 0%, #764ba2 50%, #4a90e2 100%); color:#fff; border:none; font-size:1.7rem; cursor:pointer; z-index:80; box-shadow:0 8px 24px rgba(102,126,234,0.4); display:flex; align-items:center; justify-content:center; animation: aiPulse 3s ease-in-out infinite; }
 @keyframes aiPulse { 0%, 100% { box-shadow:0 8px 24px rgba(102,126,234,0.4); } 50% { box-shadow:0 8px 32px rgba(102,126,234,0.7); } }
 .ai-fab:hover { transform:scale(1.1) rotate(5deg); }
@@ -458,6 +451,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .cfd-head .cfd-nums .bal { background:var(--primary-light); color:var(--primary-dark); }
 .cfd-details { display:none; padding:10px 14px; border-top:1px solid var(--border); }
 .cfd-details.show { display:block; }
+.rate-updated { font-size:0.68rem; color:var(--text-muted); width:100%; text-align:left; margin-top:3px; }
 </style>
 </head>
 <body class="theme-sky font-tahoma">
@@ -546,7 +540,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
         <div class="card widget-card widget-wide" data-widget="birthdays"><h3 style="margin-bottom:10px;color:var(--primary-dark);font-size:0.95rem">🎂 تولدهای پیش‌رو</h3><div id="home-birthdays"></div></div>
         <div class="card widget-card widget-wide" data-widget="liveRates">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-                <h3 style="color:var(--primary-dark);font-size:0.95rem;margin:0">💱 نرخ لحظه‌ای ارز و طلا (TGJU)</h3>
+                <h3 style="color:var(--primary-dark);font-size:0.95rem;margin:0">💱 نرخ لحظه‌ای ارز و طلا (ریال)</h3>
                 <button id="live-rates-refresh" class="row-btn open" title="بروزرسانی">🔄</button>
             </div>
             <div id="home-live-rates"><div class="widget-empty">در حال دریافت...</div></div>
@@ -891,7 +885,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
     <div class="card"><div class="list-header"><span class="count-badge" id="rff-count">۰</span><span class="unit-chip" id="rff-unit"></span></div><div id="rff-result"></div></div>
 </section>
 
-<section id="page-report-rates" class="page"><h2>📈 گزارش نرخ ارز و طلا (TGJU)</h2>
+<section id="page-report-rates" class="page"><h2>📈 گزارش نرخ ارز و طلا</h2>
     <div class="card">
         <div class="grid-3">
             <div class="field"><label>دارایی</label>
@@ -921,7 +915,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
             <button id="rr-print" class="btn-secondary">🖨 چاپ</button>
             <button id="rr-export" class="btn-secondary">📊 اکسل</button>
         </div>
-        <p class="muted" style="margin-top:8px;font-size:0.78rem">💡 داده‌ها به‌صورت آنلاین از TGJU دریافت می‌شوند.</p>
+        <p class="muted" style="margin-top:8px;font-size:0.78rem">💡 داده‌ها از تاریخچه ذخیره‌شده در همین مرورگر استفاده می‌کنند.</p>
     </div>
     <div class="card">
         <div class="list-header"><span class="count-badge" id="rr-count">۰</span><span class="unit-chip" id="rr-unit"></span></div>
@@ -936,7 +930,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
             <div class="field"><label>تاریخ</label><input type="text" id="dc-date" class="date-picker" dir="ltr"></div>
             <div class="field"><label>&nbsp;</label><button id="dc-save" class="btn-primary" style="width:100%">💾 ذخیره قیمت‌های پایانی</button></div>
         </div>
-        <p class="muted" style="margin-top:8px;font-size:0.8rem">💡 قیمت‌ها به‌صورت خودکار از TGJU دریافت می‌شوند. می‌توانید قبل از ذخیره، مقادیر را به‌صورت دستی ویرایش کنید.</p>
+        <p class="muted" style="margin-top:8px;font-size:0.8rem">💡 قیمت‌ها به‌صورت خودکار دریافت می‌شوند (به ریال). می‌توانید قبل از ذخیره، مقادیر را به‌صورت دستی ویرایش کنید.</p>
     </div>
     <div class="card">
         <div class="list-header"><span class="count-badge" id="dc-count">۰</span><span class="unit-chip" id="dc-unit"></span></div>
@@ -1033,7 +1027,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 </div>
 
 <script>
-console.log('✅ پارسیس PWA v21 — بدون Cloudflare Worker');
+console.log('✅ پارسیس PWA v21 — Navasan Live Rates (Rial)');
 var LS_PREFIX = 'parsis.';
 var DB = {
     load: function(k, f) { try { var r = localStorage.getItem(LS_PREFIX + k); return r ? JSON.parse(r) : f; } catch(e) { return f; } },
@@ -1180,6 +1174,8 @@ function formatMoney(n) { n = Number(n) || 0; var mode = state.currencyDisplay |
     if (mode === 'toman') return formatRaw(n / 10);
     if (mode === 'million') { var v = n / 1000000; return v.toLocaleString('fa-IR', { maximumFractionDigits: 3 }).replace(/\u066C/g, ','); }
     return formatRaw(n); }
+/* ⭐ تابع جدید: همیشه به ریال نمایش می‌دهد بدون توجه به تنظیمات */
+function formatRial(n) { n = Number(n) || 0; return formatRaw(n); }
 function currencyLabel() { var m = state.currencyDisplay || 'rial'; if (m === 'toman') return 'تومان'; if (m === 'million') return 'میلیون ریال'; return 'ریال'; }
 function fmtRep(n) { return state.hideNumbers ? '—' : formatMoney(n); }
 function parseMoney(s) { var t = String(s).replace(/[^\d\-]/g, ''); return Number(t) || 0; }
@@ -1682,28 +1678,28 @@ function updateHomeWidgets() {
 }
 
 /* =================================================================
-   ============ Live Rates — بدون Worker، با پروکسی رایگان ==========
+   ========== Live Rates — Navasan via jsDelivr (Free, No Filter) ==
+   ========== همه قیمت‌ها به ریال نمایش داده می‌شوند ================
    ================================================================= */
 var TGJU_ASSETS = [
-    { key: 'price_dollar_rl', label: '💵 دلار آمریکا' },
-    { key: 'geram18', label: '🥇 طلای ۱۸ عیار (گرم)' },
-    { key: 'geram24', label: '🥇 طلای ۲۴ عیار (گرم)' },
-    { key: 'gold_mini_size', label: '🥇 طلای دسته دوم (گرم)' },
-    { key: 'sekke_emami', label: '🪙 سکه امامی' },
-    { key: 'sekke_bahar', label: '🪙 سکه بهار آزادی' },
-    { key: 'nim_sekke', label: '🪙 نیم سکه' },
-    { key: 'rob_sekke', label: '🪙 ربع سکه' }
+    { key: 'price_dollar_rl', label: '💵 دلار آمریکا', navasanKey: 'usd', source: 'fiat' },
+    { key: 'geram18',         label: '🥇 طلای ۱۸ عیار (گرم)', navasanKey: '18ayar', source: 'gold' },
+    { key: 'geram24',         label: '🥇 طلای ۲۴ عیار (گرم)', navasanKey: '24ayar', source: 'gold' },
+    { key: 'gold_mini_size',  label: '🥇 طلای دسته دوم (گرم)', navasanKey: 'bub_18ayar', source: 'gold' },
+    { key: 'sekke_emami',     label: '🪙 سکه امامی',        navasanKey: 'sekkeh', source: 'gold' },
+    { key: 'sekke_bahar',     label: '🪙 سکه بهار آزادی',   navasanKey: 'bahar', source: 'gold' },
+    { key: 'nim_sekke',       label: '🪙 نیم سکه',          navasanKey: 'nim', source: 'gold' },
+    { key: 'rob_sekke',       label: '🪙 ربع سکه',          navasanKey: 'rob', source: 'gold' }
 ];
 
-/* ⭐ پروکسی‌های CORS رایگان — بدون نیاز به تنظیمات */
-var CORS_PROXIES = [
-    function(url) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url); },
-    function(url) { return 'https://corsproxy.io/?url=' + encodeURIComponent(url); },
-    function(url) { return 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(url); },
-    function(url) { return 'https://cors.eu.org/' + url; }
-];
+/* ⭐ Navasan data via jsDelivr CDN — bypasses GitHub filter in Iran */
+var NAVASAN_GOLD_CDN = 'https://cdn.jsdelivr.net/gh/HosseinOdd/Navasan-API@main/data/gold.json';
+var NAVASAN_FIAT_CDN = 'https://cdn.jsdelivr.net/gh/HosseinOdd/Navasan-API@main/data/fiat.json';
 
-var LIVE_RATES_CACHE = DB.load('liveRatesCache', { values: {}, ts: 0, prev: {} });
+/* ⭐ Fallback: priceto.day — stable, daily updated */
+var PRICETO_BASE = 'https://api.priceto.day/v1/latest/irr';
+
+var LIVE_RATES_CACHE = DB.load('liveRatesCache', { values: {}, ts: 0, prev: {}, timestamps: {}, lastUpdate: '' });
 
 function fetchWithTimeout(url, opts, ms) {
     return new Promise(function(resolve, reject) {
@@ -1711,7 +1707,7 @@ function fetchWithTimeout(url, opts, ms) {
         var timer = setTimeout(function() {
             try { controller.abort(); } catch(e){}
             reject(new Error('timeout'));
-        }, ms || 6000);
+        }, ms || 8000);
         fetch(url, Object.assign({}, opts || {}, { signal: controller.signal, cache: 'no-store' }))
             .then(function(r) { clearTimeout(timer); resolve(r); })
             .catch(function(e) { clearTimeout(timer); reject(e); });
@@ -1723,7 +1719,7 @@ async function tryFetchJson(url, ms) {
         var res = await fetchWithTimeout(url, {
             method: 'GET',
             headers: { 'Accept': 'application/json, text/plain, */*' }
-        }, ms || 6000);
+        }, ms || 8000);
         if (!res.ok) return null;
         var text = await res.text();
         if (!text) return null;
@@ -1733,87 +1729,132 @@ async function tryFetchJson(url, ms) {
     }
 }
 
-function parseTGJUResponse(data, assetKey) {
-    if (!data || typeof data !== 'object') return 0;
+function parseNavasanItem(data, assetKey) {
+    if (!data || typeof data !== 'object') return { value: 0, ts: 0 };
     var item = data[assetKey];
-    if (!item) return 0;
-    var price = item.price || item.p || item.value || item.current || item.last;
-    if (price === undefined || price === null) return 0;
-    var p = Number(String(price).replace(/[,\s]/g, ''));
-    return (isFinite(p) && p > 0) ? p : 0;
+    if (!item) return { value: 0, ts: 0 };
+    var val = item.value || item.price || item.p || item.last || 0;
+    var v = Number(String(val).replace(/[,\s]/g, ''));
+    if (!isFinite(v) || v <= 0) return { value: 0, ts: 0 };
+    return { value: v, ts: item.date || item.timestamp || item.last_update || 0 };
 }
 
-/* ⭐ اولویت: مستقیم → پروکسی‌های عمومی */
-async function fetchTGJURate(assetKey) {
-    var directUrls = [
-        'https://call1.tgju.org/ajax.json?items=' + assetKey,
-        'https://call2.tgju.org/ajax.json?items=' + assetKey
-    ];
-    /* ۱) تلاش مستقیم */
-    for (var i = 0; i < directUrls.length; i++) {
-        var d1 = await tryFetchJson(directUrls[i], 4000);
-        var p1 = parseTGJUResponse(d1, assetKey);
-        if (p1 > 0) return p1;
+/* ⭐ Fallback: fetch from priceto.day */
+async function fetchFromPriceto(assetKey, navasanKey) {
+    var symbols = {
+        'usd': 'usd',
+        '18ayar': 'gold-18',
+        '24ayar': 'gold-24',
+        'bub_18ayar': 'gold-meskal',
+        'sekkeh': 'coin-emami',
+        'bahar': 'coin-bahar',
+        'nim': 'coin-nim',
+        'rob': 'coin-rob'
+    };
+    var sym = symbols[navasanKey] || navasanKey;
+    var url = PRICETO_BASE + '/' + sym;
+    var data = await tryFetchJson(url, 6000);
+    if (!data || !data.rate) return { value: 0, ts: 0 };
+    var v = Number(data.rate);
+    if (!isFinite(v) || v <= 0) return { value: 0, ts: 0 };
+    return { value: v, ts: data.timestamp || Math.floor(Date.now() / 1000) };
+}
+
+/* ⭐ Main fetch: Navasan via jsDelivr, fallback to priceto.day */
+async function fetchAllRates() {
+    var results = {};
+
+    var goldData = null, fiatData = null;
+    try { goldData = await tryFetchJson(NAVASAN_GOLD_CDN, 10000); } catch(e) {}
+    try { fiatData = await tryFetchJson(NAVASAN_FIAT_CDN, 10000); } catch(e) {}
+
+    for (var i = 0; i < TGJU_ASSETS.length; i++) {
+        var a = TGJU_ASSETS[i];
+        var parsed = { value: 0, ts: 0 };
+
+        if (a.source === 'gold' && goldData) {
+            parsed = parseNavasanItem(goldData, a.navasanKey);
+        } else if (a.source === 'fiat' && fiatData) {
+            parsed = parseNavasanItem(fiatData, a.navasanKey);
+        }
+
+        /* ⭐ Fallback to priceto.day if Navasan failed */
+        if (parsed.value === 0) {
+            parsed = await fetchFromPriceto(a.key, a.navasanKey);
+        }
+
+        results[a.key] = parsed;
     }
-    /* ۲) تلاش از طریق پروکسی‌های عمومی */
-    for (var j = 0; j < CORS_PROXIES.length; j++) {
-        var proxied;
-        try { proxied = CORS_PROXIES[j](directUrls[1]); } catch(e) { continue; }
-        var d2 = await tryFetchJson(proxied, 6000);
-        var p2 = parseTGJUResponse(d2, assetKey);
-        if (p2 > 0) return p2;
-    }
-    return 0;
+
+    return results;
 }
 
 async function fetchLiveRates(silent) {
     var box = document.getElementById('home-live-rates');
     var meta = document.getElementById('live-rates-meta');
-    if (box && !silent) box.innerHTML = '<div class="widget-empty">در حال دریافت از TGJU...</div>';
+    if (box && !silent) box.innerHTML = '<div class="widget-empty">در حال دریافت نرخ‌ها...</div>';
 
-    var results = [];
+    var newResults = {};
     try {
-        results = await Promise.all(TGJU_ASSETS.map(function(a) {
-            return fetchTGJURate(a.key);
-        }));
+        newResults = await fetchAllRates();
     } catch(e) {
-        results = TGJU_ASSETS.map(function() { return 0; });
+        newResults = {};
     }
 
     var anyFetched = false;
     var newValues = {};
+    var newTimestamps = {};
+    var prev = LIVE_RATES_CACHE.values || {};
+    var prevTs = LIVE_RATES_CACHE.timestamps || {};
+
     for (var i = 0; i < TGJU_ASSETS.length; i++) {
         var key = TGJU_ASSETS[i].key;
-        var val = results[i] || 0;
-        if (val === 0 && LIVE_RATES_CACHE.values && LIVE_RATES_CACHE.values[key] > 0) {
-            val = LIVE_RATES_CACHE.values[key];
+        var res = newResults[key] || { value: 0, ts: 0 };
+        var val = res.value || 0;
+        var ts = res.ts || 0;
+
+        if (val > 0) {
+            /* ⭐ مقدار جدید معتبر است — آپدیت می‌شود (به ریال) */
+            newValues[key] = val;
+            newTimestamps[key] = ts;
+            anyFetched = true;
+        } else {
+            /* ⭐ مقدار قبلی دست‌نخورده می‌ماند — آپدیت نمی‌شود */
+            newValues[key] = prev[key] || 0;
+            newTimestamps[key] = prevTs[key] || 0;
         }
-        newValues[key] = val;
-        if (results[i] > 0) anyFetched = true;
     }
 
-    var hasAnyCache = LIVE_RATES_CACHE.ts > 0 && LIVE_RATES_CACHE.values;
     var hasAnyValue = false;
     for (var k in newValues) if (newValues[k] > 0) { hasAnyValue = true; break; }
 
-    if (!hasAnyValue && !hasAnyCache) {
+    if (!hasAnyValue && !LIVE_RATES_CACHE.ts) {
         if (box) box.innerHTML = '<div class="widget-empty">❌ دریافت نرخ ناموفق بود.<br>اتصال اینترنت را بررسی کرده و روی 🔄 بزنید.</div>';
         if (meta) meta.textContent = 'برای تلاش مجدد روی 🔄 بزنید.';
         return;
     }
 
-    var prev = LIVE_RATES_CACHE.values || {};
+    /* ⭐ آخرین تاریخ و ساعت آپدیت */
+    var lastUpdate = '';
+    if (anyFetched) {
+        lastUpdate = todayJalaliStr() + ' — ' + tsToJalaliTime(Date.now());
+    } else {
+        lastUpdate = LIVE_RATES_CACHE.lastUpdate || '—';
+    }
+
     LIVE_RATES_CACHE = {
         values: newValues,
-        ts: Date.now(),
-        prev: JSON.parse(JSON.stringify(prev))
+        timestamps: newTimestamps,
+        ts: anyFetched ? Date.now() : LIVE_RATES_CACHE.ts,
+        prev: JSON.parse(JSON.stringify(prev)),
+        lastUpdate: lastUpdate
     };
     DB.save('liveRatesCache', LIVE_RATES_CACHE);
     renderLiveRatesWidget();
 
     if (meta) {
         meta.textContent = (anyFetched ? '✅ بروزرسانی: ' : '⚠️ آخرین داده ذخیره‌شده: ')
-            + toFa(tsToJalaliTime(LIVE_RATES_CACHE.ts)) + ' — منبع: TGJU';
+            + lastUpdate + ' — منبع: Navasan';
     }
 }
 
@@ -1832,8 +1873,23 @@ function renderLiveRatesWidget() {
         var oldV = prev[a.key] || 0;
         var chg = val - oldV;
         var chgCls = chg > 0 ? 'up' : (chg < 0 ? 'down' : 'same');
-        var chgTxt = chg === 0 ? '—' : (chg > 0 ? '▲ ' : '▼ ') + formatMoney(Math.abs(chg));
-        html += '<div class="rate-row"><span class="name">' + a.label + '</span><span class="amount">' + formatMoney(val) + ' ' + currencyLabel() + '</span><span class="rate-chg ' + chgCls + '">' + chgTxt + '</span></div>';
+        /* ⭐ همیشه به ریال نمایش داده می‌شود */
+        var chgTxt = chg === 0 ? '—' : (chg > 0 ? '▲ ' : '▼ ') + formatRial(Math.abs(chg));
+
+        /* ⭐ نمایش تاریخ و ساعت آپدیت هر آیتم */
+        var itemTs = (c.timestamps && c.timestamps[a.key]) ? c.timestamps[a.key] : 0;
+        var tsDisplay = '';
+        if (itemTs > 0) {
+            var tsMs = itemTs < 1e12 ? itemTs * 1000 : itemTs;
+            tsDisplay = '🕐 ' + toFa(tsToJalaliDate(tsMs)) + ' ' + toFa(tsToJalaliTime(tsMs));
+        }
+
+        html += '<div class="rate-row">' +
+            '<span class="name">' + a.label + '</span>' +
+            '<span class="amount">' + formatRial(val) + ' ریال</span>' +
+            '<span class="rate-chg ' + chgCls + '">' + chgTxt + '</span>' +
+            '<span class="rate-updated">' + tsDisplay + '</span>' +
+            '</div>';
     }
     if (!anyShown) { box.innerHTML = '<div class="widget-empty">داده‌ای موجود نیست. روی 🔄 بزنید.</div>'; return; }
     box.innerHTML = html;
@@ -1852,9 +1908,10 @@ async function fetchDailyClosePrices() {
 
     var values = {};
     try {
-        var results = await Promise.all(TGJU_ASSETS.map(function(a) { return fetchTGJURate(a.key); }));
+        var results = await fetchAllRates();
         for (var i = 0; i < TGJU_ASSETS.length; i++) {
-            values[TGJU_ASSETS[i].key] = results[i] || (LIVE_RATES_CACHE.values && LIVE_RATES_CACHE.values[TGJU_ASSETS[i].key]) || 0;
+            var key = TGJU_ASSETS[i].key;
+            values[key] = (results[key] && results[key].value) || (LIVE_RATES_CACHE.values && LIVE_RATES_CACHE.values[key]) || 0;
         }
     } catch (e) {
         for (var j = 0; j < TGJU_ASSETS.length; j++) {
@@ -1878,15 +1935,15 @@ async function renderDailyClosePage() {
         var val = values[a.key] || 0;
         html += '<div class="close-price-row">' +
             '<span class="cp-name">' + a.label + '</span>' +
-            '<input type="text" class="money-input" inputmode="numeric" dir="ltr" value="' + (val ? formatRaw(val) : '') + '" data-dc-key="' + a.key + '" style="width:120px;text-align:center;padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.85rem;">' +
+            '<input type="text" class="money-input" inputmode="numeric" dir="ltr" value="' + (val ? formatRaw(val) : '') + '" data-dc-key="' + a.key + '" style="width:140px;text-align:center;padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:0.85rem;">' +
             '</div>';
     }
     html += '<div class="form-buttons" style="margin-top:12px;justify-content:center">' +
-        '<button id="dc-save-btn" class="btn-primary">💾 ذخیره قیمت‌های پایانی</button>' +
+        '<button id="dc-save-btn" class="btn-primary">💾 ذخیره قیمت‌های پایانی (ریال)</button>' +
         '</div>';
     box.innerHTML = html;
     document.getElementById('dc-count').textContent = toFa(TGJU_ASSETS.length) + ' قلم';
-    document.getElementById('dc-unit').textContent = 'واحد: ' + currencyLabel();
+    document.getElementById('dc-unit').textContent = 'واحد: ریال';
 
     var inputs = box.querySelectorAll('[data-dc-key]');
     for (var k = 0; k < inputs.length; k++) {
@@ -1932,7 +1989,8 @@ function renderDailyCloseHistory() {
         html += '<tr><td dir="ltr">' + toFa(esc(row.date)) + '</td>';
         for (var k = 0; k < TGJU_ASSETS.length; k++) {
             var v = (row.values && row.values[TGJU_ASSETS[k].key]) || 0;
-            html += '<td class="num">' + (v ? formatMoney(v) : '—') + '</td>';
+            /* ⭐ همیشه به ریال */
+            html += '<td class="num">' + (v ? formatRial(v) : '—') + '</td>';
         }
         html += '<td><div class="row-actions">' +
             '<button class="row-btn edit" data-dc-edit="' + row.date + '">✎</button>' +
@@ -1971,52 +2029,59 @@ function renderDailyCloseHistory() {
     }
 }
 
-/* ==================== Report: Rates Range (TGJU) ==================== */
-async function fetchRateRange(assetKey, days) {
-    var target = 'https://call2.tgju.org/ajax.json?items=' + assetKey + '&days=' + days;
-    /* ۱) تلاش مستقیم */
-    var dDirect = await tryFetchJson(target, 5000);
-    if (dDirect) return dDirect;
-    /* ۲) تلاش از طریق پروکسی‌های عمومی */
-    for (var i = 0; i < CORS_PROXIES.length; i++) {
-        var proxied;
-        try { proxied = CORS_PROXIES[i](target); } catch(e) { continue; }
-        var d = await tryFetchJson(proxied, 7000);
-        if (d) return d;
-    }
-    return null;
-}
+/* ==================== Report: Rates from local history ==================== */
 async function runRatesReport() {
     var asset = document.getElementById('rr-asset').value;
     var range = document.getElementById('rr-range').value;
     var box = document.getElementById('rr-result');
-    box.innerHTML = '<div class="widget-empty">در حال دریافت داده‌ها از TGJU...</div>';
     var days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
-    var data = await fetchRateRange(asset, days);
-    var points = (data && (data.points || data.data)) || [];
-    if (!points || points.length === 0) {
-        box.innerHTML = '<div class="widget-empty">❌ دریافت داده ناموفق بود یا داده‌ای در این بازه وجود ندارد. دوباره تلاش کنید.</div>';
+    var allData = getDailyCloseData();
+    if (allData.length === 0) {
+        /* اگر تاریخچه‌ای نیست، اول یک snapshot از نرخ‌های فعلی بگیر */
+        box.innerHTML = '<div class="widget-empty">در حال دریافت داده اولیه از Navasan...</div>';
+        var live = await fetchAllRates();
+        var todayStr = todayJalaliStr();
+        var firstValues = {};
+        for (var i = 0; i < TGJU_ASSETS.length; i++) {
+            var k = TGJU_ASSETS[i].key;
+            firstValues[k] = (live[k] && live[k].value) || 0;
+        }
+        var newList = [{ date: todayStr, values: firstValues, savedAt: Date.now() }];
+        saveDailyCloseData(newList);
+        allData = newList;
+    }
+    /* ⭐ فیلتر بازه زمانی */
+    var cutoffTs = Date.now() - days * 24 * 60 * 60 * 1000;
+    var points = allData.filter(function(x) {
+        var parts = x.date.split('/').map(Number);
+        if (parts.length !== 3) return false;
+        var g = jalaliToGregorian(parts[0], parts[1], parts[2]);
+        var ts = new Date(g[0], g[1] - 1, g[2]).getTime();
+        return ts >= cutoffTs;
+    });
+    points.sort(function(a, b) { return a.date.localeCompare(b.date); });
+    if (points.length === 0) {
+        box.innerHTML = '<div class="widget-empty">داده‌ای در این بازه وجود ندارد. کافیست هر روز صفحه «قیمت پایانی روز» را باز کنید تا تاریخچه ساخته شود.</div>';
         document.getElementById('rr-count').textContent = '۰';
         return;
     }
-    var html = '<div class="table-wrap"><table class="report-table" id="rr-table"><thead><tr><th>#</th><th>تاریخ</th><th>قیمت (' + currencyLabel() + ')</th><th>تغییر</th><th>درصد</th></tr></thead><tbody>';
+    var html = '<div class="table-wrap"><table class="report-table" id="rr-table"><thead><tr><th>#</th><th>تاریخ</th><th>قیمت (ریال)</th><th>تغییر</th><th>درصد</th></tr></thead><tbody>';
     var prev = null;
-    for (var i = 0; i < points.length; i++) {
-        var p = points[i];
-        var price = Number(p.price || p.value || p) || 0;
-        var dt = p.date || p.time || p.timestamp || '';
+    for (var j = 0; j < points.length; j++) {
+        var p = points[j];
+        var price = (p.values && p.values[asset]) || 0;
         var change = prev !== null ? price - prev : 0;
         var pct = prev ? (change / prev * 100) : 0;
         var chgCls = change > 0 ? 'cr' : (change < 0 ? 'dr' : '');
         var sign = change > 0 ? '+' : '';
-        var dateDisplay = dt ? (typeof dt === 'number' ? tsToJalaliDate(dt * (dt < 1e12 ? 1000 : 1)) : String(dt)) : '—';
-        html += '<tr><td class="num">' + toFa(i + 1) + '</td><td dir="ltr">' + toFa(esc(dateDisplay)) + '</td><td class="num" style="font-weight:bold">' + formatMoney(price) + '</td><td class="num ' + chgCls + '">' + (prev !== null ? sign + formatMoney(change) : '—') + '</td><td class="num ' + chgCls + '">' + (prev !== null ? sign + toFa(Math.abs(pct).toFixed(2)) + '٪' : '—') + '</td></tr>';
+        /* ⭐ همیشه به ریال */
+        html += '<tr><td class="num">' + toFa(j + 1) + '</td><td dir="ltr">' + toFa(esc(p.date)) + '</td><td class="num" style="font-weight:bold">' + formatRial(price) + '</td><td class="num ' + chgCls + '">' + (prev !== null ? sign + formatRial(change) : '—') + '</td><td class="num ' + chgCls + '">' + (prev !== null ? sign + toFa(Math.abs(pct).toFixed(2)) + '٪' : '—') + '</td></tr>';
         prev = price;
     }
     html += '</tbody></table></div>';
     box.innerHTML = html;
     document.getElementById('rr-count').textContent = toFa(points.length) + ' ردیف';
-    var unitEl = document.getElementById('rr-unit'); if (unitEl) unitEl.textContent = 'واحد: ' + currencyLabel();
+    var unitEl = document.getElementById('rr-unit'); if (unitEl) unitEl.textContent = 'واحد: ریال';
 }
 
 /* ==================== Dashboard ==================== */
@@ -3637,10 +3702,10 @@ function aiBuildContext() {
     }
     var cr = LIVE_RATES_CACHE;
     if (cr.ts > 0 && cr.values) {
-        lines.push('\n=== آخرین نرخ‌های لحظه‌ای (TGJU) ===');
+        lines.push('\n=== آخرین نرخ‌های لحظه‌ای (ریال) ===');
         for (var ri = 0; ri < TGJU_ASSETS.length; ri++) {
             var a = TGJU_ASSETS[ri]; var val = cr.values[a.key] || 0;
-            lines.push('- ' + a.label + ': ' + formatMoney(val) + ' ' + currencyLabel());
+            lines.push('- ' + a.label + ': ' + formatRial(val) + ' ریال');
         }
     }
     var dcData = getDailyCloseData();
@@ -3650,12 +3715,12 @@ function aiBuildContext() {
         lines.push('تاریخ: ' + latest.date);
         for (var di = 0; di < TGJU_ASSETS.length; di++) {
             var da = TGJU_ASSETS[di]; var dv = (latest.values && latest.values[da.key]) || 0;
-            lines.push('- ' + da.label + ': ' + formatMoney(dv) + ' ' + currencyLabel());
+            lines.push('- ' + da.label + ': ' + formatRial(dv) + ' ریال');
         }
     }
     return lines.join('\n');
 }
-function aiBuildSystemPrompt() { return 'تو «پارسیس یار» دستیار حسابداری فارسی هستی. اطلاعات کاربر در دسترس است. با Markdown و فارسی پاسخ بده.\n\n' + aiBuildContext(); }
+function aiBuildSystemPrompt() { return 'تو «پارسیس یار» دستیار حسابداری فارسی هستی. اطلاعات کاربر در دسترس است. با Markdown و فارسی پاسخ بده. تمام مبالغ به ریال هستند.\n\n' + aiBuildContext(); }
 function _aiSplitTableRow(line) { var t = String(line).trim(); if (t.charAt(0) === '|') t = t.slice(1); if (t.charAt(t.length - 1) === '|') t = t.slice(0, -1); return t.split('|').map(function(s) { return s.trim(); }); }
 function renderAIMarkdown(text) {
     if (!text) return ''; var raw = String(text);
@@ -4008,7 +4073,7 @@ function init() {
     aiInit();
     aiRender();
     renderEstimateItems();
-    console.log('🎉 نسخه ۲۱ آماده — بدون Worker، با پروکسی رایگان');
+    console.log('🎉 v21 آماده — Navasan Live Rates (Rial)');
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
