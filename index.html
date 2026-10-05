@@ -934,7 +934,6 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
     </div>
 </section>
 
-<!-- ============ صفحه جدید: قیمت پایانی روز ============ -->
 <section id="page-daily-close" class="page">
     <h2>📅 قیمت پایانی روز</h2>
     <div class="card">
@@ -1039,7 +1038,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 </div>
 
 <script>
-console.log('✅ پارسیس PWA v18 — TGJU + Daily Close Prices');
+console.log('✅ پارسیس PWA v19 — Live Rates Fix');
 var LS_PREFIX = 'parsis.';
 var DB = {
     load: function(k, f) { try { var r = localStorage.getItem(LS_PREFIX + k); return r ? JSON.parse(r) : f; } catch(e) { return f; } },
@@ -1072,7 +1071,6 @@ var state = {
     smsAutoRead: DB.load('smsAutoRead', false),
     rffView: DB.load('rffView', 'summary')
 };
-// اطمینان از وجود همه ویجت‌ها در ترتیب
 (function() {
     var all = ['bankTotal','cashBalances','bankBalances','upcomingInstallments','birthdays','liveRates'];
     var order = state.widgetOrder.slice();
@@ -1688,7 +1686,9 @@ function updateHomeWidgets() {
     updateSmsBadge();
 }
 
-/* ==================== Live Rates (TGJU with Proxies) ==================== */
+/* =================================================================
+   ============ Live Rates (TGJU — Robust, single source) ==========
+   ================================================================= */
 var TGJU_ASSETS = [
     { key: 'price_dollar_rl', label: '💵 دلار آمریکا' },
     { key: 'geram18', label: '🥇 طلای ۱۸ عیار (گرم)' },
@@ -1702,150 +1702,129 @@ var TGJU_ASSETS = [
 
 var LIVE_RATES_CACHE = DB.load('liveRatesCache', { values: {}, ts: 0, prev: {} });
 
-// تابع کمکی برای دریافت از TGJU با استفاده از پروکسی‌های مختلف
+/* fetch با AbortController و تایم‌اوت تضمینی */
+function fetchWithTimeout(url, opts, ms) {
+    return new Promise(function(resolve, reject) {
+        var controller = new AbortController();
+        var timer = setTimeout(function() {
+            try { controller.abort(); } catch(e){}
+            reject(new Error('timeout'));
+        }, ms || 6000);
+        fetch(url, Object.assign({}, opts || {}, { signal: controller.signal, cache: 'no-store', mode: 'cors' }))
+            .then(function(r) { clearTimeout(timer); resolve(r); })
+            .catch(function(e) { clearTimeout(timer); reject(e); });
+    });
+}
+
+/* تلاش برای گرفتن JSON از یک URL */
+async function tryFetchJson(url, ms) {
+    try {
+        var res = await fetchWithTimeout(url, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json, text/plain, */*' }
+        }, ms || 6000);
+        if (!res.ok) return null;
+        var text = await res.text();
+        if (!text) return null;
+        try { return JSON.parse(text); } catch(e) { return null; }
+    } catch(e) {
+        return null;
+    }
+}
+
+/* استخراج قیمت از پاسخ TGJU در هر فرمتی */
+function parseTGJUResponse(data, assetKey) {
+    if (!data || typeof data !== 'object') return 0;
+    var item = data[assetKey];
+    if (!item) return 0;
+    var price = item.price || item.p || item.value || item.current || item.last;
+    if (price === undefined || price === null) return 0;
+    var p = Number(String(price).replace(/[,\s]/g, ''));
+    return (isFinite(p) && p > 0) ? p : 0;
+}
+
+/* دریافت نرخ یک دارایی — تلاش مستقیم، سپس چند پروکسی */
 async function fetchTGJURate(assetKey) {
-    var targetUrl = 'https://call2.tgju.org/ajax.json?items=' + assetKey;
-    
-    // لیست پروکسی‌های CORS
-    var proxies = [
-        'https://corsproxy.io/?' + encodeURIComponent(targetUrl),
-        'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl),
-        'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(targetUrl),
-        'https://thingproxy.freeboard.io/fetch/' + targetUrl
+    /* ۱) تلاش مستقیم روی call1 و call2 (اگر CORS اجازه دهد) */
+    var direct = [
+        'https://call1.tgju.org/ajax.json?items=' + assetKey,
+        'https://call2.tgju.org/ajax.json?items=' + assetKey,
+        'https://api.tgju.org/v1/data/price/' + assetKey
     ];
-
-    for (var i = 0; i < proxies.length; i++) {
-        try {
-            var res = await fetch(proxies[i], { 
-                method: 'GET',
-                headers: { 'Accept': 'application/json' }
-            });
-            
-            if (!res.ok) continue;
-            
-            // تلاش برای پارس کردن به عنوان JSON
-            var data;
-            try {
-                data = await res.json();
-            } catch (jsonErr) {
-                // اگر JSON نبود، به عنوان متن بخوان و دوباره پارس کن
-                var text = await res.text();
-                try {
-                    data = JSON.parse(text);
-                } catch (textErr) {
-                    continue; // برو سراغ پروکسی بعدی
-                }
-            }
-
-            var item = data && data[assetKey];
-            if (item && item.price) {
-                var p = Number(String(item.price).replace(/,/g, ''));
-                if (p > 0) return p;
-            }
-        } catch (e) {
-            console.log('Proxy ' + i + ' failed for ' + assetKey + ':', e.message);
-            // ادامه به پروکسی بعدی
-        }
+    for (var i = 0; i < direct.length; i++) {
+        var d1 = await tryFetchJson(direct[i], 4000);
+        var p1 = parseTGJUResponse(d1, assetKey);
+        if (p1 > 0) return p1;
     }
-    
-    return 0; // در صورت عدم موفقیت همه پروکسی‌ها
+    /* ۲) از طریق پروکسی‌های CORS */
+    var target = 'https://call2.tgju.org/ajax.json?items=' + assetKey;
+    var proxyBuilders = [
+        function(u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
+        function(u) { return 'https://corsproxy.io/?url=' + encodeURIComponent(u); },
+        function(u) { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); },
+        function(u) { return 'https://cors.eu.org/' + u; },
+        function(u) { return 'https://proxy.corsfix.com/?' + u; },
+        function(u) { return 'https://api.cors.lol/?url=' + encodeURIComponent(u); }
+    ];
+    for (var pi = 0; pi < proxyBuilders.length; pi++) {
+        var proxied;
+        try { proxied = proxyBuilders[pi](target); } catch(e) { continue; }
+        var d2 = await tryFetchJson(proxied, 5500);
+        var p2 = parseTGJUResponse(d2, assetKey);
+        if (p2 > 0) return p2;
+    }
+    return 0;
 }
 
+/* تابع اصلی — همه نرخ‌ها را می‌گیرد و کش می‌کند */
 async function fetchLiveRates(silent) {
     var box = document.getElementById('home-live-rates');
     var meta = document.getElementById('live-rates-meta');
-    
     if (box && !silent) box.innerHTML = '<div class="widget-empty">در حال دریافت از TGJU...</div>';
-    
+
+    var results = [];
     try {
-        // دریافت همه نرخ‌ها به صورت موازی
-        var results = await Promise.all(TGJU_ASSETS.map(function(a) { return fetchTGJURate(a.key); }));
-        
-        var anyFetched = false;
-        var newValues = {};
-        var failedCount = 0;
-
-        for (var i = 0; i < TGJU_ASSETS.length; i++) {
-            var key = TGJU_ASSETS[i].key;
-            var val = results[i] || (LIVE_RATES_CACHE.values && LIVE_RATES_CACHE.values[key]) || 0;
-            
-            // اگر مقدار جدید صفر بود ولی مقدار قدیمی داشتیم، از قدیمی استفاده کن
-            if (results[i] === 0 && LIVE_RATES_CACHE.values && LIVE_RATES_CACHE.values[key] > 0) {
-                val = LIVE_RATES_CACHE.values[key];
-            }
-            
-            newValues[key] = val;
-            if (results[i] > 0) {
-                anyFetched = true;
-            } else {
-                failedCount++;
-            }
-        }
-
-        // اگر هیچ داده جدیدی دریافت نشد و قبلاً هم داده‌ای نداشتیم
-        if (!anyFetched && (!LIVE_RATES_CACHE.ts || LIVE_RATES_CACHE.ts === 0)) {
-            if (box) box.innerHTML = '<div class="widget-empty">❌ دریافت نرخ ناموفق بود (مشکل پروکسی). لطفاً دوباره تلاش کنید.</div>';
-            if (meta) meta.textContent = 'تلاش مجدد...';
-            return;
-        }
-
-        var prev = LIVE_RATES_CACHE.values || {};
-        LIVE_RATES_CACHE = { 
-            values: newValues, 
-            ts: Date.now(), 
-            prev: JSON.parse(JSON.stringify(prev)) 
-        };
-        DB.save('liveRatesCache', LIVE_RATES_CACHE);
-        
-        renderLiveRatesWidget();
-        
-        if (meta) {
-            if (anyFetched && failedCount === 0) {
-                meta.textContent = '✅ بروزرسانی کامل: ' + toFa(tsToJalaliTime(LIVE_RATES_CACHE.ts)) + ' — منبع: TGJU';
-            } else if (anyFetched && failedCount > 0) {
-                meta.textContent = '⚠️ بروزرسانی جزئی (' + toFa(failedCount) + ' مورد ناموفق): ' + toFa(tsToJalaliTime(LIVE_RATES_CACHE.ts)) + ' — منبع: TGJU';
-            } else {
-                meta.textContent = '⚠️ آخرین داده ذخیره‌شده: ' + toFa(tsToJalaliTime(LIVE_RATES_CACHE.ts)) + ' — منبع: TGJU';
-            }
-        }
-    } catch (e) {
-        console.error('Fetch Live Rates Error:', e);
-        if (LIVE_RATES_CACHE.ts > 0) { 
-            renderLiveRatesWidget(); 
-            if (meta) meta.textContent = '⚠️ اتصال ناموفق — نمایش آخرین داده ذخیره‌شده'; 
-        } else { 
-            if (box) box.innerHTML = '<div class="widget-empty">❌ خطای سیستمی در دریافت نرخ. لطفاً اینترنت خود را بررسی کنید.</div>'; 
-        }
+        results = await Promise.all(TGJU_ASSETS.map(function(a) {
+            return fetchTGJURate(a.key);
+        }));
+    } catch(e) {
+        results = TGJU_ASSETS.map(function() { return 0; });
     }
-}
 
-async function fetchLiveRates(silent) {
-    var box = document.getElementById('home-live-rates');
-    var meta = document.getElementById('live-rates-meta');
-    if (box && !silent) box.innerHTML = '<div class="widget-empty">در حال دریافت...</div>';
-    try {
-        var results = await Promise.all(TGJU_ASSETS.map(function(a) { return fetchTGJURate(a.key); }));
-        var anyFetched = false;
-        var newValues = {};
-        for (var i = 0; i < TGJU_ASSETS.length; i++) {
-            var key = TGJU_ASSETS[i].key;
-            var val = results[i] || (LIVE_RATES_CACHE.values && LIVE_RATES_CACHE.values[key]) || 0;
-            newValues[key] = val;
-            if (results[i] > 0) anyFetched = true;
+    var anyFetched = false;
+    var newValues = {};
+    for (var i = 0; i < TGJU_ASSETS.length; i++) {
+        var key = TGJU_ASSETS[i].key;
+        var val = results[i] || 0;
+        if (val === 0 && LIVE_RATES_CACHE.values && LIVE_RATES_CACHE.values[key] > 0) {
+            val = LIVE_RATES_CACHE.values[key];
         }
-        if (!anyFetched && (!LIVE_RATES_CACHE.ts || LIVE_RATES_CACHE.ts === 0)) {
-            if (box) box.innerHTML = '<div class="widget-empty">❌ دریافت نرخ ناموفق بود. اتصال اینترنت را بررسی کنید.</div>';
-            if (meta) meta.textContent = '';
-            return;
-        }
-        var prev = LIVE_RATES_CACHE.values || {};
-        LIVE_RATES_CACHE = { values: newValues, ts: Date.now(), prev: JSON.parse(JSON.stringify(prev)) };
-        DB.save('liveRatesCache', LIVE_RATES_CACHE);
-        renderLiveRatesWidget();
-        if (meta) meta.textContent = (anyFetched ? '✅ بروزرسانی: ' : '⚠️ آخرین داده ذخیره‌شده: ') + toFa(tsToJalaliTime(LIVE_RATES_CACHE.ts)) + ' — منبع: TGJU';
-    } catch (e) {
-        if (LIVE_RATES_CACHE.ts > 0) { renderLiveRatesWidget(); if (meta) meta.textContent = '⚠️ اتصال ناموفق — آخرین داده ذخیره‌شده'; }
-        else { if (box) box.innerHTML = '<div class="widget-empty">❌ دریافت نرخ ناموفق بود.</div>'; }
+        newValues[key] = val;
+        if (results[i] > 0) anyFetched = true;
+    }
+
+    var hasAnyCache = LIVE_RATES_CACHE.ts > 0 && LIVE_RATES_CACHE.values;
+    var hasAnyValue = false;
+    for (var k in newValues) if (newValues[k] > 0) { hasAnyValue = true; break; }
+
+    if (!hasAnyValue && !hasAnyCache) {
+        if (box) box.innerHTML = '<div class="widget-empty">❌ دریافت نرخ ناموفق بود.<br>اتصال اینترنت را بررسی کرده و روی 🔄 بزنید.</div>';
+        if (meta) meta.textContent = 'برای تلاش مجدد روی 🔄 بزنید.';
+        return;
+    }
+
+    var prev = LIVE_RATES_CACHE.values || {};
+    LIVE_RATES_CACHE = {
+        values: newValues,
+        ts: Date.now(),
+        prev: JSON.parse(JSON.stringify(prev))
+    };
+    DB.save('liveRatesCache', LIVE_RATES_CACHE);
+    renderLiveRatesWidget();
+
+    if (meta) {
+        meta.textContent = (anyFetched ? '✅ بروزرسانی: ' : '⚠️ آخرین داده ذخیره‌شده: ')
+            + toFa(tsToJalaliTime(LIVE_RATES_CACHE.ts)) + ' — منبع: TGJU';
     }
 }
 
@@ -1855,15 +1834,19 @@ function renderLiveRatesWidget() {
     if (!c.ts || !c.values) { box.innerHTML = '<div class="widget-empty">داده‌ای موجود نیست.</div>'; return; }
     var html = '';
     var prev = c.prev || {};
+    var anyShown = false;
     for (var i = 0; i < TGJU_ASSETS.length; i++) {
         var a = TGJU_ASSETS[i];
         var val = c.values[a.key] || 0;
+        if (val <= 0) continue;
+        anyShown = true;
         var oldV = prev[a.key] || 0;
         var chg = val - oldV;
         var chgCls = chg > 0 ? 'up' : (chg < 0 ? 'down' : 'same');
         var chgTxt = chg === 0 ? '—' : (chg > 0 ? '▲ ' : '▼ ') + formatMoney(Math.abs(chg));
         html += '<div class="rate-row"><span class="name">' + a.label + '</span><span class="amount">' + formatMoney(val) + ' ' + currencyLabel() + '</span><span class="rate-chg ' + chgCls + '">' + chgTxt + '</span></div>';
     }
+    if (!anyShown) { box.innerHTML = '<div class="widget-empty">داده‌ای موجود نیست. روی 🔄 بزنید.</div>'; return; }
     box.innerHTML = html;
 }
 
@@ -1878,8 +1861,6 @@ async function fetchDailyClosePrices() {
     var cached = getDailyCloseData().find(function(x) { return x.date === today; });
     if (cached) return cached;
 
-    var box = document.getElementById('dc-result');
-    if (box) box.innerHTML = '<div class="widget-empty">در حال دریافت...</div>';
     var values = {};
     try {
         var results = await Promise.all(TGJU_ASSETS.map(function(a) { return fetchTGJURate(a.key); }));
@@ -1918,7 +1899,6 @@ async function renderDailyClosePage() {
     document.getElementById('dc-count').textContent = toFa(TGJU_ASSETS.length) + ' قلم';
     document.getElementById('dc-unit').textContent = 'واحد: ' + currencyLabel();
 
-    // Attach money formatting to daily close inputs
     var inputs = box.querySelectorAll('[data-dc-key]');
     for (var k = 0; k < inputs.length; k++) {
         (function(inp) {
@@ -2005,13 +1985,10 @@ function renderDailyCloseHistory() {
 /* ==================== Report: Rates Range (TGJU) ==================== */
 async function fetchRateRange(assetKey, days) {
     var url = 'https://call2.tgju.org/ajax.json?items=' + assetKey + '&days=' + days;
-    try {
-        var res = await fetch(url);
-        if (!res.ok) return null;
-        return await res.json();
-    } catch (e) {
-        return null;
-    }
+    var proxied = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+    var d = await tryFetchJson(proxied, 7000);
+    if (d) return d;
+    return await tryFetchJson(url, 5000);
 }
 async function runRatesReport() {
     var asset = document.getElementById('rr-asset').value;
@@ -2078,13 +2055,11 @@ function renderDashboard() {
     var banks = DB.load('bankAccounts', []);
     var cashBoxes = DB.load('cashBoxes', []);
     var pr = getPeriodMonthRange();
-    // Liquidity
     var totalBank = 0; banks.forEach(function(b) { totalBank += getBankBalance(b.id); });
     var totalCash = 0; cashBoxes.forEach(function(c) { totalCash += getCashBoxBalance(c.id); });
     var liquidity = totalBank + totalCash;
     var liqEl = document.getElementById('dash-liquidity'); if (liqEl) liqEl.textContent = formatMoney(liquidity) + ' ' + currencyLabel();
     var liqSubEl = document.getElementById('dash-liquidity-sub'); if (liqSubEl) liqSubEl.textContent = 'بانک: ' + formatMoney(totalBank) + ' | صندوق: ' + formatMoney(totalCash);
-    // Income/Expense this month
     var monthVouchers = vouchers.filter(function(v) { return v.date >= pr.from && v.date <= pr.to; });
     var incomeAmt = 0, expenseAmt = 0;
     monthVouchers.forEach(function(v) { (v.lines || []).forEach(function(l) {
@@ -2094,7 +2069,6 @@ function renderDashboard() {
         var d = Number(l.debit) || 0, c = Number(l.credit) || 0;
         if (codeRoot === '4') incomeAmt += c;
         else if (codeRoot === '5') expenseAmt += d;
-        // Alternative: if nature is credit (income) and not asset
     }); });
     var incEl = document.getElementById('dash-income'); if (incEl) incEl.textContent = formatMoney(incomeAmt);
     var expEl = document.getElementById('dash-expense'); if (expEl) expEl.textContent = formatMoney(expenseAmt);
@@ -2104,14 +2078,12 @@ function renderDashboard() {
     var expSub = document.getElementById('dash-expense-sub'); if (expSub) expSub.textContent = getJalaliMonthName(pr.month) + ' ' + toFa(pr.year);
     var prSub = document.getElementById('dash-profit-sub'); if (prSub) prSub.textContent = profit >= 0 ? '✅ سود' : '⚠️ زیان';
 
-    // Donut: Expense by root group
     var expByGroup = {};
     vouchers.forEach(function(v) { (v.lines || []).forEach(function(l) {
         if (!l.account) return; var d = Number(l.debit) || 0; if (d === 0) return;
         var rootId = getRootAccountId(l.account, accounts);
         var root = accounts.find(function(a) { return a.id === rootId; });
         if (!root || String(root.code || '').charAt(0) !== '5') return;
-        // Group by کل (level 2)
         var acc = accounts.find(function(a) { return a.id === l.account; });
         var lvl2 = acc;
         while (lvl2 && lvl2.parent && accounts.find(function(a) { return a.id === lvl2.parent; }).parent) { lvl2 = accounts.find(function(a) { return a.id === lvl2.parent; }); }
@@ -2120,13 +2092,11 @@ function renderDashboard() {
     }); });
     renderDonutChart('dash-expense-donut', expByGroup, 'هزینه');
 
-    // Donut: Assets composition
     var assets = {};
-    var totalBankAll = 0; banks.forEach(function(b) { var bal = getBankBalance(b.id); if (bal > 0) { assets['بانک ' + b.bank] = bal; totalBankAll += bal; } });
+    banks.forEach(function(b) { var bal = getBankBalance(b.id); if (bal > 0) { assets['بانک ' + b.bank] = bal; } });
     cashBoxes.forEach(function(c) { var bal = getCashBoxBalance(c.id); if (bal > 0) assets['صندوق ' + c.title] = bal; });
     renderDonutChart('dash-asset-donut', assets, 'دارایی');
 
-    // Bar chart: Income/Expense last 6 months
     var months = getLastNMonths(6);
     var monthStats = months.map(function(mo) {
         var mFrom = mo.year + '/' + pad2(mo.month) + '/01';
@@ -2141,7 +2111,6 @@ function renderDashboard() {
     });
     renderBarChart('dash-trend', monthStats);
 
-    // Top 10 expense معین
     var expByMoein = {};
     vouchers.forEach(function(v) { (v.lines || []).forEach(function(l) {
         if (!l.account) return; var d = Number(l.debit) || 0; if (d === 0) return;
@@ -2162,7 +2131,6 @@ function renderDashboard() {
         }
     }
 
-    // Banks status
     var banksEl = document.getElementById('dash-banks');
     if (banksEl) {
         if (banks.length === 0) banksEl.innerHTML = '<div class="widget-empty">حساب بانکی ثبت نشده.</div>';
@@ -3528,7 +3496,6 @@ function persistVoucher(approve) {
     if (valid.length < 2) { alert('حداقل دو ردیف با مبلغ.'); return; }
     var id = document.getElementById('v-id').value;
     var status = approve ? 'approved' : 'draft';
-    // If new voucher, always use auto number
     if (!id) num = getNextVoucherNumberForPeriod(pid);
     var vch = { id: id || uid(), number: num, date: d, type: ty, periodId: pid, desc: ds, lines: valid, status: status };
     if (approve) { var issues = getVoucherIssues(vch); if (issues.length > 0) { alert('⚠️ سند قابل تأیید نیست:\n\n• ' + issues.join('\n• ')); return; } }
@@ -4037,9 +4004,7 @@ function init() {
     buildColGearButtons();
     makeAllTablesResizable();
     checkClipboardSupport();
-    // initial fetch of live rates (silent)
     setTimeout(function() { fetchLiveRates(true); }, 1500);
-    // refresh live rates every 5 minutes
     setInterval(function() { if (state.widgets.liveRates) fetchLiveRates(true); }, 300000);
     function autoRead() { if (!state.smsAutoRead) return; setTimeout(function() { readClipboardAndAdd(true); }, 700); }
     window.addEventListener('focus', autoRead);
@@ -4047,7 +4012,7 @@ function init() {
     aiInit();
     aiRender();
     renderEstimateItems();
-    console.log('🎉 v18 آماده — TGJU + Daily Close Prices');
+    console.log('🎉 v19 آماده — Live Rates Fix');
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
