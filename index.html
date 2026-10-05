@@ -1027,7 +1027,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 </div>
 
 <script>
-console.log('✅ پارسیس PWA v21 — Navasan Live Rates (Rial)');
+console.log('✅ پارسیس PWA v22 — Priceto (Iran) + Navasan Fallback');
 var LS_PREFIX = 'parsis.';
 var DB = {
     load: function(k, f) { try { var r = localStorage.getItem(LS_PREFIX + k); return r ? JSON.parse(r) : f; } catch(e) { return f; } },
@@ -1174,7 +1174,6 @@ function formatMoney(n) { n = Number(n) || 0; var mode = state.currencyDisplay |
     if (mode === 'toman') return formatRaw(n / 10);
     if (mode === 'million') { var v = n / 1000000; return v.toLocaleString('fa-IR', { maximumFractionDigits: 3 }).replace(/\u066C/g, ','); }
     return formatRaw(n); }
-/* ⭐ تابع جدید: همیشه به ریال نمایش می‌دهد بدون توجه به تنظیمات */
 function formatRial(n) { n = Number(n) || 0; return formatRaw(n); }
 function currencyLabel() { var m = state.currencyDisplay || 'rial'; if (m === 'toman') return 'تومان'; if (m === 'million') return 'میلیون ریال'; return 'ریال'; }
 function fmtRep(n) { return state.hideNumbers ? '—' : formatMoney(n); }
@@ -1678,26 +1677,31 @@ function updateHomeWidgets() {
 }
 
 /* =================================================================
-   ========== Live Rates — Navasan via jsDelivr (Free, No Filter) ==
+   ========== Live Rates — Priceto (ایران) + Navasan Fallback =====
    ========== همه قیمت‌ها به ریال نمایش داده می‌شوند ================
    ================================================================= */
 var TGJU_ASSETS = [
-    { key: 'price_dollar_rl', label: '💵 دلار آمریکا', navasanKey: 'usd', source: 'fiat' },
-    { key: 'geram18',         label: '🥇 طلای ۱۸ عیار (گرم)', navasanKey: '18ayar', source: 'gold' },
-    { key: 'geram24',         label: '🥇 طلای ۲۴ عیار (گرم)', navasanKey: '24ayar', source: 'gold' },
-    { key: 'gold_mini_size',  label: '🥇 طلای دسته دوم (گرم)', navasanKey: 'bub_18ayar', source: 'gold' },
-    { key: 'sekke_emami',     label: '🪙 سکه امامی',        navasanKey: 'sekkeh', source: 'gold' },
-    { key: 'sekke_bahar',     label: '🪙 سکه بهار آزادی',   navasanKey: 'bahar', source: 'gold' },
-    { key: 'nim_sekke',       label: '🪙 نیم سکه',          navasanKey: 'nim', source: 'gold' },
-    { key: 'rob_sekke',       label: '🪙 ربع سکه',          navasanKey: 'rob', source: 'gold' }
+    { key: 'price_dollar_rl', label: '💵 دلار آمریکا',       priceto: 'usd',         navasanKey: 'usd',         source: 'fiat' },
+    { key: 'geram18',         label: '🥇 طلای ۱۸ عیار (گرم)',  priceto: 'gold-18',     navasanKey: '18ayar',      source: 'gold' },
+    { key: 'geram24',         label: '🥇 طلای ۲۴ عیار (گرم)',  priceto: 'gold-24',     navasanKey: '24ayar',      source: 'gold' },
+    { key: 'gold_mini_size',  label: '🥇 طلای دسته دوم (گرم)', priceto: 'gold-meskal', navasanKey: 'bub_18ayar',  source: 'gold' },
+    { key: 'sekke_emami',     label: '🪙 سکه امامی',          priceto: 'coin-emami',  navasanKey: 'sekkeh',      source: 'gold' },
+    { key: 'sekke_bahar',     label: '🪙 سکه بهار آزادی',     priceto: 'coin-bahar',  navasanKey: 'bahar',       source: 'gold' },
+    { key: 'nim_sekke',       label: '🪙 نیم سکه',            priceto: 'coin-nim',    navasanKey: 'nim',         source: 'gold' },
+    { key: 'rob_sekke',       label: '🪙 ربع سکه',            priceto: 'coin-rob',    navasanKey: 'rob',         source: 'gold' }
 ];
 
-/* ⭐ Navasan data via jsDelivr CDN — bypasses GitHub filter in Iran */
+/* ⭐ منبع ۱: Priceto (سرویس ایرانی — در ایران فیلتر نیست) */
+var PRICETO_BASE = 'https://api.priceto.day/v1/latest/irr';
+
+/* ⭐ منبع ۲: Navasan via jsDelivr CDN */
 var NAVASAN_GOLD_CDN = 'https://cdn.jsdelivr.net/gh/HosseinOdd/Navasan-API@main/data/gold.json';
 var NAVASAN_FIAT_CDN = 'https://cdn.jsdelivr.net/gh/HosseinOdd/Navasan-API@main/data/fiat.json';
 
-/* ⭐ Fallback: priceto.day — stable, daily updated */
-var PRICETO_BASE = 'https://api.priceto.day/v1/latest/irr';
+/* ⭐ منبع ۳: Navasan خام از GitHub از طریق CORS proxy */
+var CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+var NAVASAN_GOLD_RAW = 'https://raw.githubusercontent.com/HosseinOdd/Navasan-API/main/data/gold.json';
+var NAVASAN_FIAT_RAW = 'https://raw.githubusercontent.com/HosseinOdd/Navasan-API/main/data/fiat.json';
 
 var LIVE_RATES_CACHE = DB.load('liveRatesCache', { values: {}, ts: 0, prev: {}, timestamps: {}, lastUpdate: '' });
 
@@ -1729,6 +1733,20 @@ async function tryFetchJson(url, ms) {
     }
 }
 
+/* ==================== منبع ۱: Priceto (ایران) ==================== */
+async function fetchFromPriceto(symbol) {
+    if (!symbol) return { value: 0, ts: 0 };
+    var url = PRICETO_BASE + '/' + symbol;
+    var data = await tryFetchJson(url, 7000);
+    if (!data) return { value: 0, ts: 0 };
+    var v = 0;
+    if (typeof data === 'number') v = data;
+    else v = Number(data.rate || data.price || data.value || (data.data && (data.data.rate || data.data.price)) || 0);
+    if (!isFinite(v) || v <= 0) return { value: 0, ts: 0 };
+    return { value: v, ts: data.timestamp || data.ts || (data.data && data.data.timestamp) || 0 };
+}
+
+/* ==================== منبع ۲/۳: Navasan ==================== */
 function parseNavasanItem(data, assetKey) {
     if (!data || typeof data !== 'object') return { value: 0, ts: 0 };
     var item = data[assetKey];
@@ -1739,53 +1757,62 @@ function parseNavasanItem(data, assetKey) {
     return { value: v, ts: item.date || item.timestamp || item.last_update || 0 };
 }
 
-/* ⭐ Fallback: fetch from priceto.day */
-async function fetchFromPriceto(assetKey, navasanKey) {
-    var symbols = {
-        'usd': 'usd',
-        '18ayar': 'gold-18',
-        '24ayar': 'gold-24',
-        'bub_18ayar': 'gold-meskal',
-        'sekkeh': 'coin-emami',
-        'bahar': 'coin-bahar',
-        'nim': 'coin-nim',
-        'rob': 'coin-rob'
-    };
-    var sym = symbols[navasanKey] || navasanKey;
-    var url = PRICETO_BASE + '/' + sym;
-    var data = await tryFetchJson(url, 6000);
-    if (!data || !data.rate) return { value: 0, ts: 0 };
-    var v = Number(data.rate);
-    if (!isFinite(v) || v <= 0) return { value: 0, ts: 0 };
-    return { value: v, ts: data.timestamp || Math.floor(Date.now() / 1000) };
+async function tryNavasanFrom(url) {
+    var data = await tryFetchJson(url, 9000);
+    if (!data) return null;
+    if (data.contents) {
+        try { return JSON.parse(data.contents); } catch(e) { return null; }
+    }
+    return data;
 }
 
-/* ⭐ Main fetch: Navasan via jsDelivr, fallback to priceto.day */
+/* ⭐ تابع اصلی: اول Priceto، سپس Navasan CDN، سپس Navasan از طریق CORS proxy */
 async function fetchAllRates() {
     var results = {};
+    var pending = TGJU_ASSETS.map(function(a) { return { asset: a, done: false, value: 0, ts: 0 }; });
 
-    var goldData = null, fiatData = null;
-    try { goldData = await tryFetchJson(NAVASAN_GOLD_CDN, 10000); } catch(e) {}
-    try { fiatData = await tryFetchJson(NAVASAN_FIAT_CDN, 10000); } catch(e) {}
+    /* ---- مرحله ۱: Priceto به‌صورت موازی ---- */
+    await Promise.all(pending.map(function(p) {
+        return fetchFromPriceto(p.asset.priceto).then(function(r) {
+            if (r.value > 0) { p.done = true; p.value = r.value; p.ts = r.ts; }
+        });
+    }));
 
-    for (var i = 0; i < TGJU_ASSETS.length; i++) {
-        var a = TGJU_ASSETS[i];
-        var parsed = { value: 0, ts: 0 };
+    var stillNeed = pending.filter(function(p) { return !p.done; });
 
-        if (a.source === 'gold' && goldData) {
-            parsed = parseNavasanItem(goldData, a.navasanKey);
-        } else if (a.source === 'fiat' && fiatData) {
-            parsed = parseNavasanItem(fiatData, a.navasanKey);
-        }
+    /* ---- مرحله ۲: Navasan CDN برای موارد باقی‌مانده ---- */
+    if (stillNeed.length > 0) {
+        var goldData = null, fiatData = null;
+        try { goldData = await tryFetchJson(NAVASAN_GOLD_CDN, 9000); } catch(e) {}
+        try { fiatData = await tryFetchJson(NAVASAN_FIAT_CDN, 9000); } catch(e) {}
 
-        /* ⭐ Fallback to priceto.day if Navasan failed */
-        if (parsed.value === 0) {
-            parsed = await fetchFromPriceto(a.key, a.navasanKey);
-        }
-
-        results[a.key] = parsed;
+        stillNeed.forEach(function(p) {
+            var a = p.asset; var parsed = { value: 0, ts: 0 };
+            if (a.source === 'gold' && goldData) parsed = parseNavasanItem(goldData, a.navasanKey);
+            else if (a.source === 'fiat' && fiatData) parsed = parseNavasanItem(fiatData, a.navasanKey);
+            if (parsed.value > 0) { p.done = true; p.value = parsed.value; p.ts = parsed.ts; }
+        });
     }
 
+    /* ---- مرحله ۳: Navasan از طریق CORS proxy برای باقی‌مانده‌ها ---- */
+    stillNeed = pending.filter(function(p) { return !p.done; });
+    if (stillNeed.length > 0) {
+        var goldProxy = null, fiatProxy = null;
+        try { goldProxy = await tryNavasanFrom(CORS_PROXY + encodeURIComponent(NAVASAN_GOLD_RAW)); } catch(e) {}
+        try { fiatProxy = await tryNavasanFrom(CORS_PROXY + encodeURIComponent(NAVASAN_FIAT_RAW)); } catch(e) {}
+
+        stillNeed.forEach(function(p) {
+            var a = p.asset; var parsed = { value: 0, ts: 0 };
+            if (a.source === 'gold' && goldProxy) parsed = parseNavasanItem(goldProxy, a.navasanKey);
+            else if (a.source === 'fiat' && fiatProxy) parsed = parseNavasanItem(fiatProxy, a.navasanKey);
+            if (parsed.value > 0) { p.done = true; p.value = parsed.value; p.ts = parsed.ts; }
+        });
+    }
+
+    /* ---- خروجی نهایی ---- */
+    pending.forEach(function(p) {
+        results[p.asset.key] = { value: p.value || 0, ts: p.ts || 0 };
+    });
     return results;
 }
 
@@ -1814,12 +1841,10 @@ async function fetchLiveRates(silent) {
         var ts = res.ts || 0;
 
         if (val > 0) {
-            /* ⭐ مقدار جدید معتبر است — آپدیت می‌شود (به ریال) */
             newValues[key] = val;
             newTimestamps[key] = ts;
             anyFetched = true;
         } else {
-            /* ⭐ مقدار قبلی دست‌نخورده می‌ماند — آپدیت نمی‌شود */
             newValues[key] = prev[key] || 0;
             newTimestamps[key] = prevTs[key] || 0;
         }
@@ -1834,7 +1859,6 @@ async function fetchLiveRates(silent) {
         return;
     }
 
-    /* ⭐ آخرین تاریخ و ساعت آپدیت */
     var lastUpdate = '';
     if (anyFetched) {
         lastUpdate = todayJalaliStr() + ' — ' + tsToJalaliTime(Date.now());
@@ -1854,7 +1878,7 @@ async function fetchLiveRates(silent) {
 
     if (meta) {
         meta.textContent = (anyFetched ? '✅ بروزرسانی: ' : '⚠️ آخرین داده ذخیره‌شده: ')
-            + lastUpdate + ' — منبع: Navasan';
+            + lastUpdate + ' — منبع: Priceto (ایران) + Navasan';
     }
 }
 
@@ -1873,10 +1897,8 @@ function renderLiveRatesWidget() {
         var oldV = prev[a.key] || 0;
         var chg = val - oldV;
         var chgCls = chg > 0 ? 'up' : (chg < 0 ? 'down' : 'same');
-        /* ⭐ همیشه به ریال نمایش داده می‌شود */
         var chgTxt = chg === 0 ? '—' : (chg > 0 ? '▲ ' : '▼ ') + formatRial(Math.abs(chg));
 
-        /* ⭐ نمایش تاریخ و ساعت آپدیت هر آیتم */
         var itemTs = (c.timestamps && c.timestamps[a.key]) ? c.timestamps[a.key] : 0;
         var tsDisplay = '';
         if (itemTs > 0) {
@@ -1989,7 +2011,6 @@ function renderDailyCloseHistory() {
         html += '<tr><td dir="ltr">' + toFa(esc(row.date)) + '</td>';
         for (var k = 0; k < TGJU_ASSETS.length; k++) {
             var v = (row.values && row.values[TGJU_ASSETS[k].key]) || 0;
-            /* ⭐ همیشه به ریال */
             html += '<td class="num">' + (v ? formatRial(v) : '—') + '</td>';
         }
         html += '<td><div class="row-actions">' +
@@ -2037,8 +2058,7 @@ async function runRatesReport() {
     var days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
     var allData = getDailyCloseData();
     if (allData.length === 0) {
-        /* اگر تاریخچه‌ای نیست، اول یک snapshot از نرخ‌های فعلی بگیر */
-        box.innerHTML = '<div class="widget-empty">در حال دریافت داده اولیه از Navasan...</div>';
+        box.innerHTML = '<div class="widget-empty">در حال دریافت داده اولیه...</div>';
         var live = await fetchAllRates();
         var todayStr = todayJalaliStr();
         var firstValues = {};
@@ -2050,7 +2070,6 @@ async function runRatesReport() {
         saveDailyCloseData(newList);
         allData = newList;
     }
-    /* ⭐ فیلتر بازه زمانی */
     var cutoffTs = Date.now() - days * 24 * 60 * 60 * 1000;
     var points = allData.filter(function(x) {
         var parts = x.date.split('/').map(Number);
@@ -2074,7 +2093,6 @@ async function runRatesReport() {
         var pct = prev ? (change / prev * 100) : 0;
         var chgCls = change > 0 ? 'cr' : (change < 0 ? 'dr' : '');
         var sign = change > 0 ? '+' : '';
-        /* ⭐ همیشه به ریال */
         html += '<tr><td class="num">' + toFa(j + 1) + '</td><td dir="ltr">' + toFa(esc(p.date)) + '</td><td class="num" style="font-weight:bold">' + formatRial(price) + '</td><td class="num ' + chgCls + '">' + (prev !== null ? sign + formatRial(change) : '—') + '</td><td class="num ' + chgCls + '">' + (prev !== null ? sign + toFa(Math.abs(pct).toFixed(2)) + '٪' : '—') + '</td></tr>';
         prev = price;
     }
@@ -4073,7 +4091,7 @@ function init() {
     aiInit();
     aiRender();
     renderEstimateItems();
-    console.log('🎉 v21 آماده — Navasan Live Rates (Rial)');
+    console.log('🎉 v22 آماده — Priceto (Iran) + Navasan');
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
