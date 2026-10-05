@@ -1688,7 +1688,7 @@ function updateHomeWidgets() {
     updateSmsBadge();
 }
 
-/* ==================== Live Rates (TGJU) ==================== */
+/* ==================== Live Rates (TGJU with Proxies) ==================== */
 var TGJU_ASSETS = [
     { key: 'price_dollar_rl', label: '💵 دلار آمریکا' },
     { key: 'geram18', label: '🥇 طلای ۱۸ عیار (گرم)' },
@@ -1702,29 +1702,120 @@ var TGJU_ASSETS = [
 
 var LIVE_RATES_CACHE = DB.load('liveRatesCache', { values: {}, ts: 0, prev: {} });
 
+// تابع کمکی برای دریافت از TGJU با استفاده از پروکسی‌های مختلف
 async function fetchTGJURate(assetKey) {
-    // استفاده از API عمومی TGJU
-    var url = 'https://call2.tgju.org/ajax.json?items=' + assetKey;
-    try {
-        var res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-        if (!res.ok) return 0;
-        var data = await res.json();
-        var item = data && data[assetKey];
-        if (item && item.price) {
-            var p = Number(String(item.price).replace(/,/g, ''));
-            return p > 0 ? p : 0;
-        }
-        return 0;
-    } catch (e) {
-        // Fallback: try alternative endpoint
+    var targetUrl = 'https://call2.tgju.org/ajax.json?items=' + assetKey;
+    
+    // لیست پروکسی‌های CORS
+    var proxies = [
+        'https://corsproxy.io/?' + encodeURIComponent(targetUrl),
+        'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl),
+        'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(targetUrl),
+        'https://thingproxy.freeboard.io/fetch/' + targetUrl
+    ];
+
+    for (var i = 0; i < proxies.length; i++) {
         try {
-            var url2 = 'https://api.tgju.org/v1/data/' + assetKey;
-            var res2 = await fetch(url2);
-            if (!res2.ok) return 0;
-            var data2 = await res2.json();
-            if (data2 && data2.price) return Number(String(data2.price).replace(/,/g, '')) || 0;
-        } catch (e2) { /* ignore */ }
-        return 0;
+            var res = await fetch(proxies[i], { 
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
+            });
+            
+            if (!res.ok) continue;
+            
+            // تلاش برای پارس کردن به عنوان JSON
+            var data;
+            try {
+                data = await res.json();
+            } catch (jsonErr) {
+                // اگر JSON نبود، به عنوان متن بخوان و دوباره پارس کن
+                var text = await res.text();
+                try {
+                    data = JSON.parse(text);
+                } catch (textErr) {
+                    continue; // برو سراغ پروکسی بعدی
+                }
+            }
+
+            var item = data && data[assetKey];
+            if (item && item.price) {
+                var p = Number(String(item.price).replace(/,/g, ''));
+                if (p > 0) return p;
+            }
+        } catch (e) {
+            console.log('Proxy ' + i + ' failed for ' + assetKey + ':', e.message);
+            // ادامه به پروکسی بعدی
+        }
+    }
+    
+    return 0; // در صورت عدم موفقیت همه پروکسی‌ها
+}
+
+async function fetchLiveRates(silent) {
+    var box = document.getElementById('home-live-rates');
+    var meta = document.getElementById('live-rates-meta');
+    
+    if (box && !silent) box.innerHTML = '<div class="widget-empty">در حال دریافت از TGJU...</div>';
+    
+    try {
+        // دریافت همه نرخ‌ها به صورت موازی
+        var results = await Promise.all(TGJU_ASSETS.map(function(a) { return fetchTGJURate(a.key); }));
+        
+        var anyFetched = false;
+        var newValues = {};
+        var failedCount = 0;
+
+        for (var i = 0; i < TGJU_ASSETS.length; i++) {
+            var key = TGJU_ASSETS[i].key;
+            var val = results[i] || (LIVE_RATES_CACHE.values && LIVE_RATES_CACHE.values[key]) || 0;
+            
+            // اگر مقدار جدید صفر بود ولی مقدار قدیمی داشتیم، از قدیمی استفاده کن
+            if (results[i] === 0 && LIVE_RATES_CACHE.values && LIVE_RATES_CACHE.values[key] > 0) {
+                val = LIVE_RATES_CACHE.values[key];
+            }
+            
+            newValues[key] = val;
+            if (results[i] > 0) {
+                anyFetched = true;
+            } else {
+                failedCount++;
+            }
+        }
+
+        // اگر هیچ داده جدیدی دریافت نشد و قبلاً هم داده‌ای نداشتیم
+        if (!anyFetched && (!LIVE_RATES_CACHE.ts || LIVE_RATES_CACHE.ts === 0)) {
+            if (box) box.innerHTML = '<div class="widget-empty">❌ دریافت نرخ ناموفق بود (مشکل پروکسی). لطفاً دوباره تلاش کنید.</div>';
+            if (meta) meta.textContent = 'تلاش مجدد...';
+            return;
+        }
+
+        var prev = LIVE_RATES_CACHE.values || {};
+        LIVE_RATES_CACHE = { 
+            values: newValues, 
+            ts: Date.now(), 
+            prev: JSON.parse(JSON.stringify(prev)) 
+        };
+        DB.save('liveRatesCache', LIVE_RATES_CACHE);
+        
+        renderLiveRatesWidget();
+        
+        if (meta) {
+            if (anyFetched && failedCount === 0) {
+                meta.textContent = '✅ بروزرسانی کامل: ' + toFa(tsToJalaliTime(LIVE_RATES_CACHE.ts)) + ' — منبع: TGJU';
+            } else if (anyFetched && failedCount > 0) {
+                meta.textContent = '⚠️ بروزرسانی جزئی (' + toFa(failedCount) + ' مورد ناموفق): ' + toFa(tsToJalaliTime(LIVE_RATES_CACHE.ts)) + ' — منبع: TGJU';
+            } else {
+                meta.textContent = '⚠️ آخرین داده ذخیره‌شده: ' + toFa(tsToJalaliTime(LIVE_RATES_CACHE.ts)) + ' — منبع: TGJU';
+            }
+        }
+    } catch (e) {
+        console.error('Fetch Live Rates Error:', e);
+        if (LIVE_RATES_CACHE.ts > 0) { 
+            renderLiveRatesWidget(); 
+            if (meta) meta.textContent = '⚠️ اتصال ناموفق — نمایش آخرین داده ذخیره‌شده'; 
+        } else { 
+            if (box) box.innerHTML = '<div class="widget-empty">❌ خطای سیستمی در دریافت نرخ. لطفاً اینترنت خود را بررسی کنید.</div>'; 
+        }
     }
 }
 
