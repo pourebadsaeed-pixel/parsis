@@ -1696,7 +1696,7 @@ var TGJU_ASSETS = [
 ];
 
 /* ⭐ URL شخصی Cloudflare Worker شما */
-var TGJU_WORKER_URL = 'https://parsis-rates.saeedpoorebad.workers.dev';
+var TGJU_WORKER_URL = 'https://tgju-proxy.pourebadsaeed.workers.dev';
 
 var LIVE_RATES_CACHE = DB.load('liveRatesCache', { values: {}, ts: 0, prev: {} });
 
@@ -2096,7 +2096,7 @@ function renderDashboard() {
 
     var assets = {};
     banks.forEach(function(b) { var bal = getBankBalance(b.id); if (bal > 0) { assets['بانک ' + b.bank] = bal; } });
-    cashBoxes.forEach(function(c) { var bal = getCashBoxBalance(c.id); if (bal > 0) assets['صندوق ' + c.title] = bal; });
+    cashBoxes.forEach(function(c) { var bal = getCashBoxBalance(c.id); if (bal > 0) { assets['صندوق ' + c.title] = bal; } });
     renderDonutChart('dash-asset-donut', assets, 'دارایی');
 
     var months = getLastNMonths(6);
