@@ -1027,7 +1027,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 </div>
 
 <script>
-console.log('✅ پارسیس PWA v22 — Priceto (Iran) + Navasan Fallback');
+console.log('✅ پارسیس PWA v23 — Priceto (Iran) + Navasan Fallback');
 var LS_PREFIX = 'parsis.';
 var DB = {
     load: function(k, f) { try { var r = localStorage.getItem(LS_PREFIX + k); return r ? JSON.parse(r) : f; } catch(e) { return f; } },
@@ -1680,15 +1680,15 @@ function updateHomeWidgets() {
    ========== Live Rates — Priceto (ایران) + Navasan Fallback =====
    ========== همه قیمت‌ها به ریال نمایش داده می‌شوند ================
    ================================================================= */
-var TGJU_ASSETS = [
-    { key: 'price_dollar_rl', label: '💵 دلار آمریکا',       priceto: 'usd',         navasanKey: 'usd',         source: 'fiat' },
-    { key: 'geram18',         label: '🥇 طلای ۱۸ عیار (گرم)',  priceto: 'gold-18',     navasanKey: '18ayar',      source: 'gold' },
-    { key: 'geram24',         label: '🥇 طلای ۲۴ عیار (گرم)',  priceto: 'gold-24',     navasanKey: '24ayar',      source: 'gold' },
-    { key: 'gold_mini_size',  label: '🥇 طلای دسته دوم (گرم)', priceto: 'gold-meskal', navasanKey: 'bub_18ayar',  source: 'gold' },
-    { key: 'sekke_emami',     label: '🪙 سکه امامی',          priceto: 'coin-emami',  navasanKey: 'sekkeh',      source: 'gold' },
-    { key: 'sekke_bahar',     label: '🪙 سکه بهار آزادی',     priceto: 'coin-bahar',  navasanKey: 'bahar',       source: 'gold' },
-    { key: 'nim_sekke',       label: '🪙 نیم سکه',            priceto: 'coin-nim',    navasanKey: 'nim',         source: 'gold' },
-    { key: 'rob_sekke',       label: '🪙 ربع سکه',            priceto: 'coin-rob',    navasanKey: 'rob',         source: 'gold' }
+var RATE_ASSETS = [
+    { key: 'price_dollar_rl', label: '💵 دلار آمریکا',         priceto: 'usd',          navasanKey: 'usd',          source: 'fiat' },
+    { key: 'geram18',         label: '🥇 طلای ۱۸ عیار (گرم)',  priceto: 'gold-18',      navasanKey: '18ayar',       source: 'gold' },
+    { key: 'geram24',         label: '🥇 طلای ۲۴ عیار (گرم)',  priceto: 'gold-24',      navasanKey: '24ayar',       source: 'gold' },
+    { key: 'gold_mini_size',  label: '🥇 طلای دسته دوم (گرم)', priceto: 'gold-meskal',  navasanKey: 'bub_18ayar',   source: 'gold' },
+    { key: 'sekke_emami',     label: '🪙 سکه امامی',          priceto: 'coin-emami',   navasanKey: 'sekkeh',       source: 'gold' },
+    { key: 'sekke_bahar',     label: '🪙 سکه بهار آزادی',     priceto: 'coin-bahar',   navasanKey: 'bahar',        source: 'gold' },
+    { key: 'nim_sekke',       label: '🪙 نیم سکه',            priceto: 'coin-nim',     navasanKey: 'nim',          source: 'gold' },
+    { key: 'rob_sekke',       label: '🪙 ربع سکه',            priceto: 'coin-rob',     navasanKey: 'rob',          source: 'gold' }
 ];
 
 /* ⭐ منبع ۱: Priceto (سرویس ایرانی — در ایران فیلتر نیست) */
@@ -1769,7 +1769,7 @@ async function tryNavasanFrom(url) {
 /* ⭐ تابع اصلی: اول Priceto، سپس Navasan CDN، سپس Navasan از طریق CORS proxy */
 async function fetchAllRates() {
     var results = {};
-    var pending = TGJU_ASSETS.map(function(a) { return { asset: a, done: false, value: 0, ts: 0 }; });
+    var pending = RATE_ASSETS.map(function(a) { return { asset: a, done: false, value: 0, ts: 0 }; });
 
     /* ---- مرحله ۱: Priceto به‌صورت موازی ---- */
     await Promise.all(pending.map(function(p) {
@@ -1834,8 +1834,8 @@ async function fetchLiveRates(silent) {
     var prev = LIVE_RATES_CACHE.values || {};
     var prevTs = LIVE_RATES_CACHE.timestamps || {};
 
-    for (var i = 0; i < TGJU_ASSETS.length; i++) {
-        var key = TGJU_ASSETS[i].key;
+    for (var i = 0; i < RATE_ASSETS.length; i++) {
+        var key = RATE_ASSETS[i].key;
         var res = newResults[key] || { value: 0, ts: 0 };
         var val = res.value || 0;
         var ts = res.ts || 0;
@@ -1889,8 +1889,8 @@ function renderLiveRatesWidget() {
     var html = '';
     var prev = c.prev || {};
     var anyShown = false;
-    for (var i = 0; i < TGJU_ASSETS.length; i++) {
-        var a = TGJU_ASSETS[i];
+    for (var i = 0; i < RATE_ASSETS.length; i++) {
+        var a = RATE_ASSETS[i];
         var val = c.values[a.key] || 0;
         if (val <= 0) continue;
         anyShown = true;
@@ -1931,13 +1931,13 @@ async function fetchDailyClosePrices() {
     var values = {};
     try {
         var results = await fetchAllRates();
-        for (var i = 0; i < TGJU_ASSETS.length; i++) {
-            var key = TGJU_ASSETS[i].key;
+        for (var i = 0; i < RATE_ASSETS.length; i++) {
+            var key = RATE_ASSETS[i].key;
             values[key] = (results[key] && results[key].value) || (LIVE_RATES_CACHE.values && LIVE_RATES_CACHE.values[key]) || 0;
         }
     } catch (e) {
-        for (var j = 0; j < TGJU_ASSETS.length; j++) {
-            values[TGJU_ASSETS[j].key] = (LIVE_RATES_CACHE.values && LIVE_RATES_CACHE.values[TGJU_ASSETS[j].key]) || 0;
+        for (var j = 0; j < RATE_ASSETS.length; j++) {
+            values[RATE_ASSETS[j].key] = (LIVE_RATES_CACHE.values && LIVE_RATES_CACHE.values[RATE_ASSETS[j].key]) || 0;
         }
     }
     return { date: today, values: values, savedAt: Date.now() };
@@ -1952,8 +1952,8 @@ async function renderDailyClosePage() {
     var existing = getDailyCloseData().find(function(x) { return x.date === data.date; });
     var values = existing ? existing.values : data.values;
     var html = '';
-    for (var i = 0; i < TGJU_ASSETS.length; i++) {
-        var a = TGJU_ASSETS[i];
+    for (var i = 0; i < RATE_ASSETS.length; i++) {
+        var a = RATE_ASSETS[i];
         var val = values[a.key] || 0;
         html += '<div class="close-price-row">' +
             '<span class="cp-name">' + a.label + '</span>' +
@@ -1964,7 +1964,7 @@ async function renderDailyClosePage() {
         '<button id="dc-save-btn" class="btn-primary">💾 ذخیره قیمت‌های پایانی (ریال)</button>' +
         '</div>';
     box.innerHTML = html;
-    document.getElementById('dc-count').textContent = toFa(TGJU_ASSETS.length) + ' قلم';
+    document.getElementById('dc-count').textContent = toFa(RATE_ASSETS.length) + ' قلم';
     document.getElementById('dc-unit').textContent = 'واحد: ریال';
 
     var inputs = box.querySelectorAll('[data-dc-key]');
@@ -2004,13 +2004,13 @@ function renderDailyCloseHistory() {
     var list = getDailyCloseData();
     if (list.length === 0) { box.innerHTML = '<div class="widget-empty">هنوز قیمتی ذخیره نشده است.</div>'; return; }
     var html = '<div class="table-wrap"><table class="data-table"><thead><tr><th>تاریخ</th>';
-    for (var i = 0; i < TGJU_ASSETS.length; i++) html += '<th>' + TGJU_ASSETS[i].label.replace(/^[^\s]+\s/, '') + '</th>';
+    for (var i = 0; i < RATE_ASSETS.length; i++) html += '<th>' + RATE_ASSETS[i].label.replace(/^[^\s]+\s/, '') + '</th>';
     html += '<th>عملیات</th></tr></thead><tbody>';
     for (var j = 0; j < list.length; j++) {
         var row = list[j];
         html += '<tr><td dir="ltr">' + toFa(esc(row.date)) + '</td>';
-        for (var k = 0; k < TGJU_ASSETS.length; k++) {
-            var v = (row.values && row.values[TGJU_ASSETS[k].key]) || 0;
+        for (var k = 0; k < RATE_ASSETS.length; k++) {
+            var v = (row.values && row.values[RATE_ASSETS[k].key]) || 0;
             html += '<td class="num">' + (v ? formatRial(v) : '—') + '</td>';
         }
         html += '<td><div class="row-actions">' +
@@ -2062,8 +2062,8 @@ async function runRatesReport() {
         var live = await fetchAllRates();
         var todayStr = todayJalaliStr();
         var firstValues = {};
-        for (var i = 0; i < TGJU_ASSETS.length; i++) {
-            var k = TGJU_ASSETS[i].key;
+        for (var i = 0; i < RATE_ASSETS.length; i++) {
+            var k = RATE_ASSETS[i].key;
             firstValues[k] = (live[k] && live[k].value) || 0;
         }
         var newList = [{ date: todayStr, values: firstValues, savedAt: Date.now() }];
@@ -3721,8 +3721,8 @@ function aiBuildContext() {
     var cr = LIVE_RATES_CACHE;
     if (cr.ts > 0 && cr.values) {
         lines.push('\n=== آخرین نرخ‌های لحظه‌ای (ریال) ===');
-        for (var ri = 0; ri < TGJU_ASSETS.length; ri++) {
-            var a = TGJU_ASSETS[ri]; var val = cr.values[a.key] || 0;
+        for (var ri = 0; ri < RATE_ASSETS.length; ri++) {
+            var a = RATE_ASSETS[ri]; var val = cr.values[a.key] || 0;
             lines.push('- ' + a.label + ': ' + formatRial(val) + ' ریال');
         }
     }
@@ -3731,8 +3731,8 @@ function aiBuildContext() {
         lines.push('\n=== آخرین قیمت‌های پایانی ذخیره‌شده ===');
         var latest = dcData[0];
         lines.push('تاریخ: ' + latest.date);
-        for (var di = 0; di < TGJU_ASSETS.length; di++) {
-            var da = TGJU_ASSETS[di]; var dv = (latest.values && latest.values[da.key]) || 0;
+        for (var di = 0; di < RATE_ASSETS.length; di++) {
+            var da = RATE_ASSETS[di]; var dv = (latest.values && latest.values[da.key]) || 0;
             lines.push('- ' + da.label + ': ' + formatRial(dv) + ' ریال');
         }
     }
@@ -4091,7 +4091,7 @@ function init() {
     aiInit();
     aiRender();
     renderEstimateItems();
-    console.log('🎉 v22 آماده — Priceto (Iran) + Navasan');
+    console.log('🎉 v23 آماده — Priceto (Iran) + Navasan');
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
