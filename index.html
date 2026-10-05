@@ -350,7 +350,6 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .est-item-row input { padding:6px 8px; font-size:0.8rem; border:1px solid var(--border); border-radius:7px; background:var(--card); }
 @media (max-width:600px) { .est-item-row { grid-template-columns:1fr 1fr; } }
 
-/* ============ Dashboard ============ */
 .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin-bottom:12px; }
 .kpi-card { background:linear-gradient(135deg, #fff 0%, var(--primary-soft) 100%); border:1px solid var(--primary-light); border-radius:14px; padding:16px; box-shadow:var(--shadow-sm); position:relative; overflow:hidden; }
 .kpi-card::before { content:''; position:absolute; top:0; right:0; width:4px; height:100%; background:linear-gradient(180deg, var(--primary), var(--primary-dark)); }
@@ -383,14 +382,12 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .top-exp-item .name { flex:1; }
 .top-exp-item .amt { font-weight:bold; color:#c0392b; white-space:nowrap; }
 
-/* Widget order */
 .widget-order-row { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--bg); border-radius:8px; margin-bottom:6px; font-size:0.85rem; }
 .widget-order-row .wo-name { flex:1; font-weight:bold; color:var(--primary-dark); }
 .widget-order-row .wo-btns { display:flex; gap:4px; }
 .widget-order-row .wo-btn { background:var(--primary-light); color:var(--primary-dark); border:none; width:30px; height:30px; border-radius:7px; font-weight:bold; cursor:pointer; }
 .widget-order-row .wo-btn:disabled { opacity:0.35; cursor:not-allowed; }
 
-/* Live rates widget */
 .rate-row { display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:var(--bg); border-radius:10px; margin-bottom:6px; gap:8px; }
 .rate-row .name { font-weight:bold; font-size:0.88rem; }
 .rate-row .amount { font-weight:bold; font-size:0.95rem; color:var(--primary-dark); white-space:nowrap; }
@@ -399,13 +396,11 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .rate-row .rate-chg.down { background:#fdeaea; color:#c0392b; }
 .rate-row .rate-chg.same { background:var(--bg); color:var(--text-muted); }
 
-/* Daily close price */
 .close-price-row { display:grid; grid-template-columns:1fr auto; gap:8px; padding:10px 12px; background:var(--bg); border-radius:10px; margin-bottom:6px; align-items:center; font-size:0.85rem; }
 .close-price-row .cp-name { font-weight:bold; }
 .close-price-row .cp-amount { font-weight:bold; color:var(--primary-dark); direction:ltr; }
 .close-price-row .cp-actions { display:flex; gap:4px; }
 
-/* AI FAB */
 .ai-fab { position:fixed; bottom:22px; left:22px; width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, #667eea 0%, #764ba2 50%, #4a90e2 100%); color:#fff; border:none; font-size:1.7rem; cursor:pointer; z-index:80; box-shadow:0 8px 24px rgba(102,126,234,0.4); display:flex; align-items:center; justify-content:center; animation: aiPulse 3s ease-in-out infinite; }
 @keyframes aiPulse { 0%, 100% { box-shadow:0 8px 24px rgba(102,126,234,0.4); } 50% { box-shadow:0 8px 32px rgba(102,126,234,0.7); } }
 .ai-fab:hover { transform:scale(1.1) rotate(5deg); }
@@ -1038,7 +1033,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 </div>
 
 <script>
-console.log('✅ پارسیس PWA v19 — Live Rates Fix');
+console.log('✅ پارسیس PWA v20 — Cloudflare Worker');
 var LS_PREFIX = 'parsis.';
 var DB = {
     load: function(k, f) { try { var r = localStorage.getItem(LS_PREFIX + k); return r ? JSON.parse(r) : f; } catch(e) { return f; } },
@@ -1687,7 +1682,7 @@ function updateHomeWidgets() {
 }
 
 /* =================================================================
-   ============ Live Rates (TGJU — Robust, single source) ==========
+   ============ Live Rates — Cloudflare Worker Connected ===========
    ================================================================= */
 var TGJU_ASSETS = [
     { key: 'price_dollar_rl', label: '💵 دلار آمریکا' },
@@ -1700,9 +1695,11 @@ var TGJU_ASSETS = [
     { key: 'rob_sekke', label: '🪙 ربع سکه' }
 ];
 
+/* ⭐ URL شخصی Cloudflare Worker شما */
+var TGJU_WORKER_URL = 'https://parsis-rates.saeedpoorebad.workers.dev';
+
 var LIVE_RATES_CACHE = DB.load('liveRatesCache', { values: {}, ts: 0, prev: {} });
 
-/* fetch با AbortController و تایم‌اوت تضمینی */
 function fetchWithTimeout(url, opts, ms) {
     return new Promise(function(resolve, reject) {
         var controller = new AbortController();
@@ -1710,13 +1707,12 @@ function fetchWithTimeout(url, opts, ms) {
             try { controller.abort(); } catch(e){}
             reject(new Error('timeout'));
         }, ms || 6000);
-        fetch(url, Object.assign({}, opts || {}, { signal: controller.signal, cache: 'no-store', mode: 'cors' }))
+        fetch(url, Object.assign({}, opts || {}, { signal: controller.signal, cache: 'no-store' }))
             .then(function(r) { clearTimeout(timer); resolve(r); })
             .catch(function(e) { clearTimeout(timer); reject(e); });
     });
 }
 
-/* تلاش برای گرفتن JSON از یک URL */
 async function tryFetchJson(url, ms) {
     try {
         var res = await fetchWithTimeout(url, {
@@ -1732,7 +1728,6 @@ async function tryFetchJson(url, ms) {
     }
 }
 
-/* استخراج قیمت از پاسخ TGJU در هر فرمتی */
 function parseTGJUResponse(data, assetKey) {
     if (!data || typeof data !== 'object') return 0;
     var item = data[assetKey];
@@ -1743,40 +1738,41 @@ function parseTGJUResponse(data, assetKey) {
     return (isFinite(p) && p > 0) ? p : 0;
 }
 
-/* دریافت نرخ یک دارایی — تلاش مستقیم، سپس چند پروکسی */
+/* ⭐ اصل: اول از Worker شخصی، سپس fallback ها */
 async function fetchTGJURate(assetKey) {
-    /* ۱) تلاش مستقیم روی call1 و call2 (اگر CORS اجازه دهد) */
+    /* ۱) از Cloudflare Worker (روش اصلی و مطمئن) */
+    if (TGJU_WORKER_URL) {
+        var workerUrl = TGJU_WORKER_URL + '/?items=' + encodeURIComponent(assetKey);
+        var dW = await tryFetchJson(workerUrl, 9000);
+        var pW = parseTGJUResponse(dW, assetKey);
+        if (pW > 0) return pW;
+    }
+    /* ۲) تلاش مستقیم */
     var direct = [
         'https://call1.tgju.org/ajax.json?items=' + assetKey,
-        'https://call2.tgju.org/ajax.json?items=' + assetKey,
-        'https://api.tgju.org/v1/data/price/' + assetKey
+        'https://call2.tgju.org/ajax.json?items=' + assetKey
     ];
     for (var i = 0; i < direct.length; i++) {
         var d1 = await tryFetchJson(direct[i], 4000);
         var p1 = parseTGJUResponse(d1, assetKey);
         if (p1 > 0) return p1;
     }
-    /* ۲) از طریق پروکسی‌های CORS */
+    /* ۳) پروکسی‌های عمومی */
     var target = 'https://call2.tgju.org/ajax.json?items=' + assetKey;
     var proxyBuilders = [
         function(u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
-        function(u) { return 'https://corsproxy.io/?url=' + encodeURIComponent(u); },
-        function(u) { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); },
-        function(u) { return 'https://cors.eu.org/' + u; },
-        function(u) { return 'https://proxy.corsfix.com/?' + u; },
-        function(u) { return 'https://api.cors.lol/?url=' + encodeURIComponent(u); }
+        function(u) { return 'https://corsproxy.io/?url=' + encodeURIComponent(u); }
     ];
     for (var pi = 0; pi < proxyBuilders.length; pi++) {
         var proxied;
         try { proxied = proxyBuilders[pi](target); } catch(e) { continue; }
-        var d2 = await tryFetchJson(proxied, 5500);
+        var d2 = await tryFetchJson(proxied, 5000);
         var p2 = parseTGJUResponse(d2, assetKey);
         if (p2 > 0) return p2;
     }
     return 0;
 }
 
-/* تابع اصلی — همه نرخ‌ها را می‌گیرد و کش می‌کند */
 async function fetchLiveRates(silent) {
     var box = document.getElementById('home-live-rates');
     var meta = document.getElementById('live-rates-meta');
@@ -1984,6 +1980,12 @@ function renderDailyCloseHistory() {
 
 /* ==================== Report: Rates Range (TGJU) ==================== */
 async function fetchRateRange(assetKey, days) {
+    /* اول از Worker شخصی */
+    if (TGJU_WORKER_URL) {
+        var wUrl = TGJU_WORKER_URL + '/?items=' + encodeURIComponent(assetKey) + '&days=' + days;
+        var dw = await tryFetchJson(wUrl, 9000);
+        if (dw) return dw;
+    }
     var url = 'https://call2.tgju.org/ajax.json?items=' + assetKey + '&days=' + days;
     var proxied = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
     var d = await tryFetchJson(proxied, 7000);
@@ -4012,7 +4014,7 @@ function init() {
     aiInit();
     aiRender();
     renderEstimateItems();
-    console.log('🎉 v19 آماده — Live Rates Fix');
+    console.log('🎉 v20 آماده — Cloudflare Worker + ' + TGJU_WORKER_URL);
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
