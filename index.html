@@ -452,7 +452,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .cfd-details { display:none; padding:10px 14px; border-top:1px solid var(--border); }
 .cfd-details.show { display:block; }
 .rate-updated { font-size:0.68rem; color:var(--text-muted); width:100%; text-align:left; margin-top:3px; }
-.rate-debug { font-size:0.68rem; color:var(--text-muted); width:100%; text-align:left; margin-top:2px; font-family:monospace; direction:ltr; }
+.ai-fallback-badge { display:inline-block; padding:2px 8px; background:#fff4e0; color:#c47c00; border-radius:8px; font-size:0.68rem; font-weight:bold; margin-right:6px; }
 </style>
 </head>
 <body class="theme-sky font-tahoma">
@@ -976,7 +976,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
         <div class="modal-section"><h3>👁 گزارش</h3><label class="checkbox-item"><input type="checkbox" id="set-hide-numbers"> <span>مخفی کردن اعداد</span></label><div class="field"><label>واحد</label><select id="set-currency-display2"><option value="rial">ریال</option><option value="toman">تومان</option><option value="million">میلیون ریال</option></select></div></div>
         <div class="modal-section"><h3>💾 پشتیبان</h3><div class="form-buttons"><button id="modal-backup-btn" class="btn-primary">💾 پشتیبان</button><button id="modal-restore-btn" class="btn-secondary">📥 بازیابی</button></div><p id="backup-info" class="muted"></p></div>
         <div class="modal-section"><h3 style="color:#dc2626">⚠️ ریست</h3><div class="reset-warning">همه داده‌ها پاک می‌شود.</div><div class="form-buttons"><button id="modal-reset-btn" class="btn-danger">🗑 ریست</button></div></div>
-        <div class="modal-section"><h3>ℹ️ درباره</h3><p class="muted">پارسیس — PWA</p></div>
+        <div class="modal-section"><h3>ℹ️ درباره</h3><p class="muted" id="about-version">پارسیس — PWA</p></div>
     </div>
 </div>
 <input type="file" id="restore-file" accept=".json" hidden>
@@ -1010,12 +1010,26 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 </div>
 
 <div id="ai-settings-overlay" class="overlay"></div>
-<div id="ai-settings-modal" class="modal" style="max-width:520px">
+<div id="ai-settings-modal" class="modal" style="max-width:560px">
     <div class="modal-head"><h2>🤖 تنظیمات دستیار</h2><button id="ai-settings-close" class="close-btn">×</button></div>
     <div class="modal-body">
         <div class="modal-section"><h3>سرویس‌دهنده</h3><div class="field"><select id="ai-provider-select"><option value="avalai">AvalAI — اول AI (ایرانی)</option><option value="chatanywhere">ChatAnywhere (رایگان)</option><option value="deepseek">DeepSeek</option><option value="groq">Groq</option></select></div></div>
         <div class="modal-section"><h3>کلید API</h3><div class="field"><input type="password" id="ai-apikey-input" placeholder="sk-..." dir="ltr"></div></div>
-        <div class="modal-section"><h3>مدل</h3><div class="field"><input type="text" id="ai-model-input" dir="ltr" placeholder="gpt-4o-mini"></div></div>
+        <div class="modal-section">
+            <h3>مدل (AvalAI)</h3>
+            <div class="field">
+                <select id="ai-model-select">
+                    <option value="__auto__">🤖 خودکار (پیشنهاد: gpt-4o-mini)</option>
+                </select>
+            </div>
+            <p class="muted" style="font-size:0.72rem;line-height:1.7">
+                در صورت خطا یا پاسخ ندادن مدل، به‌طور خودکار به مدل بعدی در لیست سوئیچ می‌شود تا یکی پاسخ دهد.
+                لیست زیر مدل‌های رایج AvalAI است. اگر مطمئن نیستید «خودکار» را انتخاب کنید.
+            </p>
+            <div class="field"><label>یا مدل دلخواه (متن آزاد)</label><input type="text" id="ai-model-input" dir="ltr" placeholder="gpt-4o-mini"></div>
+            <label class="checkbox-item" style="margin-top:6px"><input type="checkbox" id="ai-auto-fallback" checked> <span>جایگزینی خودکار در صورت خطا</span></label>
+            <div id="ai-model-status" class="muted" style="font-size:0.72rem;margin-top:6px"></div>
+        </div>
         <div class="form-buttons"><button id="ai-settings-save" class="btn-primary">💾 ذخیره</button><button id="ai-settings-cancel" class="btn-secondary">انصراف</button></div>
     </div>
 </div>
@@ -1028,7 +1042,15 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 </div>
 
 <script>
-console.log('✅ پارسیس PWA v24 — Priceto + Navasan (CORS-proxy robust)');
+/* =====================================================================
+   =====================  پارسیس — PWA v25.10.06  =====================
+   ===================================================================== */
+var APP_NAME = 'پارسیس';
+var APP_VERSION = '25.10.06';
+var APP_VERSION_LABEL = 'پارسیس — نسخه ' + toFaSimple(APP_VERSION) + ' (PWA)';
+function toFaSimple(x){ return String(x).replace(/\d/g, function(d){ return '۰۱۲۳۴۵۶۷۸۹'[d]; }); }
+
+console.log('✅ ' + APP_NAME + ' PWA v' + APP_VERSION + ' — Priceto + Navasan');
 var LS_PREFIX = 'parsis.';
 var DB = {
     load: function(k, f) { try { var r = localStorage.getItem(LS_PREFIX + k); return r ? JSON.parse(r) : f; } catch(e) { return f; } },
@@ -1679,27 +1701,23 @@ function updateHomeWidgets() {
 
 /* =====================================================================
    ========== Live Rates — Priceto + Navasan (CORS-proxy robust) ======
-   ========== همه قیمت‌ها به ریال ======================================
+   ========== Priceto: ریال | Navasan: تومان → × 10 به ریال ============
    ===================================================================== */
 var RATE_ASSETS = [
-    { key: 'price_dollar_rl', label: '💵 دلار آمریکا',         priceto: 'usd',          navasanKey: 'usd',          source: 'fiat' },
-    { key: 'geram18',         label: '🥇 طلای ۱۸ عیار (گرم)',  priceto: 'gold-18',      navasanKey: '18ayar',       source: 'gold' },
-    { key: 'geram24',         label: '🥇 طلای ۲۴ عیار (گرم)',  priceto: 'gold-24',      navasanKey: '24ayar',       source: 'gold' },
-    { key: 'gold_mini_size',  label: '🥇 طلای دسته دوم (گرم)', priceto: 'gold-meskal',  navasanKey: 'bub_18ayar',   source: 'gold' },
-    { key: 'sekke_emami',     label: '🪙 سکه امامی',          priceto: 'coin-emami',   navasanKey: 'sekkeh',       source: 'gold' },
-    { key: 'sekke_bahar',     label: '🪙 سکه بهار آزادی',     priceto: 'coin-bahar',   navasanKey: 'bahar',        source: 'gold' },
-    { key: 'nim_sekke',       label: '🪙 نیم سکه',            priceto: 'coin-nim',     navasanKey: 'nim',          source: 'gold' },
-    { key: 'rob_sekke',       label: '🪙 ربع سکه',            priceto: 'coin-rob',     navasanKey: 'rob',          source: 'gold' }
+    { key: 'price_dollar_rl', label: '💵 دلار آمریکا',         priceto: 'usd',          navasanKey: 'usd',          source: 'fiat', navasanMul: 10 },
+    { key: 'geram18',         label: '🥇 طلای ۱۸ عیار (گرم)',  priceto: 'gold-18',      navasanKey: '18ayar',       source: 'gold', navasanMul: 10 },
+    { key: 'geram24',         label: '🥇 طلای ۲۴ عیار (گرم)',  priceto: 'gold-24',      navasanKey: '24ayar',       source: 'gold', navasanMul: 10 },
+    { key: 'gold_mini_size',  label: '🥇 طلای دسته دوم (گرم)', priceto: 'gold-meskal',  navasanKey: 'bub_18ayar',   source: 'gold', navasanMul: 10 },
+    { key: 'sekke_emami',     label: '🪙 سکه امامی',          priceto: 'coin-emami',   navasanKey: 'sekkeh',       source: 'gold', navasanMul: 10 },
+    { key: 'sekke_bahar',     label: '🪙 سکه بهار آزادی',     priceto: 'coin-bahar',   navasanKey: 'bahar',        source: 'gold', navasanMul: 10 },
+    { key: 'nim_sekke',       label: '🪙 نیم سکه',            priceto: 'coin-nim',     navasanKey: 'nim',          source: 'gold', navasanMul: 10 },
+    { key: 'rob_sekke',       label: '🪙 ربع سکه',            priceto: 'coin-rob',     navasanKey: 'rob',          source: 'gold', navasanMul: 10 }
 ];
 
-/* ⭐ منبع ۱: Priceto (سرویس ایرانی) */
 var PRICETO_BASE = 'https://api.priceto.day/v1/latest/irr';
-
-/* ⭐ منبع ۲: Navasan via jsDelivr CDN */
 var NAVASAN_GOLD_CDN = 'https://cdn.jsdelivr.net/gh/HosseinOdd/Navasan-API@main/data/gold.json';
 var NAVASAN_FIAT_CDN = 'https://cdn.jsdelivr.net/gh/HosseinOdd/Navasan-API@main/data/fiat.json';
 
-/* ⭐ لیست CORS Proxy ها — به ترتیب امتحان می‌شوند */
 var CORS_PROXIES = [
     function(u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
     function(u) { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); },
@@ -1737,23 +1755,19 @@ async function tryFetchJson(url, ms) {
     }
 }
 
-/* ⭐ تلاش: اول مستقیم، بعد از طریق پروکسی‌ها */
 async function tryFetchJsonWithFallback(url, ms) {
-    /* ۱) مستقیم */
     var data = await tryFetchJson(url, ms);
     if (data) return data;
-    /* ۲) از طریق پروکسی‌ها */
     for (var i = 0; i < CORS_PROXIES.length; i++) {
         try {
             var proxyUrl = CORS_PROXIES[i](url);
             data = await tryFetchJson(proxyUrl, (ms || 8000) + 3000);
             if (data) return data;
-        } catch(e) { /* ادامه بده */ }
+        } catch(e) { }
     }
     return null;
 }
 
-/* ==================== Priceto ==================== */
 async function fetchFromPriceto(symbol) {
     if (!symbol) return { value: 0, ts: 0 };
     var url = PRICETO_BASE + '/' + symbol;
@@ -1766,14 +1780,14 @@ async function fetchFromPriceto(symbol) {
     return { value: v, ts: data.timestamp || data.ts || (data.data && data.data.timestamp) || 0 };
 }
 
-/* ==================== Navasan ==================== */
-function parseNavasanItem(data, assetKey) {
+function parseNavasanItem(data, assetKey, multiplier) {
     if (!data || typeof data !== 'object') return { value: 0, ts: 0 };
     var item = data[assetKey];
     if (!item) return { value: 0, ts: 0 };
     var val = item.value || item.price || item.p || item.last || 0;
     var v = Number(String(val).replace(/[,\s]/g, ''));
     if (!isFinite(v) || v <= 0) return { value: 0, ts: 0 };
+    if (multiplier && multiplier !== 1) v = v * multiplier;
     return { value: v, ts: item.date || item.timestamp || item.last_update || 0 };
 }
 
@@ -1786,12 +1800,10 @@ async function tryNavasanFrom(url) {
     return data;
 }
 
-/* ⭐ تابع اصلی: اول Priceto (با fallback پروکسی)، سپس Navasan CDN، سپس Navasan با پروکسی */
 async function fetchAllRates() {
     var results = {};
     var pending = RATE_ASSETS.map(function(a) { return { asset: a, done: false, value: 0, ts: 0 }; });
 
-    /* ---- مرحله ۱: Priceto به‌صورت موازی ---- */
     await Promise.all(pending.map(function(p) {
         return fetchFromPriceto(p.asset.priceto).then(function(r) {
             if (r.value > 0) { p.done = true; p.value = r.value; p.ts = r.ts; }
@@ -1800,7 +1812,6 @@ async function fetchAllRates() {
 
     var stillNeed = pending.filter(function(p) { return !p.done; });
 
-    /* ---- مرحله ۲: Navasan CDN برای موارد باقی‌مانده ---- */
     if (stillNeed.length > 0) {
         var goldData = null, fiatData = null;
         try { goldData = await tryFetchJson(NAVASAN_GOLD_CDN, 9000); } catch(e) {}
@@ -1808,13 +1819,12 @@ async function fetchAllRates() {
 
         stillNeed.forEach(function(p) {
             var a = p.asset; var parsed = { value: 0, ts: 0 };
-            if (a.source === 'gold' && goldData) parsed = parseNavasanItem(goldData, a.navasanKey);
-            else if (a.source === 'fiat' && fiatData) parsed = parseNavasanItem(fiatData, a.navasanKey);
+            if (a.source === 'gold' && goldData) parsed = parseNavasanItem(goldData, a.navasanKey, a.navasanMul);
+            else if (a.source === 'fiat' && fiatData) parsed = parseNavasanItem(fiatData, a.navasanKey, a.navasanMul);
             if (parsed.value > 0) { p.done = true; p.value = parsed.value; p.ts = parsed.ts; }
         });
     }
 
-    /* ---- مرحله ۳: Navasan از طریق پروکسی برای باقی‌مانده‌ها ---- */
     stillNeed = pending.filter(function(p) { return !p.done; });
     if (stillNeed.length > 0) {
         var goldProxy = null, fiatProxy = null;
@@ -1823,13 +1833,12 @@ async function fetchAllRates() {
 
         stillNeed.forEach(function(p) {
             var a = p.asset; var parsed = { value: 0, ts: 0 };
-            if (a.source === 'gold' && goldProxy) parsed = parseNavasanItem(goldProxy, a.navasanKey);
-            else if (a.source === 'fiat' && fiatProxy) parsed = parseNavasanItem(fiatProxy, a.navasanKey);
+            if (a.source === 'gold' && goldProxy) parsed = parseNavasanItem(goldProxy, a.navasanKey, a.navasanMul);
+            else if (a.source === 'fiat' && fiatProxy) parsed = parseNavasanItem(fiatProxy, a.navasanKey, a.navasanMul);
             if (parsed.value > 0) { p.done = true; p.value = parsed.value; p.ts = parsed.ts; }
         });
     }
 
-    /* ---- خروجی نهایی ---- */
     pending.forEach(function(p) {
         results[p.asset.key] = { value: p.value || 0, ts: p.ts || 0 };
     });
@@ -2070,7 +2079,6 @@ function renderDailyCloseHistory() {
     }
 }
 
-/* ==================== Report: Rates from local history ==================== */
 async function runRatesReport() {
     var asset = document.getElementById('rr-asset').value;
     var range = document.getElementById('rr-range').value;
@@ -2494,7 +2502,7 @@ function setupTabs() {
 }
 function downloadBackup() {
     var data = {}; for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k.indexOf(LS_PREFIX) === 0) data[k] = localStorage.getItem(k); }
-    var backup = { app:'parsis', version:'pwa', exportedAt: new Date().toISOString(), data: data };
+    var backup = { app:'parsis', version: APP_VERSION, exportedAt: new Date().toISOString(), data: data };
     var blob = new Blob([JSON.stringify(backup, null, 2)], { type:'application/json' }); var url = URL.createObjectURL(blob);
     var now = new Date(); var dateStr = todayJalaliStr().replace(/\//g, '-'); var timeStr = pad2(now.getHours()) + '-' + pad2(now.getMinutes());
     var a = document.createElement('a'); a.href = url; a.download = 'parsis-' + dateStr + '_' + timeStr + '.json'; a.click(); URL.revokeObjectURL(url);
@@ -3706,46 +3714,249 @@ function refreshReportPeriodSelects() {
 }
 
 /* ==================== AI ==================== */
-var AI = { provider: DB.load('ai.provider', 'avalai'), apiKey: DB.load('ai.apiKey', ''), model: DB.load('ai.model', 'gpt-4o-mini'), history: DB.load('ai.history', []), MAX_HISTORY: 20, isThinking: false };
-function aiSaveSettings() { DB.save('ai.provider', AI.provider); DB.save('ai.apiKey', AI.apiKey); DB.save('ai.model', AI.model); }
+var AVALAI_MODELS = [
+    { id: 'gpt-4o-mini',                label: 'GPT-4o Mini (پیشنهاد)' },
+    { id: 'gpt-4o',                     label: 'GPT-4o' },
+    { id: 'gpt-4.1-mini',               label: 'GPT-4.1 Mini' },
+    { id: 'gpt-4.1',                    label: 'GPT-4.1' },
+    { id: 'gpt-3.5-turbo',              label: 'GPT-3.5 Turbo (اقتصادی)' },
+    { id: 'deepseek-chat',              label: 'DeepSeek Chat' },
+    { id: 'deepseek-reasoner',          label: 'DeepSeek Reasoner' },
+    { id: 'gemini-2.0-flash',           label: 'Gemini 2.0 Flash' },
+    { id: 'gemini-1.5-flash',           label: 'Gemini 1.5 Flash' },
+    { id: 'gemini-1.5-pro',             label: 'Gemini 1.5 Pro' },
+    { id: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet' },
+    { id: 'o1-mini',                    label: 'o1-mini' }
+];
+
+var AI = {
+    provider: DB.load('ai.provider', 'avalai'),
+    apiKey: DB.load('ai.apiKey', ''),
+    model: DB.load('ai.model', 'gpt-4o-mini'),
+    autoFallback: DB.load('ai.autoFallback', true),
+    failedModels: {},
+    history: DB.load('ai.history', []),
+    MAX_HISTORY: 20,
+    isThinking: false
+};
+function aiSaveSettings() {
+    DB.save('ai.provider', AI.provider);
+    DB.save('ai.apiKey', AI.apiKey);
+    DB.save('ai.model', AI.model);
+    DB.save('ai.autoFallback', AI.autoFallback);
+}
 function aiSaveHistory() { DB.save('ai.history', AI.history.slice(-AI.MAX_HISTORY)); }
+
+/* ---------- ساخت context کامل با تمام داده‌های کاربر ---------- */
 function aiBuildContext() {
     var lines = [];
-    lines.push('تاریخ امروز: ' + todayJalaliStr());
-    var period = DB.load('fiscalPeriods', []).find(function(p) { return p.id === state.activePeriodId; });
-    if (period) lines.push('دوره مالی فعال: ' + period.title);
-    var persons = DB.load('persons', []);
-    if (persons.length > 0) { lines.push('\n=== اشخاص ==='); persons.forEach(function(p) { lines.push('- ' + (p.first || '') + ' ' + (p.last || '') + ' | موبایل: ' + (p.mobile || '—') + ' | حساب: ' + (p.acc || '—')); }); }
-    var banks = DB.load('bankAccounts', []);
-    if (banks.length > 0) { lines.push('\n=== حساب‌های بانکی ==='); var tb = 0; banks.forEach(function(b) { var bal = getBankBalance(b.id); tb += bal; lines.push('- ' + (b.bank || '—') + ' / ' + (b.account || '') + ': ' + formatMoney(bal) + ' ' + currencyLabel()); }); lines.push('جمع: ' + formatMoney(tb)); }
-    var cashBoxes = DB.load('cashBoxes', []);
-    if (cashBoxes.length > 0) { lines.push('\n=== صندوق‌ها ==='); cashBoxes.forEach(function(c) { lines.push('- ' + c.title + ': ' + formatMoney(getCashBoxBalance(c.id))); }); }
-    var vouchers = DB.load('vouchers', []).filter(function(v) { return v.status === 'approved'; });
-    if (vouchers.length > 0) {
-        lines.push('\n=== آخرین ۲۰ سند تأییدشده ===');
-        var accounts = DB.load('accounts', []);
-        vouchers.slice().sort(function(a, b) { return compareVals(b.date, a.date); }).slice(0, 20).forEach(function(v) {
-            var ld = (v.lines || []).map(function(l) { var acc = accounts.find(function(a) { return a.id === l.account; }); var side = (Number(l.debit) || 0) > 0 ? 'بد' : 'بس'; var amt = (Number(l.debit) || 0) || (Number(l.credit) || 0); var ds = ''; if (l.details) Object.keys(l.details).forEach(function(lt) { if (l.details[lt]) ds += ' [' + linkTypeName(lt) + ': ' + getDetailLabel(lt, l.details[lt]) + ']'; }); return side + ' ' + (acc ? acc.name : '؟') + ds + ' ' + formatMoney(amt) + (l.description ? ' (' + l.description + ')' : ''); }).join(' | ');
-            lines.push('- ' + v.date + ' #' + v.number + ': ' + ld);
+    lines.push('=== اطلاعات سامانه ===');
+    lines.push('نرم‌افزار: ' + APP_NAME + ' (نسخه ' + APP_VERSION + ')');
+    lines.push('تاریخ امروز (شمسی): ' + todayJalaliStr());
+    lines.push('واحد پول نمایش: ' + currencyLabel());
+    var periods = DB.load('fiscalPeriods', []);
+    if (periods.length > 0) {
+        lines.push('\n=== دوره‌های مالی ===');
+        periods.forEach(function(p) {
+            var activeMark = (p.id === state.activePeriodId) ? ' ⭐فعال' : '';
+            lines.push('- ' + p.title + ' از ' + p.from + ' تا ' + p.to + activeMark);
         });
     }
+
+    /* --- چارت حساب‌ها --- */
+    var accounts = DB.load('accounts', []);
+    if (accounts.length > 0) {
+        lines.push('\n=== چارت حساب‌ها (' + accounts.length + ' حساب) ===');
+        var byParent = {};
+        accounts.forEach(function(a) { var p = a.parent || '__root__'; if (!byParent[p]) byParent[p] = []; byParent[p].push(a); });
+        function walkAccounts(pid, depth) {
+            var arr = byParent[pid] || [];
+            arr.forEach(function(a) {
+                lines.push(new Array(depth + 1).join('  ') + '- [' + (a.code || '?') + '] ' + (a.name || ''));
+                walkAccounts(a.id, depth + 1);
+            });
+        }
+        walkAccounts('__root__', 0);
+    }
+
+    /* --- اشخاص با تمام فیلدها --- */
+    var persons = DB.load('persons', []);
+    if (persons.length > 0) {
+        lines.push('\n=== اشخاص (' + persons.length + ') ===');
+        persons.forEach(function(p) {
+            var parts = [];
+            parts.push('نام: ' + (p.first || '—'));
+            parts.push('خانوادگی: ' + (p.last || '—'));
+            if (p.father) parts.push('نام پدر: ' + p.father);
+            if (p.birth) parts.push('تاریخ تولد (شمسی): ' + p.birth);
+            if (p.mobile) parts.push('موبایل: ' + p.mobile);
+            if (p.phone) parts.push('تلفن: ' + p.phone);
+            if (p.bankTitle) parts.push('عنوان حساب: ' + p.bankTitle);
+            if (p.acc) parts.push('شماره حساب: ' + p.acc);
+            if (p.iban) parts.push('شبا: ' + p.iban);
+            if (p.card) parts.push('کارت: ' + p.card);
+            if (p.address) parts.push('آدرس: ' + p.address);
+            lines.push('- ' + parts.join(' | '));
+        });
+    }
+
+    /* --- شرکت‌ها --- */
+    var companies = DB.load('companies', []);
+    if (companies.length > 0) {
+        lines.push('\n=== شرکت‌ها (' + companies.length + ') ===');
+        companies.forEach(function(c) {
+            var parts = ['نام: ' + (c.name || '—')];
+            if (c.phone) parts.push('تلفن: ' + c.phone);
+            if (c.address) parts.push('آدرس: ' + c.address);
+            lines.push('- ' + parts.join(' | '));
+        });
+    }
+
+    /* --- حساب‌های بانکی --- */
+    var banks = DB.load('bankAccounts', []);
+    if (banks.length > 0) {
+        lines.push('\n=== حساب‌های بانکی (' + banks.length + ') ===');
+        var tb = 0;
+        banks.forEach(function(b) {
+            var bal = getBankBalance(b.id); tb += bal;
+            var parts = ['بانک: ' + (b.bank || '—')];
+            if (b.type) parts.push('نوع: ' + b.type);
+            if (b.branchName) parts.push('شعبه: ' + b.branchName);
+            if (b.branchCode) parts.push('کد شعبه: ' + b.branchCode);
+            if (b.account) parts.push('حساب: ' + b.account);
+            if (b.iban) parts.push('شبا: ' + b.iban);
+            if (b.card) parts.push('کارت: ' + b.card);
+            parts.push('مانده: ' + formatMoney(bal) + ' ' + currencyLabel());
+            lines.push('- ' + parts.join(' | '));
+        });
+        lines.push('جمع مانده بانک‌ها: ' + formatMoney(tb) + ' ' + currencyLabel());
+    }
+
+    /* --- صندوق‌ها --- */
+    var cashBoxes = DB.load('cashBoxes', []);
+    if (cashBoxes.length > 0) {
+        lines.push('\n=== صندوق‌ها (' + cashBoxes.length + ') ===');
+        cashBoxes.forEach(function(c) {
+            var bal = getCashBoxBalance(c.id);
+            var parts = ['عنوان: ' + (c.title || '—')];
+            if (c.type) parts.push('نوع: ' + c.type);
+            if (c.unit) parts.push('واحد: ' + c.unit);
+            parts.push('مانده: ' + formatMoney(bal) + ' ' + currencyLabel());
+            lines.push('- ' + parts.join(' | '));
+        });
+    }
+
+    /* --- پروژه‌ها --- */
+    var projects = DB.load('projects', []);
+    if (projects.length > 0) {
+        lines.push('\n=== پروژه‌ها (' + projects.length + ') ===');
+        projects.forEach(function(p) { lines.push('- ' + (p.name || '—')); });
+    }
+
+    /* --- تسهیلات با اقساط --- */
     var facilities = DB.load('facilities', []);
     if (facilities.length > 0) {
-        lines.push('\n=== تسهیلات ===');
+        lines.push('\n=== تسهیلات (' + facilities.length + ') ===');
+        var today = toJalali(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
+        var tStr = today[0] + '/' + pad2(today[1]) + '/' + pad2(today[2]);
         facilities.forEach(function(f) {
-            var ins = f.installments || []; var un = ins.filter(function(x) { return x.status !== 'paid'; });
-            var unAmt = un.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
-            lines.push('- ' + f.name + ': مبلغ اولیه ' + formatMoney(f.initial || 0) + '، باقی ' + formatMoney(unAmt) + '، ' + un.length + ' قسط پرداخت‌نشده');
+            var ins = f.installments || [];
+            var paid = ins.filter(function(x) { return x.status === 'paid'; });
+            var unpaid = ins.filter(function(x) { return x.status !== 'paid'; });
+            var paidAmt = paid.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
+            var unpaidAmt = unpaid.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
+            var overdue = unpaid.filter(function(x) { return x.date && x.date < tStr; }).length;
+            var bank = DB.load('bankAccounts', []).find(function(b) { return b.id === f.bankId; });
+            lines.push('- ' + (f.name || '—') + ' | دسته: ' + categoryName(f.category) +
+                ' | بانک: ' + (bank ? bank.bank : '—') +
+                ' | تاریخ: ' + (f.date || '—') +
+                ' | مبلغ اولیه: ' + formatMoney(f.initial || 0) +
+                ' | پرداخت‌شده: ' + formatMoney(paidAmt) +
+                ' | باقی‌مانده: ' + formatMoney(unpaidAmt) +
+                ' | تعداد اقساط: ' + ins.length +
+                ' | پرداخت‌شده: ' + paid.length +
+                ' | باقی: ' + unpaid.length +
+                ' | معوق: ' + overdue);
+            if (unpaid.length > 0) {
+                var sorted = unpaid.slice().sort(function(a, b) { return compareVals(a.date, b.date); }).slice(0, 5);
+                sorted.forEach(function(x) { lines.push('    • قسط ' + (x.date || '—') + ' مبلغ ' + formatMoney(x.amount || 0) + ' [' + (x.status === 'paid' ? 'پرداخت‌شده' : 'ثبت‌شده') + ']'); });
+            }
         });
     }
-    var cr = LIVE_RATES_CACHE;
-    if (cr.ts > 0 && cr.values) {
-        lines.push('\n=== آخرین نرخ‌های لحظه‌ای (ریال) ===');
-        for (var ri = 0; ri < RATE_ASSETS.length; ri++) {
-            var a = RATE_ASSETS[ri]; var val = cr.values[a.key] || 0;
-            lines.push('- ' + a.label + ': ' + formatRial(val) + ' ریال');
+
+    /* --- اسناد حسابداری --- */
+    var vouchers = DB.load('vouchers', []);
+    if (vouchers.length > 0) {
+        var approved = vouchers.filter(function(v) { return v.status === 'approved'; });
+        var draft = vouchers.filter(function(v) { return v.status !== 'approved'; });
+        lines.push('\n=== اسناد حسابداری ===');
+        lines.push('جمع: ' + vouchers.length + ' | تأییدشده: ' + approved.length + ' | پیش‌نویس: ' + draft.length);
+        var accountsById = {}; accounts.forEach(function(a) { accountsById[a.id] = a; });
+        var sortedV = approved.slice().sort(function(a, b) { var c = compareVals(b.date, a.date); if (c !== 0) return c; return compareVals(b.number, a.number); });
+        var toShow = sortedV.slice(0, 40);
+        lines.push('--- ۴۰ سند آخر تأییدشده ---');
+        toShow.forEach(function(v) {
+            var parts = [];
+            (v.lines || []).forEach(function(l) {
+                var acc = accountsById[l.account];
+                var side = (Number(l.debit) || 0) > 0 ? 'بد' : 'بس';
+                var amt = (Number(l.debit) || 0) || (Number(l.credit) || 0);
+                var detailStr = '';
+                if (l.details) Object.keys(l.details).forEach(function(lt) {
+                    if (l.details[lt]) detailStr += ' [' + linkTypeName(lt) + ': ' + getDetailLabel(lt, l.details[lt]) + ']';
+                });
+                parts.push(side + ' ' + (acc ? acc.name : '؟') + detailStr + ' ' + formatMoney(amt) + (l.description ? ' (' + l.description + ')' : ''));
+            });
+            lines.push('- ' + v.date + ' #' + v.number + ' (' + voucherTypeName(v.type) + '): ' + v.desc + ' — ' + parts.join(' | '));
+        });
+        var draftSorted = draft.slice().sort(function(a, b) { return compareVals(b.date, a.date); }).slice(0, 20);
+        if (draftSorted.length > 0) {
+            lines.push('--- پیش‌نویس‌های اخیر (۲۰ مورد) ---');
+            draftSorted.forEach(function(v) {
+                var amt = 0; (v.lines || []).forEach(function(l) { amt += Number(l.debit) || 0; });
+                lines.push('- ' + v.date + ' #' + v.number + ': ' + (v.desc || '—') + ' — ' + formatMoney(amt));
+            });
         }
     }
+
+    /* --- برآورد هزینه‌های روزانه --- */
+    var estimates = DB.load('dailyEstimates', []);
+    if (estimates.length > 0) {
+        lines.push('\n=== برآورد هزینه‌های روزانه (' + estimates.length + ') ===');
+        estimates.forEach(function(est) {
+            var total = (est.items || []).reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
+            lines.push('- ' + (est.title || est.desc || '—') + ' | از ' + (est.from || '—') + ' تا ' + (est.to || '—') + ' | مبلغ تخمینی: ' + formatMoney(est.total || 0) + ' | جمع آیتم‌ها: ' + formatMoney(total) + ' | تعداد: ' + (est.items || []).length);
+        });
+    }
+
+    /* --- برآورد منابع دریافتنی --- */
+    var cfsList = DB.load('cashFlowSources', []);
+    if (cfsList.length > 0) {
+        lines.push('\n=== برآورد منابع دریافتنی (' + cfsList.length + ') ===');
+        cfsList.forEach(function(s) {
+            lines.push('- ' + getSourceLabel(s) + ' | تاریخ: ' + (s.expectedDate || '—') + ' | مبلغ: ' + formatMoney(s.amount || 0) + (s.notes ? ' | توضیحات: ' + s.notes : ''));
+        });
+    }
+
+    /* --- پیامک بانکی --- */
+    var smsList = getSmsInbox();
+    if (smsList.length > 0) {
+        var newCount = smsList.filter(function(s) { return s.status === 'new'; }).length;
+        lines.push('\n=== صندوق پیامک بانکی ===');
+        lines.push('جمع: ' + smsList.length + ' | ثبت‌نشده: ' + newCount);
+    }
+
+    /* --- نرخ‌های لحظه‌ای --- */
+    var cr = LIVE_RATES_CACHE;
+    if (cr.ts > 0 && cr.values) {
+        lines.push('\n=== آخرین نرخ‌های لحظه‌ای ارز و طلا (ریال) ===');
+        for (var ri = 0; ri < RATE_ASSETS.length; ri++) {
+            var a = RATE_ASSETS[ri]; var val = cr.values[a.key] || 0;
+            if (val > 0) lines.push('- ' + a.label + ': ' + formatRial(val) + ' ریال');
+        }
+    }
+
+    /* --- قیمت‌های پایانی --- */
     var dcData = getDailyCloseData();
     if (dcData.length > 0) {
         lines.push('\n=== آخرین قیمت‌های پایانی ذخیره‌شده ===');
@@ -3753,12 +3964,24 @@ function aiBuildContext() {
         lines.push('تاریخ: ' + latest.date);
         for (var di = 0; di < RATE_ASSETS.length; di++) {
             var da = RATE_ASSETS[di]; var dv = (latest.values && latest.values[da.key]) || 0;
-            lines.push('- ' + da.label + ': ' + formatRial(dv) + ' ریال');
+            if (dv > 0) lines.push('- ' + da.label + ': ' + formatRial(dv) + ' ریال');
         }
     }
+
+    /* --- الگوهای سند و شرح‌های استاندارد --- */
+    var templates = DB.load('voucherTemplates', []);
+    if (templates.length > 0) {
+        lines.push('\n=== الگوهای سند (' + templates.length + ') ===');
+        templates.forEach(function(t) { lines.push('- ' + t.name); });
+    }
+
     return lines.join('\n');
 }
-function aiBuildSystemPrompt() { return 'تو «پارسیس یار» دستیار حسابداری فارسی هستی. اطلاعات کاربر در دسترس است. با Markdown و فارسی پاسخ بده. تمام مبالغ به ریال هستند.\n\n' + aiBuildContext(); }
+
+function aiBuildSystemPrompt() {
+    return 'تو «پارسیس یار» دستیار حسابداری فارسی هستی. تمام اطلاعات کاربر (اشخاص با تاریخ تولد، شرکت‌ها، حساب‌های بانکی، صندوق‌ها، پروژه‌ها، تسهیلات با جزئیات اقساط، اسناد حسابداری، برآوردها، منابع دریافتنی، نرخ‌های ارز و طلا) در ادامه در اختیار توست. حتماً از این اطلاعات برای پاسخ‌های دقیق و شخصی‌سازی‌شده استفاده کن. اگر کاربر دربارهٔ تاریخ تولد کسی پرسید، از داده‌های بخش «اشخاص» استفاده کن. اگر داده‌ای موجود نبود، صادقانه بگو. تمام مبالغ به ریال هستند. با Markdown و فارسی پاسخ بده.\n\n' + aiBuildContext();
+}
+
 function _aiSplitTableRow(line) { var t = String(line).trim(); if (t.charAt(0) === '|') t = t.slice(1); if (t.charAt(t.length - 1) === '|') t = t.slice(0, -1); return t.split('|').map(function(s) { return s.trim(); }); }
 function renderAIMarkdown(text) {
     if (!text) return ''; var raw = String(text);
@@ -3781,24 +4004,82 @@ function renderAIMarkdown(text) {
     html = html.replace(/(?:^|\n)((?:[ \t]*[-*]\s+.+(?:\n|$))+)/g, function(m, block) { var items = block.split('\n').filter(function(l) { return l.trim(); }).map(function(l) { return '<li>' + l.replace(/^[ \t]*[-*]\s+/, '') + '</li>'; }); return '\n<ul class="ai-ul">' + items.join('') + '</ul>\n'; });
     return html;
 }
-async function aiCallAPI(userMessage) {
+
+/* ---------- فراخوانی یک‌باره با یک مدل مشخص ---------- */
+async function aiCallOnce(modelId, userMessage) {
     var sys = aiBuildSystemPrompt();
     var messages = AI.history.slice(-AI.MAX_HISTORY).filter(function(m) { return m.role === 'user' || m.role === 'assistant'; }).map(function(m) { return { role: m.role, content: m.content }; });
     messages.push({ role: 'user', content: userMessage });
-    var url, headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.apiKey }, model;
-    if (AI.provider === 'avalai') { url = 'https://api.avalai.ir/v1/chat/completions'; model = AI.model || 'gpt-4o-mini'; }
-    else if (AI.provider === 'chatanywhere') { url = 'https://api.chatanywhere.tech/v1/chat/completions'; model = AI.model || 'deepseek-chat'; }
-    else if (AI.provider === 'deepseek') { url = 'https://api.deepseek.com/v1/chat/completions'; model = AI.model || 'deepseek-chat'; }
-    else if (AI.provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = AI.model || 'openai/gpt-oss-120b'; }
+    var url, headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.apiKey }, model = modelId;
+    if (AI.provider === 'avalai') { url = 'https://api.avalai.ir/v1/chat/completions'; model = modelId || 'gpt-4o-mini'; }
+    else if (AI.provider === 'chatanywhere') { url = 'https://api.chatanywhere.tech/v1/chat/completions'; model = modelId || 'deepseek-chat'; }
+    else if (AI.provider === 'deepseek') { url = 'https://api.deepseek.com/v1/chat/completions'; model = modelId || 'deepseek-chat'; }
+    else if (AI.provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = modelId || 'openai/gpt-oss-120b'; }
     else throw new Error('سرویس نامعتبر');
-    var res = await fetch(url, { method: 'POST', headers: headers, body: JSON.stringify({ model: model, messages: [{ role: 'system', content: sys }].concat(messages), temperature: 0.3, max_tokens: 1200 }) });
-    if (!res.ok) { var t = await res.text(); throw new Error(res.status + ': ' + t.substring(0, 200)); }
-    var data = await res.json(); return data.choices[0].message.content;
+    var controller = new AbortController();
+    var timer = setTimeout(function() { try { controller.abort(); } catch(e){} }, 60000);
+    var res;
+    try {
+        res = await fetch(url, { method: 'POST', headers: headers, signal: controller.signal,
+            body: JSON.stringify({ model: model, messages: [{ role: 'system', content: sys }].concat(messages), temperature: 0.3, max_tokens: 1500 }) });
+    } finally { clearTimeout(timer); }
+    if (!res.ok) { var t = await res.text(); var e = new Error(res.status + ': ' + t.substring(0, 200)); e.status = res.status; throw e; }
+    var data = await res.json();
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) throw new Error('پاسخ نامعتبر');
+    return data.choices[0].message.content;
 }
+
+/* ---------- فراخوانی با جایگزینی خودکار بین مدل‌ها ---------- */
+async function aiCallAPI(userMessage) {
+    /* فقط برای AvalAI منطق fallback را داریم */
+    if (AI.provider !== 'avalai') {
+        return await aiCallOnce(AI.model, userMessage);
+    }
+
+    /* ترتیب امتحان: مدل انتخابی، سپس بقیه لیست */
+    var candidates = [];
+    if (AI.model) candidates.push(AI.model);
+    AVALAI_MODELS.forEach(function(m) { if (candidates.indexOf(m.id) === -1) candidates.push(m.id); });
+    if (candidates.indexOf('gpt-4o-mini') === -1) candidates.push('gpt-4o-mini');
+
+    if (!AI.autoFallback) {
+        /* فقط مدل انتخابی */
+        return await aiCallOnce(AI.model, userMessage);
+    }
+
+    var errors = [];
+    for (var i = 0; i < candidates.length; i++) {
+        var m = candidates[i];
+        if (AI.failedModels[m]) continue;
+        try {
+            var reply = await aiCallOnce(m, userMessage);
+            if (i > 0) {
+                showToast('⚠️ مدل ' + candidates[0] + ' پاسخ نداد → ' + m + ' استفاده شد.', 4000);
+            }
+            if (AI.model !== m) { AI.model = m; aiSaveSettings(); updateAiModelSelectUI(); }
+            return reply;
+        } catch (e) {
+            errors.push(m + ': ' + (e.message || e));
+            AI.failedModels[m] = true;
+            console.warn('AI model failed:', m, e);
+        }
+    }
+    throw new Error('همه مدل‌ها ناموفق بودند. آخرین خطا: ' + (errors[errors.length - 1] || 'نامشخص'));
+}
+
+function updateAiModelSelectUI() {
+    var sel = document.getElementById('ai-model-select'); if (!sel) return;
+    var status = document.getElementById('ai-model-status'); if (!status) return;
+    var failed = Object.keys(AI.failedModels);
+    var txt = 'مدل فعلی: ' + (AI.model || '—');
+    if (failed.length > 0) txt += ' | ناموفق: ' + failed.join(', ');
+    status.textContent = txt;
+}
+
 function aiRender() {
     var box = document.getElementById('ai-messages'); if (!box) return;
     if (!AI.apiKey) { box.innerHTML = '<div class="ai-setup"><h3>🤖 به پارسیس یار خوش آمدید</h3><p>کلید API را از تنظیمات (⚙) وارد کنید.<br>سرویس AvalAI ایرانی و بدون فیلترشکن است.<br><a href="https://avalai.ir" target="_blank">avalai.ir</a></p><button class="btn-primary" onclick="document.getElementById(\'ai-settings-btn\').click()">تنظیمات</button></div>'; return; }
-    if (AI.history.length === 0) { box.innerHTML = '<div class="ai-msg system">سلام! من پارسیس یار هستم 🤖</div>'; return; }
+    if (AI.history.length === 0) { box.innerHTML = '<div class="ai-msg system">سلام! من پارسیس یار هستم 🤖 — الان به همه داده‌های شما (اشخاص، تاریخ تولدها، شرکت‌ها، بانک‌ها، تسهیلات، اسناد و…) دسترسی دارم.</div>'; return; }
     var html = '';
     AI.history.forEach(function(m) { var cls = m.role === 'user' ? 'user' : (m.role === 'error' ? 'error' : 'assistant'); var content = (m.role === 'assistant') ? renderAIMarkdown(m.content) : esc(m.content); html += '<div class="ai-msg ' + cls + '">' + content + '</div>'; });
     if (AI.isThinking) html += '<div class="ai-msg thinking">در حال فکر کردن...</div>';
@@ -3818,7 +4099,19 @@ async function aiSend() {
 function aiOpenSettings() {
     document.getElementById('ai-provider-select').value = AI.provider;
     document.getElementById('ai-apikey-input').value = AI.apiKey;
-    document.getElementById('ai-model-input').value = AI.model;
+    document.getElementById('ai-model-input').value = AI.model || '';
+    document.getElementById('ai-auto-fallback').checked = !!AI.autoFallback;
+    var sel = document.getElementById('ai-model-select');
+    sel.innerHTML = '<option value="__auto__">🤖 خودکار (پیشنهاد: gpt-4o-mini)</option>';
+    AVALAI_MODELS.forEach(function(m) {
+        var o = document.createElement('option'); o.value = m.id; o.textContent = m.label;
+        if (AI.model === m.id) o.selected = true;
+        sel.appendChild(o);
+    });
+    if (!AVALAI_MODELS.some(function(m) { return m.id === AI.model; })) {
+        sel.value = '__auto__';
+    }
+    updateAiModelSelectUI();
     document.getElementById('ai-settings-modal').classList.add('show');
     document.getElementById('ai-settings-overlay').classList.add('show');
 }
@@ -3834,9 +4127,20 @@ function aiInit() {
     document.getElementById('ai-settings-save').addEventListener('click', function() {
         AI.provider = document.getElementById('ai-provider-select').value;
         AI.apiKey = document.getElementById('ai-apikey-input').value.trim();
-        var dm = AI.provider === 'avalai' ? 'gpt-4o-mini' : (AI.provider === 'groq' ? 'openai/gpt-oss-120b' : 'deepseek-chat');
-        AI.model = document.getElementById('ai-model-input').value.trim() || dm;
-        aiSaveSettings(); aiCloseSettings(); aiRender(); showToast('✅');
+        var selVal = document.getElementById('ai-model-select').value;
+        var freeModel = document.getElementById('ai-model-input').value.trim();
+        if (freeModel) AI.model = freeModel;
+        else if (selVal && selVal !== '__auto__') AI.model = selVal;
+        else AI.model = 'gpt-4o-mini';
+        AI.autoFallback = document.getElementById('ai-auto-fallback').checked;
+        AI.failedModels = {};
+        aiSaveSettings(); aiCloseSettings(); aiRender(); updateAiModelSelectUI();
+        showToast('✅ ذخیره شد. مدل: ' + AI.model);
+    });
+    document.getElementById('ai-model-select').addEventListener('change', function() {
+        var v = this.value;
+        if (v === '__auto__') { document.getElementById('ai-model-input').value = ''; }
+        else { document.getElementById('ai-model-input').value = v; }
     });
     document.getElementById('ai-clear-btn').addEventListener('click', function() { if (!confirm('پاک شود؟')) return; AI.history = []; aiSaveHistory(); aiRender(); });
     document.getElementById('ai-send-btn').addEventListener('click', aiSend);
@@ -3866,6 +4170,9 @@ function init() {
     document.getElementById('rff-hide').checked = state.hideNumbers;
     document.getElementById('set-sms-auto-read').checked = state.smsAutoRead;
     document.getElementById('sms-auto-read').checked = state.smsAutoRead;
+    /* نمایش شماره نسخه در بخش درباره */
+    var aboutEl = document.getElementById('about-version');
+    if (aboutEl) aboutEl.textContent = APP_NAME + ' — نسخه ' + toFa(APP_VERSION) + ' (PWA)';
     updateUnitChips();
     document.getElementById('menu-btn').addEventListener('click', openSidebar);
     document.getElementById('close-sidebar').addEventListener('click', closeSidebar);
@@ -3908,7 +4215,7 @@ function init() {
     for (var k = 0; k < tC.length; k++) tC[k].addEventListener('click', function() { state.theme = this.getAttribute('data-theme'); saveState('theme'); applyTheme(state.theme); });
     var fC = document.querySelectorAll('.font-card');
     for (var fc = 0; fc < fC.length; fc++) fC[fc].addEventListener('click', function() { state.font = this.getAttribute('data-font'); saveState('font'); applyFont(state.font); });
-    document.getElementById('settings-btn').addEventListener('click', function() { document.getElementById('settings-modal').classList.add('show'); document.getElementById('settings-overlay').classList.add('show'); renderWidgetOrderUI(); });
+    document.getElementById('settings-btn').addEventListener('click', function() { document.getElementById('settings-modal').classList.add('show'); document.getElementById('settings-overlay').classList.add('show'); renderWidgetOrderUI(); var aboutEl = document.getElementById('about-version'); if (aboutEl) aboutEl.textContent = APP_NAME + ' — نسخه ' + toFa(APP_VERSION) + ' (PWA)'; });
     document.getElementById('close-settings').addEventListener('click', closeSettings);
     document.getElementById('settings-overlay').addEventListener('click', closeSettings);
     document.getElementById('modal-backup-btn').addEventListener('click', downloadBackup);
@@ -4111,7 +4418,7 @@ function init() {
     aiInit();
     aiRender();
     renderEstimateItems();
-    console.log('🎉 v24 آماده — Priceto + Navasan (robust CORS)');
+    console.log('🎉 ' + APP_NAME + ' v' + APP_VERSION + ' آماده — Priceto + Navasan');
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
