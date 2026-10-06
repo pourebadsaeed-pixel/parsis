@@ -452,6 +452,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .cfd-details { display:none; padding:10px 14px; border-top:1px solid var(--border); }
 .cfd-details.show { display:block; }
 .rate-updated { font-size:0.68rem; color:var(--text-muted); width:100%; text-align:left; margin-top:3px; }
+.rate-debug { font-size:0.68rem; color:var(--text-muted); width:100%; text-align:left; margin-top:2px; font-family:monospace; direction:ltr; }
 </style>
 </head>
 <body class="theme-sky font-tahoma">
@@ -1027,7 +1028,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 </div>
 
 <script>
-console.log('✅ پارسیس PWA v23 — Priceto (Iran) + Navasan Fallback');
+console.log('✅ پارسیس PWA v24 — Priceto + Navasan (CORS-proxy robust)');
 var LS_PREFIX = 'parsis.';
 var DB = {
     load: function(k, f) { try { var r = localStorage.getItem(LS_PREFIX + k); return r ? JSON.parse(r) : f; } catch(e) { return f; } },
@@ -1676,10 +1677,10 @@ function updateHomeWidgets() {
     updateSmsBadge();
 }
 
-/* =================================================================
-   ========== Live Rates — Priceto (ایران) + Navasan Fallback =====
-   ========== همه قیمت‌ها به ریال نمایش داده می‌شوند ================
-   ================================================================= */
+/* =====================================================================
+   ========== Live Rates — Priceto + Navasan (CORS-proxy robust) ======
+   ========== همه قیمت‌ها به ریال ======================================
+   ===================================================================== */
 var RATE_ASSETS = [
     { key: 'price_dollar_rl', label: '💵 دلار آمریکا',         priceto: 'usd',          navasanKey: 'usd',          source: 'fiat' },
     { key: 'geram18',         label: '🥇 طلای ۱۸ عیار (گرم)',  priceto: 'gold-18',      navasanKey: '18ayar',       source: 'gold' },
@@ -1691,17 +1692,20 @@ var RATE_ASSETS = [
     { key: 'rob_sekke',       label: '🪙 ربع سکه',            priceto: 'coin-rob',     navasanKey: 'rob',          source: 'gold' }
 ];
 
-/* ⭐ منبع ۱: Priceto (سرویس ایرانی — در ایران فیلتر نیست) */
+/* ⭐ منبع ۱: Priceto (سرویس ایرانی) */
 var PRICETO_BASE = 'https://api.priceto.day/v1/latest/irr';
 
 /* ⭐ منبع ۲: Navasan via jsDelivr CDN */
 var NAVASAN_GOLD_CDN = 'https://cdn.jsdelivr.net/gh/HosseinOdd/Navasan-API@main/data/gold.json';
 var NAVASAN_FIAT_CDN = 'https://cdn.jsdelivr.net/gh/HosseinOdd/Navasan-API@main/data/fiat.json';
 
-/* ⭐ منبع ۳: Navasan خام از GitHub از طریق CORS proxy */
-var CORS_PROXY = 'https://api.allorigins.win/raw?url=';
-var NAVASAN_GOLD_RAW = 'https://raw.githubusercontent.com/HosseinOdd/Navasan-API/main/data/gold.json';
-var NAVASAN_FIAT_RAW = 'https://raw.githubusercontent.com/HosseinOdd/Navasan-API/main/data/fiat.json';
+/* ⭐ لیست CORS Proxy ها — به ترتیب امتحان می‌شوند */
+var CORS_PROXIES = [
+    function(u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
+    function(u) { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); },
+    function(u) { return 'https://corsproxy.io/?' + encodeURIComponent(u); },
+    function(u) { return 'https://thingproxy.freeboard.io/fetch/' + u; }
+];
 
 var LIVE_RATES_CACHE = DB.load('liveRatesCache', { values: {}, ts: 0, prev: {}, timestamps: {}, lastUpdate: '' });
 
@@ -1733,11 +1737,27 @@ async function tryFetchJson(url, ms) {
     }
 }
 
-/* ==================== منبع ۱: Priceto (ایران) ==================== */
+/* ⭐ تلاش: اول مستقیم، بعد از طریق پروکسی‌ها */
+async function tryFetchJsonWithFallback(url, ms) {
+    /* ۱) مستقیم */
+    var data = await tryFetchJson(url, ms);
+    if (data) return data;
+    /* ۲) از طریق پروکسی‌ها */
+    for (var i = 0; i < CORS_PROXIES.length; i++) {
+        try {
+            var proxyUrl = CORS_PROXIES[i](url);
+            data = await tryFetchJson(proxyUrl, (ms || 8000) + 3000);
+            if (data) return data;
+        } catch(e) { /* ادامه بده */ }
+    }
+    return null;
+}
+
+/* ==================== Priceto ==================== */
 async function fetchFromPriceto(symbol) {
     if (!symbol) return { value: 0, ts: 0 };
     var url = PRICETO_BASE + '/' + symbol;
-    var data = await tryFetchJson(url, 7000);
+    var data = await tryFetchJsonWithFallback(url, 7000);
     if (!data) return { value: 0, ts: 0 };
     var v = 0;
     if (typeof data === 'number') v = data;
@@ -1746,7 +1766,7 @@ async function fetchFromPriceto(symbol) {
     return { value: v, ts: data.timestamp || data.ts || (data.data && data.data.timestamp) || 0 };
 }
 
-/* ==================== منبع ۲/۳: Navasan ==================== */
+/* ==================== Navasan ==================== */
 function parseNavasanItem(data, assetKey) {
     if (!data || typeof data !== 'object') return { value: 0, ts: 0 };
     var item = data[assetKey];
@@ -1758,7 +1778,7 @@ function parseNavasanItem(data, assetKey) {
 }
 
 async function tryNavasanFrom(url) {
-    var data = await tryFetchJson(url, 9000);
+    var data = await tryFetchJsonWithFallback(url, 9000);
     if (!data) return null;
     if (data.contents) {
         try { return JSON.parse(data.contents); } catch(e) { return null; }
@@ -1766,7 +1786,7 @@ async function tryNavasanFrom(url) {
     return data;
 }
 
-/* ⭐ تابع اصلی: اول Priceto، سپس Navasan CDN، سپس Navasan از طریق CORS proxy */
+/* ⭐ تابع اصلی: اول Priceto (با fallback پروکسی)، سپس Navasan CDN، سپس Navasan با پروکسی */
 async function fetchAllRates() {
     var results = {};
     var pending = RATE_ASSETS.map(function(a) { return { asset: a, done: false, value: 0, ts: 0 }; });
@@ -1794,12 +1814,12 @@ async function fetchAllRates() {
         });
     }
 
-    /* ---- مرحله ۳: Navasan از طریق CORS proxy برای باقی‌مانده‌ها ---- */
+    /* ---- مرحله ۳: Navasan از طریق پروکسی برای باقی‌مانده‌ها ---- */
     stillNeed = pending.filter(function(p) { return !p.done; });
     if (stillNeed.length > 0) {
         var goldProxy = null, fiatProxy = null;
-        try { goldProxy = await tryNavasanFrom(CORS_PROXY + encodeURIComponent(NAVASAN_GOLD_RAW)); } catch(e) {}
-        try { fiatProxy = await tryNavasanFrom(CORS_PROXY + encodeURIComponent(NAVASAN_FIAT_RAW)); } catch(e) {}
+        try { goldProxy = await tryNavasanFrom(NAVASAN_GOLD_CDN); } catch(e) {}
+        try { fiatProxy = await tryNavasanFrom(NAVASAN_FIAT_CDN); } catch(e) {}
 
         stillNeed.forEach(function(p) {
             var a = p.asset; var parsed = { value: 0, ts: 0 };
@@ -1878,7 +1898,7 @@ async function fetchLiveRates(silent) {
 
     if (meta) {
         meta.textContent = (anyFetched ? '✅ بروزرسانی: ' : '⚠️ آخرین داده ذخیره‌شده: ')
-            + lastUpdate + ' — منبع: Priceto (ایران) + Navasan';
+            + lastUpdate + ' — منبع: Priceto + Navasan';
     }
 }
 
@@ -4091,7 +4111,7 @@ function init() {
     aiInit();
     aiRender();
     renderEstimateItems();
-    console.log('🎉 v23 آماده — Priceto (Iran) + Navasan');
+    console.log('🎉 v24 آماده — Priceto + Navasan (robust CORS)');
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
