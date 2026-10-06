@@ -460,8 +460,6 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .cfd-details.show { display:block; }
 .rate-updated { font-size:0.68rem; color:var(--text-muted); width:100%; text-align:left; margin-top:3px; }
 .ai-fallback-badge { display:inline-block; padding:2px 8px; background:#fff4e0; color:#c47c00; border-radius:8px; font-size:0.68rem; font-weight:bold; margin-right:6px; }
-
-/* Notes / Notepad */
 .note-card { border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:10px; background:var(--card); }
 .note-head { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
 .note-title { font-weight:900; color:var(--primary-dark); font-size:0.95rem; }
@@ -1092,7 +1090,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
     <div id="ai-suggestions" class="ai-suggestions">
         <button class="ai-suggestion" data-q="وضعیت نقدینگی من چطور است؟">💰 وضعیت نقدینگی</button>
         <button class="ai-suggestion" data-q="این ماه چقدر درآمد داشتم؟">📈 درآمد این ماه</button>
-        <button class="ai-suggestion" data-q="اقساط پیش‌رو را خلاصه کن">⏰ اقساط پیش‌رو</button>
+        <button class="ai-suggestion" data-q="اقساط هفت روز آینده را با تاریخ و مبلغ بگو">⏰ اقساط هفت روز آینده</button>
         <button class="ai-suggestion" data-q="بیشترین هزینه‌ام در چه دسته‌ای است؟">📊 تحلیل هزینه</button>
     </div>
     <div class="ai-input-row"><textarea id="ai-input" placeholder="سوال خود را بپرسید..." rows="2"></textarea><button id="ai-send-btn" class="ai-send">📤</button></div>
@@ -1129,10 +1127,10 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 
 <script>
 /* =====================================================================
-   =============  پارسیس — PWA v25.10.07 (اصلاح‌شده کامل)  ============
+   =============  پارسیس — PWA v25.10.08 (اصلاح هوش مصنوعی) ============
    ===================================================================== */
 var APP_NAME = 'پارسیس';
-var APP_VERSION = '25.10.07';
+var APP_VERSION = '25.10.08';
 function toFaSimple(x){ return String(x).replace(/\d/g, function(d){ return '۰۱۲۳۴۵۶۷۸۹'[d]; }); }
 var LS_PREFIX = 'parsis.';
 var DB = {
@@ -1404,7 +1402,7 @@ function validateDateInActivePeriod(dateStr) {
     if (dateStr < ap.from || dateStr > ap.to) { return { ok: false, msg: 'تاریخ باید در بازه دوره فعال («' + ap.from + ' تا ' + ap.to + '») باشد' }; }
     return { ok: true };
 }
-/* ================== SMS parsing (unchanged core) ================== */
+/* ================== SMS parsing ================== */
 function matchBankAccountByBankName(text) {
     if (!text) return null; var t = String(text); var ba = DB.load('bankAccounts', []); var best = null, bestScore = 0;
     for (var i = 0; i < ba.length; i++) { var b = ba[i]; var bankName = String(b.bank || '').trim(); if (bankName.length < 3) continue;
@@ -1683,7 +1681,7 @@ function makeTableResizable(table) {
             });
             document.addEventListener('mousemove', function(e) {
                 if (!isDragging) return;
-                var diff = startX - e.pageX; // RTL: moving left increases width
+                var diff = startX - e.pageX;
                 var w = Math.max(40, startW + diff);
                 th.style.width = w + 'px';
                 th.style.minWidth = w + 'px';
@@ -1716,13 +1714,11 @@ function buildHeaderButtons() {
     for (var i = 0; i < headers.length; i++) { (function(h) {
         var tableId = h.getAttribute('data-col-table');
         var hideKey = h.getAttribute('data-hide-key');
-        // Eye toggle
         if (hideKey && !h.querySelector('.eye-toggle-btn')) {
             var eye = document.createElement('button'); eye.type = 'button'; eye.className = 'eye-toggle-btn'; eye.setAttribute('data-hide-key', hideKey);
             eye.addEventListener('click', function(ev) { ev.stopPropagation(); toggleHideState(hideKey); rerenderCurrentPage(); });
             h.appendChild(eye);
         }
-        // Column gear
         if (tableId && !h.querySelector('.col-toggle-btn')) {
             var btn = document.createElement('button'); btn.className = 'col-toggle-btn'; btn.type = 'button'; btn.title = 'ستون‌ها'; btn.innerHTML = '⚙';
             btn.addEventListener('click', function(ev) { ev.stopPropagation(); showColMenu(tableId, btn); });
@@ -1999,7 +1995,6 @@ async function fetchFromPriceto(symbol) {
     if (!isFinite(v) || v <= 0) return { value: 0, ts: 0 };
     return { value: v, ts: data.timestamp || data.ts || (data.data && data.data.timestamp) || 0 };
 }
-/* Navasan is in Toman → multiply by 10 to get Rial */
 function parseNavasanItem(data, assetKey, multiplier) {
     if (!data || typeof data !== 'object') return { value: 0, ts: 0 };
     var item = data[assetKey];
@@ -3809,7 +3804,7 @@ function refreshReportPeriodSelects() {
 
 /* ==================== NOTEPAD ==================== */
 var noteChecklist = [];
-var noteImages = []; // array of data URLs
+var noteImages = [];
 function renderNoteChecklist() {
     var box = document.getElementById('nt-checklist'); if (!box) return; box.innerHTML = '';
     if (noteChecklist.length === 0) noteChecklist.push({ id: uid(), text: '', done: false });
@@ -3899,7 +3894,6 @@ function renderNotesList() {
         var l = DB.load('notes', []).filter(function(x) { return x.id !== id; });
         DB.save('notes', l); renderNotesList();
     });
-    // Image previews
     box.querySelectorAll('[data-note-img]').forEach(function(img) {
         img.addEventListener('click', function() {
             var nid = this.getAttribute('data-note-img'); var idx = Number(this.getAttribute('data-img-idx'));
@@ -3933,7 +3927,9 @@ function handleNoteImages(files) {
     })(files[i]); }
 }
 
-/* ==================== AI ==================== */
+/* =====================================================================
+   ==================== AI — با Context جامع ===========================
+   ===================================================================== */
 var AVALAI_MODELS = [
     { id: 'gpt-4o-mini',                label: 'GPT-4o Mini (پیشنهاد)' },
     { id: 'gpt-4o',                     label: 'GPT-4o' },
@@ -3960,21 +3956,49 @@ var AI = {
 };
 function aiSaveSettings() { DB.save('ai.provider', AI.provider); DB.save('ai.apiKey', AI.apiKey); DB.save('ai.model', AI.model); DB.save('ai.autoFallback', AI.autoFallback); }
 function aiSaveHistory() { DB.save('ai.history', AI.history.slice(-AI.MAX_HISTORY)); }
+
+/* ---- Context Builder (کامل) ---- */
 function aiBuildContext() {
     var lines = [];
+    var todayJ = toJalali(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
+    var todayStr = todayJ[0] + '/' + pad2(todayJ[1]) + '/' + pad2(todayJ[2]);
+
     lines.push('=== اطلاعات سامانه ===');
     lines.push('نرم‌افزار: ' + APP_NAME + ' (نسخه ' + APP_VERSION + ')');
-    lines.push('تاریخ امروز (شمسی): ' + todayJalaliStr());
-    lines.push('واحد پول نمایش: ' + currencyLabel());
+    lines.push('تاریخ امروز (شمسی): ' + todayStr + ' (' + WEEKDAYS_FA[new Date().getDay()] + ')');
+    lines.push('واحد پول نمایش فعلی کاربر: ' + currencyLabel());
+    lines.push('⚠️ نکته: تمام مبالغ در این بخش به ریال هستند.');
+
+    /* ---------- دوره‌های مالی ---------- */
     var periods = DB.load('fiscalPeriods', []);
-    if (periods.length > 0) { lines.push('\n=== دوره‌های مالی ==='); periods.forEach(function(p) { var am = (p.id === state.activePeriodId) ? ' ⭐فعال' : ''; lines.push('- ' + p.title + ' از ' + p.from + ' تا ' + p.to + am); }); }
+    if (periods.length > 0) {
+        lines.push('\n=== دوره‌های مالی ===');
+        periods.forEach(function(p) {
+            var am = (p.id === state.activePeriodId) ? ' ⭐فعال' : '';
+            lines.push('- ' + p.title + ' از ' + p.from + ' تا ' + p.to + am);
+        });
+    } else {
+        lines.push('\n=== دوره‌های مالی === (هیچ دوره‌ای تعریف نشده)');
+    }
+
+    /* ---------- چارت حساب‌ها ---------- */
     var accounts = DB.load('accounts', []);
     if (accounts.length > 0) {
-        lines.push('\n=== چارت حساب‌ها (' + accounts.length + ') ===');
+        lines.push('\n=== چارت حساب‌ها (' + accounts.length + ' حساب) ===');
         var byParent = {}; accounts.forEach(function(a) { var p = a.parent || '__root__'; if (!byParent[p]) byParent[p] = []; byParent[p].push(a); });
-        function walk(pid, depth) { var arr = byParent[pid] || []; arr.forEach(function(a) { lines.push(new Array(depth + 1).join('  ') + '- [' + (a.code || '?') + '] ' + (a.name || '')); walk(a.id, depth + 1); }); }
+        function walk(pid, depth) {
+            var arr = byParent[pid] || [];
+            arr.forEach(function(a) {
+                lines.push(new Array(depth + 1).join('  ') + '- [' + (a.code || '?') + '] ' + (a.name || ''));
+                walk(a.id, depth + 1);
+            });
+        }
         walk('__root__', 0);
+    } else {
+        lines.push('\n=== چارت حساب‌ها === (هیچ حسابی تعریف نشده)');
     }
+
+    /* ---------- اشخاص ---------- */
     var persons = DB.load('persons', []);
     if (persons.length > 0) {
         lines.push('\n=== اشخاص (' + persons.length + ') ===');
@@ -3988,53 +4012,349 @@ function aiBuildContext() {
             if (p.address) parts.push('آدرس: ' + p.address);
             lines.push('- ' + parts.join(' | '));
         });
+    } else {
+        lines.push('\n=== اشخاص === (هیچ شخصی ثبت نشده)');
     }
+
+    /* ---------- شرکت‌ها ---------- */
     var companies = DB.load('companies', []);
     if (companies.length > 0) {
         lines.push('\n=== شرکت‌ها (' + companies.length + ') ===');
-        companies.forEach(function(c) { var parts = ['نام: ' + (c.name || '—')]; if (c.phone) parts.push('تلفن: ' + c.phone); if (c.email) parts.push('ایمیل: ' + c.email); lines.push('- ' + parts.join(' | ')); });
+        companies.forEach(function(c) {
+            var parts = ['نام: ' + (c.name || '—')];
+            if (c.phone) parts.push('تلفن: ' + c.phone);
+            if (c.email) parts.push('ایمیل: ' + c.email);
+            if (c.address) parts.push('آدرس: ' + c.address);
+            lines.push('- ' + parts.join(' | '));
+        });
+    } else {
+        lines.push('\n=== شرکت‌ها === (هیچ شرکتی ثبت نشده)');
     }
+
+    /* ---------- حساب‌های بانکی ---------- */
     var banks = DB.load('bankAccounts', []);
     if (banks.length > 0) {
         lines.push('\n=== حساب‌های بانکی (' + banks.length + ') ===');
         var tb = 0;
-        banks.forEach(function(b) { var bal = getBankBalance(b.id); tb += bal; lines.push('- ' + (b.bank || '—') + ' | حساب: ' + (b.account || '—') + ' | مانده: ' + formatMoney(bal) + ' ' + currencyLabel()); });
-        lines.push('جمع: ' + formatMoney(tb) + ' ' + currencyLabel());
+        banks.forEach(function(b) {
+            var bal = getBankBalance(b.id);
+            tb += bal;
+            var parts = [];
+            parts.push('بانک: ' + (b.bank || '—'));
+            if (b.type) parts.push('نوع: ' + b.type);
+            if (b.branchName) parts.push('شعبه: ' + b.branchName);
+            if (b.account) parts.push('شماره حساب: ' + b.account);
+            if (b.iban) parts.push('شبا: ' + b.iban);
+            if (b.card) parts.push('کارت: ' + b.card);
+            parts.push('مانده: ' + formatRial(bal) + ' ریال');
+            if (b.minBalance) parts.push('حداقل موجودی: ' + formatRial(b.minBalance) + ' ریال');
+            lines.push('- ' + parts.join(' | '));
+        });
+        lines.push('💰 جمع مانده بانک‌ها: ' + formatRial(tb) + ' ریال');
+    } else {
+        lines.push('\n=== حساب‌های بانکی === (هیچ حسابی ثبت نشده)');
     }
+
+    /* ---------- صندوق‌ها ---------- */
     var cashBoxes = DB.load('cashBoxes', []);
-    if (cashBoxes.length > 0) { lines.push('\n=== صندوق‌ها ==='); cashBoxes.forEach(function(c) { lines.push('- ' + c.title + ' | مانده: ' + formatMoney(getCashBoxBalance(c.id))); }); }
+    if (cashBoxes.length > 0) {
+        lines.push('\n=== صندوق‌ها (' + cashBoxes.length + ') ===');
+        var tc = 0;
+        cashBoxes.forEach(function(c) {
+            var bal = getCashBoxBalance(c.id);
+            tc += bal;
+            var parts = ['عنوان: ' + (c.title || '—')];
+            if (c.type) parts.push('نوع: ' + c.type);
+            if (c.unit) parts.push('واحد: ' + c.unit);
+            parts.push('مانده: ' + formatRial(bal) + ' ریال');
+            lines.push('- ' + parts.join(' | '));
+        });
+        lines.push('💰 جمع مانده صندوق‌ها: ' + formatRial(tc) + ' ریال');
+    } else {
+        lines.push('\n=== صندوق‌ها === (هیچ صندوقی ثبت نشده)');
+    }
+
+    /* ---------- پروژه‌ها ---------- */
     var projects = DB.load('projects', []);
-    if (projects.length > 0) { lines.push('\n=== پروژه‌ها ==='); projects.forEach(function(p) { lines.push('- ' + (p.name || '—')); }); }
+    if (projects.length > 0) {
+        lines.push('\n=== پروژه‌ها (' + projects.length + ') ===');
+        projects.forEach(function(p) { lines.push('- ' + (p.name || '—')); });
+    } else {
+        lines.push('\n=== پروژه‌ها === (هیچ پروژه‌ای ثبت نشده)');
+    }
+
+    /* ---------- تسهیلات — با تمام اقساط ---------- */
     var facilities = DB.load('facilities', []);
+    var banksForFac = {};
+    banks.forEach(function(b) { banksForFac[b.id] = b; });
     if (facilities.length > 0) {
-        lines.push('\n=== تسهیلات ===');
+        lines.push('\n=== تسهیلات و زمانبندی‌ها (' + facilities.length + ') ===');
         facilities.forEach(function(f) {
-            var ins = f.installments || []; var paid = ins.filter(function(x) { return x.status === 'paid'; });
+            var bank = banksForFac[f.bankId];
+            var ins = (f.installments || []).slice().sort(function(a, b) { return compareVals(a.date, b.date); });
+            var paid = ins.filter(function(x) { return x.status === 'paid'; });
             var unpaid = ins.filter(function(x) { return x.status !== 'paid'; });
             var paidAmt = paid.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
             var unpaidAmt = unpaid.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
-            lines.push('- ' + f.name + ' | مبلغ: ' + formatMoney(f.initial || 0) + ' | پرداخت: ' + formatMoney(paidAmt) + ' | باقی: ' + formatMoney(unpaidAmt) + ' | تعداد: ' + ins.length + ' | پرداخت‌شده: ' + paid.length + ' | باقی: ' + unpaid.length);
+            var parts = [];
+            parts.push('نام: ' + (f.name || '—'));
+            parts.push('دسته: ' + categoryName(f.category));
+            if (bank) parts.push('بانک: ' + (bank.bank || '—'));
+            if (f.date) parts.push('تاریخ شروع: ' + f.date);
+            parts.push('مبلغ اولیه: ' + formatRial(f.initial || 0) + ' ریال');
+            parts.push('پرداخت‌شده: ' + formatRial(paidAmt) + ' ریال (' + paid.length + ' قسط)');
+            parts.push('باقی‌مانده: ' + formatRial(unpaidAmt) + ' ریال (' + unpaid.length + ' قسط)');
+            parts.push('وضعیت: ' + (unpaid.length === 0 && ins.length > 0 ? 'تسویه‌شده' : 'در جریان'));
+            lines.push('- ' + parts.join(' | '));
+            if (ins.length > 0) {
+                lines.push('  📋 لیست اقساط:');
+                var limit = Math.min(ins.length, 36);
+                for (var ii = 0; ii < limit; ii++) {
+                    var inst = ins[ii];
+                    var stLabel = inst.status === 'paid' ? '✅ پرداخت‌شده'
+                        : (inst.date && inst.date < todayStr ? '🔴 سررسید گذشته' : '⏳ پرداخت‌نشده');
+                    var daysInfo = '';
+                    if (inst.status !== 'paid' && inst.date) {
+                        var ip = inst.date.split('/').map(Number);
+                        if (ip.length === 3) {
+                            var dleft = jalaliDiff(todayJ[0], todayJ[1], todayJ[2], ip[0], ip[1], ip[2]);
+                            if (dleft > 0) daysInfo = ' | ' + dleft + ' روز مانده';
+                            else if (dleft === 0) daysInfo = ' | امروز';
+                            else daysInfo = ' | ' + Math.abs(dleft) + ' روز گذشته';
+                        }
+                    }
+                    lines.push('    قسط #' + (ii + 1) + ': تاریخ ' + (inst.date || '—') + ' | مبلغ ' + formatRial(inst.amount || 0) + ' ریال | ' + stLabel + daysInfo);
+                }
+                if (ins.length > 36) lines.push('    ... و ' + (ins.length - 36) + ' قسط دیگر');
+            }
         });
+    } else {
+        lines.push('\n=== تسهیلات === (هیچ تسهیلاتی ثبت نشده)');
     }
+
+    /* ---------- اقساط هفت روز آینده (محاسبه‌شده) ---------- */
+    lines.push('\n=== ⏰ اقساط ۷ روز آینده ===');
+    var upcoming = [];
+    facilities.forEach(function(f) {
+        (f.installments || []).forEach(function(inst) {
+            if (inst.status === 'paid' || !inst.date) return;
+            var ip = inst.date.split('/').map(Number);
+            if (ip.length !== 3) return;
+            var dleft = jalaliDiff(todayJ[0], todayJ[1], todayJ[2], ip[0], ip[1], ip[2]);
+            if (dleft >= 0 && dleft <= 7) upcoming.push({ f: f, inst: inst, daysLeft: dleft });
+        });
+    });
+    if (upcoming.length === 0) {
+        lines.push('- هیچ قسطی در ۷ روز آینده سررسید نمی‌شود.');
+    } else {
+        upcoming.sort(function(a, b) { return a.daysLeft - b.daysLeft; });
+        var upTotal = 0;
+        upcoming.forEach(function(u) {
+            upTotal += Number(u.inst.amount) || 0;
+            var dl = u.daysLeft === 0 ? 'امروز' : (u.daysLeft === 1 ? 'فردا' : u.daysLeft + ' روز دیگر');
+            lines.push('- ' + u.f.name + ' | تاریخ: ' + u.inst.date + ' | مبلغ: ' + formatRial(u.inst.amount || 0) + ' ریال | ' + dl);
+        });
+        lines.push('💰 جمع اقساط ۷ روز آینده: ' + formatRial(upTotal) + ' ریال');
+    }
+
+    /* ---------- اقساط ۳۰ روز آینده ---------- */
+    lines.push('\n=== ⏰ اقساط ۳۰ روز آینده ===');
+    var next30 = [];
+    facilities.forEach(function(f) {
+        (f.installments || []).forEach(function(inst) {
+            if (inst.status === 'paid' || !inst.date) return;
+            var ip = inst.date.split('/').map(Number);
+            if (ip.length !== 3) return;
+            var dleft = jalaliDiff(todayJ[0], todayJ[1], todayJ[2], ip[0], ip[1], ip[2]);
+            if (dleft >= 0 && dleft <= 30) next30.push({ f: f, inst: inst, daysLeft: dleft });
+        });
+    });
+    if (next30.length === 0) lines.push('- هیچ قسطی در ۳۰ روز آینده سررسید نمی‌شود.');
+    else {
+        next30.sort(function(a, b) { return a.daysLeft - b.daysLeft; });
+        var n30Total = 0;
+        next30.forEach(function(u) {
+            n30Total += Number(u.inst.amount) || 0;
+            var dl = u.daysLeft === 0 ? 'امروز' : u.daysLeft + ' روز دیگر';
+            lines.push('- ' + u.f.name + ' | تاریخ: ' + u.inst.date + ' | مبلغ: ' + formatRial(u.inst.amount || 0) + ' ریال | ' + dl);
+        });
+        lines.push('💰 جمع اقساط ۳۰ روز آینده: ' + formatRial(n30Total) + ' ریال');
+    }
+
+    /* ---------- منابع دریافتنی (برآورد) ---------- */
+    var sources = DB.load('cashFlowSources', []);
+    if (sources.length > 0) {
+        lines.push('\n=== 📌 برآورد منابع دریافتنی (' + sources.length + ') ===');
+        sources.forEach(function(s) {
+            var parts = ['عنوان: ' + getSourceLabel(s)];
+            if (s.expectedDate) parts.push('تاریخ احتمالی: ' + s.expectedDate);
+            parts.push('مبلغ: ' + formatRial(s.amount || 0) + ' ریال');
+            if (s.notes) parts.push('توضیحات: ' + s.notes);
+            lines.push('- ' + parts.join(' | '));
+        });
+    } else {
+        lines.push('\n=== منابع دریافتنی === (هیچ منبعی ثبت نشده)');
+    }
+
+    /* ---------- برآورد هزینه‌های روزانه ---------- */
+    var estimates = DB.load('dailyEstimates', []);
+    if (estimates.length > 0) {
+        lines.push('\n=== 📝 برآورد هزینه‌های روزانه (' + estimates.length + ') ===');
+        estimates.forEach(function(est) {
+            var itemsArr = est.items || [];
+            var totalItems = itemsArr.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
+            var parts = [];
+            parts.push('عنوان: ' + (est.title || est.desc || 'بدون عنوان'));
+            if (est.from && est.to) parts.push('بازه: ' + est.from + ' تا ' + est.to);
+            parts.push('مبلغ تخمینی کل: ' + formatRial(est.total || 0) + ' ریال');
+            parts.push('جمع آیتم‌ها: ' + formatRial(totalItems) + ' ریال (' + itemsArr.length + ' آیتم)');
+            if (est.desc) parts.push('توضیح: ' + est.desc);
+            lines.push('- ' + parts.join(' | '));
+        });
+    } else {
+        lines.push('\n=== برآورد هزینه‌های روزانه === (هیچ برآوردی ثبت نشده)');
+    }
+
+    /* ---------- اسناد حسابداری ---------- */
     var vouchers = DB.load('vouchers', []);
     if (vouchers.length > 0) {
         var approved = vouchers.filter(function(v) { return v.status === 'approved'; });
         var draft = vouchers.filter(function(v) { return v.status !== 'approved'; });
-        lines.push('\n=== اسناد ===');
-        lines.push('کل: ' + vouchers.length + ' | تأییدشده: ' + approved.length + ' | پیش‌نویس: ' + draft.length);
+        lines.push('\n=== 📄 اسناد حسابداری ===');
+        lines.push('کل اسناد: ' + vouchers.length + ' | تأییدشده: ' + approved.length + ' | پیش‌نویس: ' + draft.length);
+
+        var recent = approved.slice().sort(function(a, b) { return compareVals(b.date, a.date); }).slice(0, 20);
+        if (recent.length > 0) {
+            lines.push('\n--- ۲۰ سند آخر تأییدشده ---');
+            recent.forEach(function(v) {
+                var amt = getVoucherAmount(v);
+                lines.push('• سند شماره ' + v.number + ' | تاریخ ' + v.date + ' | نوع: ' + voucherTypeName(v.type) + ' | مبلغ کل: ' + formatRial(amt) + ' ریال | شرح: ' + (v.desc || '—'));
+                (v.lines || []).forEach(function(l) {
+                    if (!l.account) return;
+                    var d = Number(l.debit) || 0, c = Number(l.credit) || 0;
+                    if (d === 0 && c === 0) return;
+                    var accLabel = getAccountLabel(l.account, accounts);
+                    var det = '';
+                    if (l.details) Object.keys(l.details).forEach(function(lt) { var did = l.details[lt]; if (did) { if (det) det += ' ، '; det += getDetailLabel(lt, did); } });
+                    lines.push('   ↳ ' + accLabel + (det ? ' (' + det + ')' : '') + ' | ' + (d > 0 ? 'بدهکار: ' + formatRial(d) : 'بستانکار: ' + formatRial(c)) + ' ریال | شرح قلم: ' + (l.description || '—'));
+                });
+            });
+        }
+    } else {
+        lines.push('\n=== اسناد حسابداری === (هیچ سندی ثبت نشده)');
     }
+
+    /* ---------- خلاصه ماه جاری ---------- */
+    var pr = getPeriodMonthRange();
+    var monthInc = 0, monthExp = 0;
+    vouchers.filter(function(v) { return v.status === 'approved' && v.date >= pr.from && v.date <= pr.to; }).forEach(function(v) {
+        (v.lines || []).forEach(function(l) {
+            if (!l.account) return;
+            var rootId = getRootAccountId(l.account, accounts);
+            var root = accounts.find(function(a) { return a.id === rootId; });
+            if (!root) return;
+            var codeRoot = String(root.code || '').charAt(0);
+            var d = Number(l.debit) || 0, c = Number(l.credit) || 0;
+            if (codeRoot === '4') monthInc += c;
+            else if (codeRoot === '5') monthExp += d;
+        });
+    });
+    lines.push('\n=== 📊 خلاصه ماه جاری (' + getJalaliMonthName(pr.month) + ' ' + pr.year + ') ===');
+    lines.push('- درآمد: ' + formatRial(monthInc) + ' ریال');
+    lines.push('- هزینه: ' + formatRial(monthExp) + ' ریال');
+    lines.push('- سود/زیان: ' + formatRial(monthInc - monthExp) + ' ریال');
+
+    /* ---------- وضعیت نقدینگی (خلاصه) ---------- */
+    var totalBankBal = 0; banks.forEach(function(b) { totalBankBal += getBankBalance(b.id); });
+    var totalCashBal = 0; cashBoxes.forEach(function(c) { totalCashBal += getCashBoxBalance(c.id); });
+    lines.push('\n=== 💰 خلاصه نقدینگی ===');
+    lines.push('- موجودی کل بانک‌ها: ' + formatRial(totalBankBal) + ' ریال');
+    lines.push('- موجودی کل صندوق‌ها: ' + formatRial(totalCashBal) + ' ریال');
+    lines.push('- جمع کل نقدینگی: ' + formatRial(totalBankBal + totalCashBal) + ' ریال');
+
+    /* ---------- یادداشت‌ها ---------- */
     var notes = DB.load('notes', []);
-    if (notes.length > 0) { lines.push('\n=== یادداشت‌ها (' + notes.length + ') ==='); notes.slice(0, 20).forEach(function(n) { lines.push('- ' + (n.date || '—') + ' | ' + (n.title || '—')); }); }
-    var cr = LIVE_RATES_CACHE;
-    if (cr.ts > 0 && cr.values) {
-        lines.push('\n=== آخرین نرخ‌های لحظه‌ای (ریال) ===');
-        for (var ri = 0; ri < RATE_ASSETS.length; ri++) { var a = RATE_ASSETS[ri]; var val = cr.values[a.key] || 0; if (val > 0) lines.push('- ' + a.label + ': ' + formatRial(val)); }
+    if (notes.length > 0) {
+        lines.push('\n=== 📔 یادداشت‌ها (' + notes.length + ') ===');
+        notes.slice(0, 15).forEach(function(n) {
+            var chk = (n.checklist || []).length;
+            var done = (n.checklist || []).filter(function(c) { return c.done; }).length;
+            var parts = ['📅 ' + (n.date || '—'), 'عنوان: ' + (n.title || '—')];
+            if (chk > 0) parts.push('چک‌لیست: ' + done + '/' + chk);
+            lines.push('- ' + parts.join(' | '));
+        });
     }
+
+    /* ---------- شرح‌های استاندارد ---------- */
+    var stdDesc = DB.load('standardDescriptions', []);
+    if (stdDesc.length > 0) {
+        lines.push('\n=== 💬 شرح‌های استاندارد ===');
+        lines.push(stdDesc.join(' ، '));
+    }
+
+    /* ---------- پیامک‌های بانکی ---------- */
+    var smsInbox = getSmsInbox();
+    if (smsInbox.length > 0) {
+        var newSms = smsInbox.filter(function(s) { return s.status === 'new'; });
+        var convSms = smsInbox.filter(function(s) { return s.status === 'converted'; });
+        lines.push('\n=== 📱 پیامک‌های بانکی ===');
+        lines.push('کل: ' + smsInbox.length + ' | ثبت‌نشده: ' + newSms.length + ' | ثبت‌شده: ' + convSms.length);
+        newSms.slice(0, 5).forEach(function(s) {
+            var p = s.parsed || {};
+            lines.push('- ' + (p.bankName || '') + ' | ' + (p.direction === 'in' ? 'واریز' : p.direction === 'out' ? 'برداشت' : '?') + ' | ' + formatRial(p.amount || 0) + ' ریال | ' + tsToJalaliDate(s.receivedAt));
+        });
+    }
+
+    /* ---------- نرخ‌های لحظه‌ای ---------- */
+    var cr = LIVE_RATES_CACHE;
+    if (cr && cr.ts > 0 && cr.values) {
+        lines.push('\n=== 💱 آخرین نرخ‌های لحظه‌ای (ریال) ===');
+        var anyRate = false;
+        for (var ri = 0; ri < RATE_ASSETS.length; ri++) {
+            var a = RATE_ASSETS[ri];
+            var val = cr.values[a.key] || 0;
+            if (val > 0) { lines.push('- ' + a.label + ': ' + formatRial(val) + ' ریال'); anyRate = true; }
+        }
+        if (!anyRate) lines.push('(نرخ‌ها در دسترس نیست)');
+        if (cr.lastUpdate) lines.push('آخرین بروزرسانی: ' + cr.lastUpdate);
+    }
+
+    /* ---------- قیمت پایانی روز ---------- */
+    var dcData = getDailyCloseData();
+    if (dcData.length > 0) {
+        lines.push('\n=== 📅 قیمت پایانی روز (آخرین ۵ روز) ===');
+        dcData.slice(0, 5).forEach(function(d) {
+            var parts = [];
+            for (var di = 0; di < RATE_ASSETS.length; di++) {
+                var ak = RATE_ASSETS[di].key;
+                var av = (d.values && d.values[ak]) || 0;
+                if (av > 0) parts.push(RATE_ASSETS[di].label.replace(/^[^\s]+\s/, '') + ': ' + formatRial(av));
+            }
+            lines.push('- ' + d.date + ': ' + parts.join(' | '));
+        });
+    }
+
     return lines.join('\n');
 }
+
 function aiBuildSystemPrompt() {
-    return 'تو «پارسیس یار» دستیار حسابداری فارسی هستی. تمام اطلاعات کاربر در ادامه در اختیار توست. با Markdown و فارسی پاسخ بده.\n\n' + aiBuildContext();
+    return 'تو «پارسیس یار» هستی، دستیار هوشمند حسابداری و مدیریت مالی فارسی‌زبان.\n' +
+        '\n' +
+        '⚠️ قوانین مهم (الزامی):\n' +
+        '1. **اطلاعات کامل سیستم کاربر** در بخش «اطلاعات سامانه» در ادامه به‌طور کامل در اختیار توست. هرگز نگو «اطلاعات موجود نیست» مگر آنکه واقعاً در آن بخش ذکر شده باشد که داده‌ای وجود ندارد.\n' +
+        '2. تمام مبالغ **به ریال** هستند. اگر کاربر واحد دیگری (تومان/میلیون) خواست خودت تبدیل کن (تومان = ریال ÷ ۱۰).\n' +
+        '3. **تاریخ امروز** در ابتدای بخش اطلاعات نوشته شده. همیشه آن را مبنا بگیر.\n' +
+        '4. برای «اقساط هفت روز آینده» و «اقساط پیش‌رو» از بخش «⏰ اقساط ۷ روز آینده» استفاده کن که از قبل محاسبه شده و شامل تاریخ، نام تسهیلات، مبلغ و روز باقی‌مانده است.\n' +
+        '5. برای درآمد/هزینه ماه جاری از بخش «📊 خلاصه ماه جاری» استفاده کن.\n' +
+        '6. برای نقدینگی از بخش «💰 خلاصه نقدینگی» استفاده کن.\n' +
+        '7. پاسخ‌ها را با **Markdown** و به فارسی روان بنویس. از جدول، بولت و عنوان استفاده کن.\n' +
+        '8. اگر داده‌ای در اطلاعات نیست، صریح بگو «این مورد در سیستم ثبت نشده» و کاربر را برای ثبت راهنمایی کن.\n' +
+        '9. هرگز اطلاعات ساختگی نساز.\n' +
+        '\n' +
+        '---\n' +
+        aiBuildContext();
 }
+
 function _aiSplitTableRow(line) { var t = String(line).trim(); if (t.charAt(0) === '|') t = t.slice(1); if (t.charAt(t.length - 1) === '|') t = t.slice(0, -1); return t.split('|').map(function(s) { return s.trim(); }); }
 function renderAIMarkdown(text) {
     if (!text) return ''; var raw = String(text);
@@ -4057,6 +4377,7 @@ function renderAIMarkdown(text) {
     html = html.replace(/(?:^|\n)((?:[ \t]*[-*]\s+.+(?:\n|$))+)/g, function(m, block) { var items = block.split('\n').filter(function(l) { return l.trim(); }).map(function(l) { return '<li>' + l.replace(/^[ \t]*[-*]\s+/, '') + '</li>'; }); return '\n<ul class="ai-ul">' + items.join('') + '</ul>\n'; });
     return html;
 }
+
 async function aiCallOnce(modelId, userMessage) {
     var sys = aiBuildSystemPrompt();
     var messages = AI.history.slice(-AI.MAX_HISTORY).filter(function(m) { return m.role === 'user' || m.role === 'assistant'; }).map(function(m) { return { role: m.role, content: m.content }; });
@@ -4070,7 +4391,19 @@ async function aiCallOnce(modelId, userMessage) {
     var controller = new AbortController();
     var timer = setTimeout(function() { try { controller.abort(); } catch(e){} }, 60000);
     var res;
-    try { res = await fetch(url, { method: 'POST', headers: headers, signal: controller.signal, body: JSON.stringify({ model: model, messages: [{ role: 'system', content: sys }].concat(messages), temperature: 0.3, max_tokens: 1500 }) }); }
+    try {
+        res = await fetch(url, {
+            method: 'POST',
+            headers: headers,
+            signal: controller.signal,
+            body: JSON.stringify({
+                model: model,
+                messages: [{ role: 'system', content: sys }].concat(messages),
+                temperature: 0.3,
+                max_tokens: 3000
+            })
+        });
+    }
     finally { clearTimeout(timer); }
     if (!res.ok) { var t = await res.text(); var e = new Error(res.status + ': ' + t.substring(0, 200)); e.status = res.status; throw e; }
     var data = await res.json();
@@ -4087,7 +4420,8 @@ async function aiCallAPI(userMessage) {
     var errors = [];
     for (var i = 0; i < candidates.length; i++) {
         var m = candidates[i]; if (AI.failedModels[m]) continue;
-        try { var reply = await aiCallOnce(m, userMessage);
+        try {
+            var reply = await aiCallOnce(m, userMessage);
             if (i > 0) showToast('⚠️ مدل ' + candidates[0] + ' پاسخ نداد → ' + m + ' استفاده شد.', 4000);
             if (AI.model !== m) { AI.model = m; aiSaveSettings(); updateAiModelSelectUI(); }
             return reply;
@@ -4106,7 +4440,7 @@ function updateAiModelSelectUI() {
 function aiRender() {
     var box = document.getElementById('ai-messages'); if (!box) return;
     if (!AI.apiKey) { box.innerHTML = '<div class="ai-setup"><h3>🤖 به پارسیس یار خوش آمدید</h3><p>کلید API را از تنظیمات (⚙) وارد کنید.<br>سرویس AvalAI ایرانی است.<br><a href="https://avalai.ir" target="_blank">avalai.ir</a></p><button class="btn-primary" onclick="document.getElementById(\'ai-settings-btn\').click()">تنظیمات</button></div>'; return; }
-    if (AI.history.length === 0) { box.innerHTML = '<div class="ai-msg system">سلام! من پارسیس یار هستم 🤖</div>'; return; }
+    if (AI.history.length === 0) { box.innerHTML = '<div class="ai-msg system">سلام! من پارسیس یار هستم 🤖 آماده‌ام به سوالات حسابداری‌ات پاسخ دهم.</div>'; return; }
     var html = '';
     AI.history.forEach(function(m) { var cls = m.role === 'user' ? 'user' : (m.role === 'error' ? 'error' : 'assistant'); var content = (m.role === 'assistant') ? renderAIMarkdown(m.content) : esc(m.content); html += '<div class="ai-msg ' + cls + '">' + content + '</div>'; });
     if (AI.isThinking) html += '<div class="ai-msg thinking">در حال فکر کردن...</div>';
@@ -4417,7 +4751,6 @@ function init() {
         for (var z = 0; z < rffTabs.length; z++) rffTabs[z].classList.toggle('active', rffTabs[z].getAttribute('data-rff-view') === v);
         runFacilityFullReport(); });
     for (var ti2 = 0; ti2 < rffTabs.length; ti2++) rffTabs[ti2].classList.toggle('active', rffTabs[ti2].getAttribute('data-rff-view') === state.rffView);
-    /* Notes listeners */
     document.getElementById('nt-add-item').addEventListener('click', function() { noteChecklist.push({ id: uid(), text: '', done: false }); renderNoteChecklist(); });
     document.getElementById('nt-save').addEventListener('click', saveNote);
     document.getElementById('nt-new').addEventListener('click', clearNoteForm);
@@ -4437,7 +4770,7 @@ function init() {
     document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'visible') autoRead(); });
     aiInit(); aiRender();
     renderEstimateItems();
-    console.log('🎉 ' + APP_NAME + ' v' + APP_VERSION + ' آماده — Priceto (ریال) + Navasan (تومان×۱۰)');
+    console.log('🎉 ' + APP_NAME + ' v' + APP_VERSION + ' آماده — AI Context جامع');
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
