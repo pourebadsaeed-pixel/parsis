@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "ir.parsis.app",
+    "sha256_cert_fingerprints": ["86:87:5E:DB:29:89:71:95:78:E9:79:73:D2:CD:A9:5B:11:DE:C8:86:E7:63:8B:C9:BF:F3:57:7E:DF:DB:3C:78"]
+  }
+}]
