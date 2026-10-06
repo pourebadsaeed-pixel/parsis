@@ -479,6 +479,24 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .notes-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:12px; }
 @media (max-width:600px) { .notes-grid { grid-template-columns:1fr; } }
 .img-preview-modal img { max-width:100%; max-height:80vh; border-radius:12px; }
+
+/* ==================== AI Draft Card (new) ==================== */
+.ai-draft-card { margin-top:12px; background:#fff; border:1.5px solid rgba(102,126,234,0.28); border-radius:14px; padding:12px; white-space:normal; box-shadow:0 4px 14px rgba(102,126,234,0.08); }
+.ai-draft-head { font-weight:800; color:#3730a3; margin-bottom:8px; font-size:0.94rem; display:flex; align-items:center; gap:6px; }
+.ai-draft-meta { font-size:0.82rem; color:#4a5568; margin-bottom:10px; line-height:1.9; }
+.ai-draft-meta b { color:#3730a3; }
+.ai-draft-table { width:100%; border-collapse:collapse; font-size:0.78rem; margin-bottom:10px; direction:rtl; }
+.ai-draft-table thead th { background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:#fff; padding:7px 9px; text-align:right; font-weight:700; font-size:0.76rem; }
+.ai-draft-table td { padding:6px 9px; border-bottom:1px solid rgba(102,126,234,0.1); color:#374151; }
+.ai-draft-table tbody tr:nth-child(even) { background:rgba(102,126,234,0.035); }
+.ai-draft-table tfoot td { background:rgba(102,126,234,0.08); font-weight:700; color:#3730a3; border-top:1.5px solid rgba(102,126,234,0.3); }
+.ai-draft-table td.dr { color:#c0392b; font-weight:700; }
+.ai-draft-table td.cr { color:#1e9e6a; font-weight:700; }
+.ai-draft-load { width:100%; padding:11px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:#fff; border:none; border-radius:10px; font-family:inherit; font-size:0.88rem; font-weight:700; cursor:pointer; transition:all 0.2s; }
+.ai-draft-load:hover { opacity:0.92; transform:translateY(-1px); }
+.ai-draft-load:active { transform:translateY(0); }
+.ai-draft-errors { margin-top:8px; padding:8px 10px; background:#fdeaea; color:#b91c1c; border-radius:10px; font-size:0.82rem; line-height:1.8; }
+.ai-draft-errors strong { display:block; margin-bottom:4px; }
 </style>
 </head>
 <body class="theme-sky font-tahoma">
@@ -1092,6 +1110,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
         <button class="ai-suggestion" data-q="این ماه چقدر درآمد داشتم؟">📈 درآمد این ماه</button>
         <button class="ai-suggestion" data-q="اقساط هفت روز آینده را با تاریخ و مبلغ بگو">⏰ اقساط هفت روز آینده</button>
         <button class="ai-suggestion" data-q="بیشترین هزینه‌ام در چه دسته‌ای است؟">📊 تحلیل هزینه</button>
+        <button class="ai-suggestion" data-q="۵۰۰ هزار تومان کرایه تاکسی از صندوق پرداخت شد، سند بزن">📝 نمونه صدور سند</button>
     </div>
     <div class="ai-input-row"><textarea id="ai-input" placeholder="سوال خود را بپرسید..." rows="2"></textarea><button id="ai-send-btn" class="ai-send">📤</button></div>
 </div>
@@ -1127,10 +1146,10 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 
 <script>
 /* =====================================================================
-   =============  پارسیس — PWA v25.10.08 (اصلاح هوش مصنوعی) ============
+   =============  پارسیس — PWA v25.10.09 (AI Voucher Draft) ===========
    ===================================================================== */
 var APP_NAME = 'پارسیس';
-var APP_VERSION = '25.10.08';
+var APP_VERSION = '25.10.09';
 function toFaSimple(x){ return String(x).replace(/\d/g, function(d){ return '۰۱۲۳۴۵۶۷۸۹'[d]; }); }
 var LS_PREFIX = 'parsis.';
 var DB = {
@@ -3928,7 +3947,7 @@ function handleNoteImages(files) {
 }
 
 /* =====================================================================
-   ==================== AI — با Context جامع ===========================
+   ==================== AI — با قابلیت صدور سند ========================
    ===================================================================== */
 var AVALAI_MODELS = [
     { id: 'gpt-4o-mini',                label: 'GPT-4o Mini (پیشنهاد)' },
@@ -3944,6 +3963,64 @@ var AVALAI_MODELS = [
     { id: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet' },
     { id: 'o1-mini',                    label: 'o1-mini' }
 ];
+
+/* ==================== AI Tools (Function Calling) ==================== */
+var AI_TOOLS = [
+    {
+        type: 'function',
+        function: {
+            name: 'create_voucher_draft',
+            description: 'ساخت پیش‌نویس سند حسابداری. فقط زمانی که کاربر صریحاً درخواست ثبت سند کرد (مثلاً «سند بزن»، «ثبت کن»، «پرداخت شد»، «دریافت شد») از این ابزار استفاده کن. سند ساخته‌شده فقط پیش‌نویس است و باید توسط کاربر تأیید شود.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    date: {
+                        type: 'string',
+                        description: 'تاریخ شمسی به فرمت YYYY/MM/DD (مثال: 1404/07/15). اگر کاربر تاریخ نگفت، از تاریخ امروز استفاده کن.'
+                    },
+                    desc: {
+                        type: 'string',
+                        description: 'شرح کلی سند (مثلاً: پرداخت کرایه تاکسی)'
+                    },
+                    type: {
+                        type: 'string',
+                        enum: ['general', 'opening', 'establishment', 'closing', 'final'],
+                        description: 'نوع سند. پیش‌فرض general (عمومی).'
+                    },
+                    lines: {
+                        type: 'array',
+                        minItems: 2,
+                        description: 'اقلام سند. حداقل دو قلم. جمع بدهکار باید دقیقاً برابر جمع بستانکار باشد. معمولاً ابتدا قلم بدهکار (هزینه/دارایی) و سپس قلم بستانکار (پرداخت/درآمد).',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                account_code: {
+                                    type: 'string',
+                                    description: 'کد حساب معین — باید عیناً از چارت حساب‌های سیستم کپی شود. کد جدید نساز.'
+                                },
+                                debit: {
+                                    type: 'number',
+                                    description: 'مبلغ بدهکار به ریال. اگر قلم بستانکار است، ۰ بگذار.'
+                                },
+                                credit: {
+                                    type: 'number',
+                                    description: 'مبلغ بستانکار به ریال. اگر قلم بدهکار است، ۰ بگذار.'
+                                },
+                                description: {
+                                    type: 'string',
+                                    description: 'شرح قلم سند'
+                                }
+                            },
+                            required: ['account_code', 'description']
+                        }
+                    }
+                },
+                required: ['date', 'desc', 'lines']
+            }
+        }
+    }
+];
+
 var AI = {
     provider: DB.load('ai.provider', 'avalai'),
     apiKey: DB.load('ai.apiKey', ''),
@@ -3977,6 +4054,10 @@ function aiBuildContext() {
             var am = (p.id === state.activePeriodId) ? ' ⭐فعال' : '';
             lines.push('- ' + p.title + ' از ' + p.from + ' تا ' + p.to + am);
         });
+        if (state.activePeriodId) {
+            var ap = periods.find(function(p) { return p.id === state.activePeriodId; });
+            if (ap) lines.push('⭐ بازه مجاز تاریخ سند: ' + ap.from + ' تا ' + ap.to);
+        }
     } else {
         lines.push('\n=== دوره‌های مالی === (هیچ دوره‌ای تعریف نشده)');
     }
@@ -3985,17 +4066,21 @@ function aiBuildContext() {
     var accounts = DB.load('accounts', []);
     if (accounts.length > 0) {
         lines.push('\n=== چارت حساب‌ها (' + accounts.length + ' حساب) ===');
+        lines.push('⚠️ کد معین‌ها برای صدور سند (account_code) را عیناً از این‌ها کپی کن:');
         var byParent = {}; accounts.forEach(function(a) { var p = a.parent || '__root__'; if (!byParent[p]) byParent[p] = []; byParent[p].push(a); });
         function walk(pid, depth) {
             var arr = byParent[pid] || [];
             arr.forEach(function(a) {
-                lines.push(new Array(depth + 1).join('  ') + '- [' + (a.code || '?') + '] ' + (a.name || ''));
+                var extra = '';
+                if (a.links && a.links.length > 0) extra += ' [تفصیلی‌های مرتبط: ' + a.links.map(linkTypeName).join('، ') + ']';
+                if (a.cfEffect) extra += ' [موثر در گردش وجه نقد]';
+                lines.push(new Array(depth + 1).join('  ') + '- [' + (a.code || '?') + '] ' + (a.name || '') + extra);
                 walk(a.id, depth + 1);
             });
         }
         walk('__root__', 0);
     } else {
-        lines.push('\n=== چارت حساب‌ها === (هیچ حسابی تعریف نشده)');
+        lines.push('\n=== چارت حساب‌ها === (هیچ حسابی تعریف نشده — نمی‌توان سند ساخت)');
     }
 
     /* ---------- اشخاص ---------- */
@@ -4225,7 +4310,7 @@ function aiBuildContext() {
 
         var recent = approved.slice().sort(function(a, b) { return compareVals(b.date, a.date); }).slice(0, 20);
         if (recent.length > 0) {
-            lines.push('\n--- ۲۰ سند آخر تأییدشده ---');
+            lines.push('\n--- ۲۰ سند آخر تأییدشده (به‌عنوان الگو) ---');
             recent.forEach(function(v) {
                 var amt = getVoucherAmount(v);
                 lines.push('• سند شماره ' + v.number + ' | تاریخ ' + v.date + ' | نوع: ' + voucherTypeName(v.type) + ' | مبلغ کل: ' + formatRial(amt) + ' ریال | شرح: ' + (v.desc || '—'));
@@ -4351,6 +4436,18 @@ function aiBuildSystemPrompt() {
         '8. اگر داده‌ای در اطلاعات نیست، صریح بگو «این مورد در سیستم ثبت نشده» و کاربر را برای ثبت راهنمایی کن.\n' +
         '9. هرگز اطلاعات ساختگی نساز.\n' +
         '\n' +
+        '🔨 قوانین صدور سند (ابزار create_voucher_draft):\n' +
+        '1. **فقط** زمانی از این ابزار استفاده کن که کاربر صریحاً خواسته باشد («سند بزن»، «ثبت کن»، «پرداخت شد»، «واریز کن»، «دریافت شد»، «هزینه کردم»).\n' +
+        '2. اگر کاربر سؤالی پرسیده یا گزارش خواسته، **از ابزار استفاده نکن** — فقط جواب بده.\n' +
+        '3. تاریخ باید در بازه **دوره فعال** باشد (بازه در اطلاعات نوشته شده). فرمت: YYYY/MM/DD. اگر کاربر تاریخ نگفت، از تاریخ امروز استفاده کن.\n' +
+        '4. کد حساب (account_code) را **عیناً** از چارت حساب‌های سیستم کپی کن. کد جدید نساز. اگر حساب مناسبی وجود ندارد، از ابزار استفاده نکن و به کاربر بگو کدام معین را تعریف کند.\n' +
+        '5. مبالغ **همیشه به ریال** وارد کن. اگر کاربر «تومان» گفت، ضربدر ۱۰ کن.\n' +
+        '6. جمع بدهکار و بستانکار باید دقیقاً مساوی باشد.\n' +
+        '7. **هرگز** مستقیماً سند را تأیید نکن. فقط پیش‌نویس می‌سازی و کاربر باید بازبینی و تأیید کند.\n' +
+        '8. اگر اطلاعات ضروری (مبلغ، حساب، تاریخ) کم است، سؤال بپرس. **حدس نزن**.\n' +
+        '9. الگوی متداول ثبت سند: ابتدا قلم **بدهکار** (هزینه یا دریافت‌کننده وجه)، سپس قلم **بستانکار** (پرداخت‌کننده وجه یا درآمد).\n' +
+        '10. مثلاً برای «۵۰۰ هزار تومان کرایه تاکسی از صندوق»: بدهکار = کد معین «هزینه ایاب و ذهاب» به مبلغ ۵,۰۰۰,۰۰۰ ریال؛ بستانکار = کد معین «صندوق» به مبلغ ۵,۰۰۰,۰۰۰ ریال.\n' +
+        '\n' +
         '---\n' +
         aiBuildContext();
 }
@@ -4378,16 +4475,32 @@ function renderAIMarkdown(text) {
     return html;
 }
 
-async function aiCallOnce(modelId, userMessage) {
+/* ---- AI Fetch with tools ---- */
+async function _aiDoFetch(modelId, userMessage, includeTools) {
     var sys = aiBuildSystemPrompt();
-    var messages = AI.history.slice(-AI.MAX_HISTORY).filter(function(m) { return m.role === 'user' || m.role === 'assistant'; }).map(function(m) { return { role: m.role, content: m.content }; });
+    var messages = AI.history.slice(-AI.MAX_HISTORY)
+        .filter(function(m) { return m.role === 'user' || m.role === 'assistant'; })
+        .map(function(m) { return { role: m.role, content: m.content }; });
     messages.push({ role: 'user', content: userMessage });
+
     var url, headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.apiKey }, model = modelId;
     if (AI.provider === 'avalai') { url = 'https://api.avalai.ir/v1/chat/completions'; model = modelId || 'gpt-4o-mini'; }
     else if (AI.provider === 'chatanywhere') { url = 'https://api.chatanywhere.tech/v1/chat/completions'; model = modelId || 'deepseek-chat'; }
     else if (AI.provider === 'deepseek') { url = 'https://api.deepseek.com/v1/chat/completions'; model = modelId || 'deepseek-chat'; }
     else if (AI.provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = modelId || 'openai/gpt-oss-120b'; }
     else throw new Error('سرویس نامعتبر');
+
+    var bodyObj = {
+        model: model,
+        messages: [{ role: 'system', content: sys }].concat(messages),
+        temperature: 0.3,
+        max_tokens: 3000
+    };
+    if (includeTools) {
+        bodyObj.tools = AI_TOOLS;
+        bodyObj.tool_choice = 'auto';
+    }
+
     var controller = new AbortController();
     var timer = setTimeout(function() { try { controller.abort(); } catch(e){} }, 60000);
     var res;
@@ -4396,19 +4509,35 @@ async function aiCallOnce(modelId, userMessage) {
             method: 'POST',
             headers: headers,
             signal: controller.signal,
-            body: JSON.stringify({
-                model: model,
-                messages: [{ role: 'system', content: sys }].concat(messages),
-                temperature: 0.3,
-                max_tokens: 3000
-            })
+            body: JSON.stringify(bodyObj)
         });
     }
     finally { clearTimeout(timer); }
-    if (!res.ok) { var t = await res.text(); var e = new Error(res.status + ': ' + t.substring(0, 200)); e.status = res.status; throw e; }
+    if (!res.ok) {
+        var t = await res.text();
+        var e = new Error(res.status + ': ' + t.substring(0, 300));
+        e.status = res.status;
+        throw e;
+    }
     var data = await res.json();
     if (!data.choices || !data.choices[0] || !data.choices[0].message) throw new Error('پاسخ نامعتبر');
-    return data.choices[0].message.content;
+    var msg = data.choices[0].message;
+    if (msg.tool_calls && msg.tool_calls.length > 0) {
+        return { type: 'tool_call', calls: msg.tool_calls, content: msg.content || '' };
+    }
+    return { type: 'text', content: msg.content || '' };
+}
+async function aiCallOnce(modelId, userMessage) {
+    try {
+        return await _aiDoFetch(modelId, userMessage, true);
+    } catch (e) {
+        // اگر خطا مربوط به tools بود، بدون tools امتحان کن
+        if (e.status === 400 && /tool/i.test(String(e.message || ''))) {
+            console.warn('Tools not supported by model, retrying without tools');
+            return await _aiDoFetch(modelId, userMessage, false);
+        }
+        throw e;
+    }
 }
 async function aiCallAPI(userMessage) {
     if (AI.provider !== 'avalai') return await aiCallOnce(AI.model, userMessage);
@@ -4421,14 +4550,104 @@ async function aiCallAPI(userMessage) {
     for (var i = 0; i < candidates.length; i++) {
         var m = candidates[i]; if (AI.failedModels[m]) continue;
         try {
-            var reply = await aiCallOnce(m, userMessage);
+            var result = await aiCallOnce(m, userMessage);
             if (i > 0) showToast('⚠️ مدل ' + candidates[0] + ' پاسخ نداد → ' + m + ' استفاده شد.', 4000);
             if (AI.model !== m) { AI.model = m; aiSaveSettings(); updateAiModelSelectUI(); }
-            return reply;
+            return result;
         } catch (e) { errors.push(m + ': ' + (e.message || e)); AI.failedModels[m] = true; console.warn('AI model failed:', m, e); }
     }
     throw new Error('همه مدل‌ها ناموفق بودند. آخرین خطا: ' + (errors[errors.length - 1] || 'نامشخص'));
 }
+
+/* ---- AI Tool Handler — اعتبارسنجی و تبدیل به draft ---- */
+function aiHandleToolCall(call) {
+    if (!call || !call.function) return { error: 'ساختار ابزار نامعتبر' };
+    if (call.function.name !== 'create_voucher_draft') return { error: 'ابزار ناشناخته: ' + call.function.name };
+
+    var args;
+    try { args = JSON.parse(call.function.arguments || '{}'); }
+    catch(e) { return { error: 'JSON نامعتبر در ورودی ابزار: ' + (e.message || '') }; }
+
+    if (!args.lines || !Array.isArray(args.lines) || args.lines.length < 2) {
+        return { error: 'سند باید حداقل دو قلم داشته باشد' };
+    }
+
+    var accounts = DB.load('accounts', []);
+    var leaves = accounts.filter(function(a) { return !accounts.some(function(x) { return x.parent === a.id; }); });
+    var lines = [];
+    var problems = [];
+
+    for (var i = 0; i < args.lines.length; i++) {
+        var L = args.lines[i] || {};
+        var code = String(L.account_code || '').trim();
+        if (!code) { problems.push('ردیف ' + (i + 1) + ': کد حساب خالی است'); continue; }
+
+        var acc = leaves.find(function(a) { return String(a.code) === code; });
+        if (!acc) {
+            var byName = leaves.find(function(a) { return (a.name || '').trim() === code; });
+            if (byName) acc = byName;
+        }
+        if (!acc) { problems.push('کد معین «' + code + '» در چارت حساب‌ها پیدا نشد'); continue; }
+
+        var d = Number(L.debit) || 0;
+        var c = Number(L.credit) || 0;
+        if (d < 0 || c < 0) { problems.push('ردیف ' + (i + 1) + ': مبلغ منفی مجاز نیست'); continue; }
+        if (d > 0 && c > 0) { problems.push('ردیف ' + (i + 1) + ': هم بدهکار هم بستانکار نمی‌شود'); continue; }
+        if (d === 0 && c === 0) { problems.push('ردیف ' + (i + 1) + ': مبلغ صفر است'); continue; }
+
+        lines.push({
+            id: uid(),
+            account: acc.id,
+            details: {},
+            debit: d,
+            credit: c,
+            description: String(L.description || '').trim() || 'بدون شرح'
+        });
+    }
+
+    if (lines.length < 2) problems.push('حداقل دو قلم معتبر لازم است');
+
+    var td = 0, tc = 0;
+    lines.forEach(function(l) { td += l.debit; tc += l.credit; });
+    if (Math.abs(td - tc) > 0.5) {
+        problems.push('سند متوازن نیست (بدهکار: ' + formatMoney(td) + ' | بستانکار: ' + formatMoney(tc) + ' | اختلاف: ' + formatMoney(Math.abs(td - tc)) + ')');
+    }
+
+    var date = normalizeDigits(String(args.date || '').trim());
+    if (!/^\d{4}\/\d{1,2}\/\d{1,2}$/.test(date)) {
+        date = todayJalaliStr();
+    }
+    var dv = validateDateInActivePeriod(date);
+    if (!dv.ok) problems.push(dv.msg);
+
+    if (problems.length > 0) {
+        return { error: problems.join(' | ') };
+    }
+
+    return {
+        draft: {
+            date: date,
+            desc: String(args.desc || '').trim() || 'سند هوشمند',
+            type: args.type || 'general',
+            lines: lines
+        }
+    };
+}
+function aiLoadDraftIntoForm(draft) {
+    if (!draft || !draft.lines || draft.lines.length === 0) { alert('پیش‌نویس خالی است.'); return; }
+    document.getElementById('v-id').value = '';
+    document.getElementById('v-number').value = getNextVoucherNumberForPeriod(state.activePeriodId || '');
+    document.getElementById('v-date').value = draft.date || todayJalaliStr();
+    document.getElementById('v-type').value = draft.type || 'general';
+    document.getElementById('v-desc').value = draft.desc || '';
+    currentVoucherStatus = 'draft';
+    voucherLines = JSON.parse(JSON.stringify(draft.lines));
+    renderVoucherLines();
+    goToPage('voucher-new');
+    aiClose();
+    showToast('🤖 پیش‌نویس سند آماده شد — بازبینی و ذخیره کن');
+}
+
 function updateAiModelSelectUI() {
     var sel = document.getElementById('ai-model-select'); if (!sel) return;
     var status = document.getElementById('ai-model-status'); if (!status) return;
@@ -4440,22 +4659,97 @@ function updateAiModelSelectUI() {
 function aiRender() {
     var box = document.getElementById('ai-messages'); if (!box) return;
     if (!AI.apiKey) { box.innerHTML = '<div class="ai-setup"><h3>🤖 به پارسیس یار خوش آمدید</h3><p>کلید API را از تنظیمات (⚙) وارد کنید.<br>سرویس AvalAI ایرانی است.<br><a href="https://avalai.ir" target="_blank">avalai.ir</a></p><button class="btn-primary" onclick="document.getElementById(\'ai-settings-btn\').click()">تنظیمات</button></div>'; return; }
-    if (AI.history.length === 0) { box.innerHTML = '<div class="ai-msg system">سلام! من پارسیس یار هستم 🤖 آماده‌ام به سوالات حسابداری‌ات پاسخ دهم.</div>'; return; }
+    if (AI.history.length === 0) { box.innerHTML = '<div class="ai-msg system">سلام! من پارسیس یار هستم 🤖 آماده‌ام به سوالات حسابداری‌ات پاسخ دهم و در صورت درخواست، سند هم بسازم.</div>'; return; }
     var html = '';
-    AI.history.forEach(function(m) { var cls = m.role === 'user' ? 'user' : (m.role === 'error' ? 'error' : 'assistant'); var content = (m.role === 'assistant') ? renderAIMarkdown(m.content) : esc(m.content); html += '<div class="ai-msg ' + cls + '">' + content + '</div>'; });
+    AI.history.forEach(function(m, mi) {
+        var cls = m.role === 'user' ? 'user' : (m.role === 'error' ? 'error' : 'assistant');
+        var content = (m.role === 'assistant') ? renderAIMarkdown(m.content || '') : esc(m.content);
+        html += '<div class="ai-msg ' + cls + '">' + content;
+
+        // کارت‌های پیش‌نویس سند
+        if (m.drafts && m.drafts.length > 0) {
+            m.drafts.forEach(function(d, di) {
+                var accounts = DB.load('accounts', []);
+                var td = 0, tc = 0;
+                d.lines.forEach(function(l) { td += l.debit; tc += l.credit; });
+                var rows = '';
+                d.lines.forEach(function(l, li) {
+                    var accLabel = getAccountLabel(l.account, accounts);
+                    rows += '<tr><td>' + toFa(li + 1) + '</td><td>' + esc(accLabel) + '</td><td>' + esc(l.description || '') + '</td>' +
+                        '<td class="dr" style="text-align:center">' + (l.debit ? formatMoney(l.debit) : '—') + '</td>' +
+                        '<td class="cr" style="text-align:center">' + (l.credit ? formatMoney(l.credit) : '—') + '</td></tr>';
+                });
+                html += '<div class="ai-draft-card">' +
+                    '<div class="ai-draft-head">📝 پیش‌نویس سند آماده شد</div>' +
+                    '<div class="ai-draft-meta">تاریخ: <b dir="ltr">' + toFa(esc(d.date)) + '</b> | نوع: <b>' + voucherTypeName(d.type) + '</b> | شرح: <b>' + esc(d.desc) + '</b></div>' +
+                    '<table class="ai-draft-table"><thead><tr><th>#</th><th>حساب</th><th>شرح</th><th>بدهکار</th><th>بستانکار</th></tr></thead><tbody>' + rows + '</tbody>' +
+                    '<tfoot><tr><td colspan="3">جمع</td><td>' + formatMoney(td) + '</td><td>' + formatMoney(tc) + '</td></tr></tfoot></table>' +
+                    '<button class="ai-draft-load" data-msg-idx="' + mi + '" data-draft-idx="' + di + '">📥 بارگذاری در فرم سند</button>' +
+                    '</div>';
+            });
+        }
+
+        // خطاها
+        if (m.errors && m.errors.length > 0) {
+            html += '<div class="ai-draft-errors"><strong>⚠️ نتوانستم سند بسازم:</strong>' + m.errors.map(esc).join('<br>') + '</div>';
+        }
+
+        html += '</div>';
+    });
     if (AI.isThinking) html += '<div class="ai-msg thinking">در حال فکر کردن...</div>';
-    box.innerHTML = html; box.scrollTop = box.scrollHeight;
+    box.innerHTML = html;
+    box.scrollTop = box.scrollHeight;
+
+    // اتصال دکمه‌های بارگذاری
+    box.querySelectorAll('.ai-draft-load').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var mi = Number(this.getAttribute('data-msg-idx'));
+            var di = Number(this.getAttribute('data-draft-idx'));
+            var msg = AI.history[mi];
+            if (!msg || !msg.drafts || !msg.drafts[di]) { alert('پیش‌نویس یافت نشد.'); return; }
+            aiLoadDraftIntoForm(msg.drafts[di]);
+        });
+    });
 }
 function aiOpen() { document.getElementById('ai-modal').classList.add('show'); document.getElementById('ai-overlay').classList.add('show'); aiRender(); }
 function aiClose() { document.getElementById('ai-modal').classList.remove('show'); document.getElementById('ai-overlay').classList.remove('show'); }
 async function aiSend() {
-    if (AI.isThinking) return; var inp = document.getElementById('ai-input'); var text = (inp.value || '').trim();
-    if (!text) return; if (!AI.apiKey) { alert('کلید API را وارد کنید.'); return; }
-    inp.value = ''; AI.history.push({ role: 'user', content: text }); AI.isThinking = true; aiRender();
+    if (AI.isThinking) return;
+    var inp = document.getElementById('ai-input');
+    var text = (inp.value || '').trim();
+    if (!text) return;
+    if (!AI.apiKey) { alert('کلید API را وارد کنید.'); return; }
+    inp.value = '';
+    AI.history.push({ role: 'user', content: text });
+    AI.isThinking = true; aiRender();
     var btn = document.getElementById('ai-send-btn'); if (btn) btn.disabled = true;
-    try { var reply = await aiCallAPI(text); AI.history.push({ role: 'assistant', content: reply }); }
-    catch (e) { AI.history.push({ role: 'error', content: '⚠️ ' + (e.message || 'خطا') }); }
-    finally { AI.isThinking = false; if (btn) btn.disabled = false; aiSaveHistory(); aiRender(); }
+    try {
+        var result = await aiCallAPI(text);
+        if (result && result.type === 'tool_call') {
+            var drafts = [];
+            var errors = [];
+            for (var i = 0; i < result.calls.length; i++) {
+                var r = aiHandleToolCall(result.calls[i]);
+                if (r && r.draft) drafts.push(r.draft);
+                else if (r && r.error) errors.push(r.error);
+            }
+            var msg = {
+                role: 'assistant',
+                content: result.content || (drafts.length ? '✅ پیش‌نویس سند آماده شد. بازبینی کن و اگر درست است، در فرم بارگذاری کن تا ذخیره/تأیید کنی.' : '⚠️ نتوانستم سند بسازم.')
+            };
+            if (drafts.length > 0) msg.drafts = drafts;
+            if (errors.length > 0) msg.errors = errors;
+            AI.history.push(msg);
+        } else {
+            AI.history.push({ role: 'assistant', content: (result && result.content) || '' });
+        }
+    } catch (e) {
+        AI.history.push({ role: 'error', content: '⚠️ ' + (e.message || 'خطا') });
+    } finally {
+        AI.isThinking = false;
+        if (btn) btn.disabled = false;
+        aiSaveHistory(); aiRender();
+    }
 }
 function aiOpenSettings() {
     document.getElementById('ai-provider-select').value = AI.provider;
@@ -4770,7 +5064,7 @@ function init() {
     document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'visible') autoRead(); });
     aiInit(); aiRender();
     renderEstimateItems();
-    console.log('🎉 ' + APP_NAME + ' v' + APP_VERSION + ' آماده — AI Context جامع');
+    console.log('🎉 ' + APP_NAME + ' v' + APP_VERSION + ' آماده — AI Voucher Draft فعال');
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
