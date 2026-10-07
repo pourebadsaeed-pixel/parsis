@@ -272,6 +272,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .voucher-line .ln-btn.ln-copy { background:#e0e7ff; color:#3730a3; padding:6px 12px; font-size:0.8rem; }
 .voucher-line .ln-btn.ln-swap { background:#f3e8ff; color:#7e22ce; padding:6px 12px; font-size:0.8rem; }
 .voucher-line .ln-btn.ln-moveto { background:#cffafe; color:#0e7490; padding:6px 12px; font-size:0.8rem; }
+.voucher-line .ln-btn.ln-clear-desc { background:#fdeaea; color:#dc2626; padding:6px 12px; font-size:0.8rem; }
 .voucher-line .ln-del { background:#fdeaea; color:var(--danger); }
 .voucher-line .desc-required { border-color:var(--warning) !important; background:#fffbf2; }
 @media (max-width:600px) { .voucher-line .ln-row.r4 { grid-template-columns:1fr 1fr; } }
@@ -537,12 +538,22 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .ai-msg.assistant table.ai-table thead th { background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:#fff; padding:12px 14px; text-align:right; font-weight:800; font-size:0.82rem; }
 .ai-msg.assistant table.ai-table td { padding:10px 14px; border-bottom:1px solid rgba(102,126,234,0.08); color:#374151; }
 .ai-msg.assistant table.ai-table tbody tr:nth-child(even) { background:rgba(102,126,234,0.035); }
+.ai-msg .ai-msg-image { max-width:100%; max-height:240px; border-radius:10px; margin-top:8px; display:block; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
 .ai-suggestions { display:flex; flex-wrap:wrap; gap:8px; padding:12px 16px; background:rgba(248,250,255,0.85); border-top:1px solid rgba(102,126,234,0.1); }
 .ai-suggestion { padding:8px 14px; background:#fff; color:#4a5568; border:1.5px solid rgba(102,126,234,0.2); border-radius:20px; font-size:0.8rem; cursor:pointer; font-family:inherit; font-weight:600; }
 .ai-suggestion:hover { background:linear-gradient(135deg, #667eea, #764ba2); color:#fff; border-color:transparent; }
-.ai-input-row { display:flex; gap:10px; padding:14px 16px; background:#fff; border-top:1px solid rgba(102,126,234,0.1); align-items:flex-end; }
-.ai-input-row textarea { flex:1; resize:none; padding:12px 16px; border:2px solid rgba(102,126,234,0.15); border-radius:14px; font-family:inherit; font-size:0.9rem; outline:none; max-height:100px; background:#fafbff; }
+.ai-input-row { display:flex; gap:8px; padding:12px 14px; background:#fff; border-top:1px solid rgba(102,126,234,0.1); align-items:flex-end; }
+.ai-input-row textarea { flex:1; resize:none; padding:12px 16px; border:2px solid rgba(102,126,234,0.15); border-radius:14px; font-family:inherit; font-size:0.9rem; outline:none; max-height:100px; background:#fafbff; min-width:0; }
 .ai-send { padding:0 18px; height:48px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:#fff; border:none; border-radius:14px; font-size:1.15rem; cursor:pointer; min-width:48px; }
+.ai-tool-btn { width:44px; height:48px; background:#fafbff; border:2px solid rgba(102,126,234,0.2); color:#667eea; border-radius:14px; font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; transition:all 0.2s; flex-shrink:0; }
+.ai-tool-btn:hover { background:rgba(102,126,234,0.08); border-color:#667eea; }
+.ai-tool-btn.recording { background:linear-gradient(135deg, #ef4444, #dc2626); color:#fff; border-color:#dc2626; animation:pulse-rec 1.2s ease-in-out infinite; }
+@keyframes pulse-rec { 0%, 100% { box-shadow:0 0 0 0 rgba(220,38,38,0.5); } 50% { box-shadow:0 0 0 10px rgba(220,38,38,0); } }
+.ai-image-preview { display:flex; align-items:center; gap:10px; padding:10px 16px; background:rgba(102,126,234,0.06); border-top:1px solid rgba(102,126,234,0.1); }
+.ai-image-preview img { width:48px; height:48px; object-fit:cover; border-radius:8px; border:1px solid rgba(102,126,234,0.2); flex-shrink:0; }
+.ai-image-preview .info { flex:1; min-width:0; }
+.ai-image-preview .name { font-weight:bold; color:#4a5568; font-size:0.82rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ai-image-preview .remove { background:#fdeaea; color:#dc2626; border:none; width:32px; height:32px; border-radius:10px; cursor:pointer; font-size:1.1rem; flex-shrink:0; }
 .ai-setup { padding:30px 20px; text-align:center; color:#4a5568; display:flex; flex-direction:column; align-items:center; gap:10px; }
 .ai-setup h3 { color:#667eea; margin-bottom:6px; font-size:1.1rem; font-weight:800; }
 .ai-setup p { font-size:0.88rem; margin-bottom:8px; line-height:1.8; max-width:340px; }
@@ -551,7 +562,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 #ai-settings-overlay { z-index:600 !important; }
 #ai-settings-modal { z-index:610 !important; }
 #turnover-overlay { z-index:500 !important; }
-#turnover-modal { z-index:510 !important; }
+#turnover-modal { z-index:510 !important; max-width:min(96vw, 1200px) !important; }
 #calc-overlay { z-index:700 !important; }
 #calc-popup { z-index:710 !important; width:min(300px, 94vw); }
 #calc-display { width:100%; padding:12px; font-size:1.3rem; text-align:right; direction:ltr; background:var(--bg); border:1px solid var(--border); border-radius:8px; margin-bottom:10px; font-family:monospace; font-weight:bold; }
@@ -707,6 +718,41 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .note-share-sel { background: var(--card); color: var(--primary-dark); border: 1px solid var(--border); }
 .note-share-sel.active { background: var(--primary); color: #fff; }
 .note-checklist li .item-select { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; flex-shrink: 0; }
+
+/* ===== Turnover modal full-display fix ===== */
+#turnover-modal .modal-body { overflow: auto !important; max-height: 78vh; padding: 12px; }
+#turnover-body { width: 100%; overflow: visible; }
+#turnover-body .table-wrap {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+}
+#turnover-body .report-table {
+    table-layout: auto !important;
+    width: auto !important;
+    min-width: 100%;
+}
+#turnover-body .report-table th,
+#turnover-body .report-table td {
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+    padding: 8px 12px;
+}
+#turnover-body .report-table td:nth-child(4),
+#turnover-body .report-table td:nth-child(6),
+#turnover-body .report-table td:nth-child(7) {
+    white-space: normal !important;
+    word-break: break-word;
+    max-width: 220px;
+}
+#turnover-body .report-table th:nth-child(4),
+#turnover-body .report-table th:nth-child(6),
+#turnover-body .report-table th:nth-child(7) {
+    max-width: 220px;
+}
 </style>
 </head>
 <body class="theme-sky font-tahoma">
@@ -1043,7 +1089,13 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
             <div class="field"><label>تاریخ</label><input type="text" id="v-date" class="date-picker" dir="ltr"></div>
             <div class="field v-type-field"><label>نوع سند</label><select id="v-type"><option value="general">عمومی</option><option value="opening">افتتاحیه</option><option value="establishment">افتتاحیه استقرار</option><option value="closing">بستن حساب</option><option value="final">اختتامیه</option></select></div>
         </div>
-        <div class="field" style="margin-top:10px"><label>شرح سند *</label><input type="text" id="v-desc" list="std-desc-list"></div>
+        <div class="field" style="margin-top:10px">
+            <label>شرح سند *</label>
+            <div class="desc-row">
+                <input type="text" id="v-desc" list="std-desc-list">
+                <button type="button" id="v-desc-clear" class="desc-add-btn" title="خالی کردن شرح سند" style="background:#fdeaea;color:#dc2626">🧹</button>
+            </div>
+        </div>
     </div>
     <div class="card">
         <h3 style="margin-bottom:10px;color:var(--primary-dark);font-size:0.95rem">اقلام سند</h3>
@@ -1359,7 +1411,14 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
         <button class="ai-suggestion" data-q="۵۰۰ هزار تومان کرایه تاکسی از صندوق پرداخت شد، سند بزن">📝 نمونه صدور سند</button>
         <button class="ai-suggestion" data-q="یک شخص جدید به نام علی رضایی با موبایل ۰۹۱۲۳۴۵۶۷۸۹ تعریف کن">👤 تعریف شخص</button>
     </div>
-    <div class="ai-input-row"><textarea id="ai-input" placeholder="سوال خود را بپرسید..." rows="2"></textarea><button id="ai-send-btn" class="ai-send">📤</button></div>
+    <div id="ai-image-preview-box" class="ai-image-preview" style="display:none"></div>
+    <div class="ai-input-row">
+        <button id="ai-mic-btn" class="ai-tool-btn" title="ضبط صدا و تبدیل به متن">🎤</button>
+        <button id="ai-img-btn" class="ai-tool-btn" title="بارگذاری و تحلیل عکس">📷</button>
+        <textarea id="ai-input" placeholder="سوال خود را بپرسید..." rows="2"></textarea>
+        <button id="ai-send-btn" class="ai-send">📤</button>
+    </div>
+    <input type="file" id="ai-image-file" accept="image/*" hidden>
 </div>
 
 <div id="ai-settings-overlay" class="overlay"></div>
@@ -1410,10 +1469,10 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 
 <script>
 /* =====================================================================
-   =============  پارسیس — PWA v25.11.03 (Full Patch) ====
+   =============  پارسیس — PWA v25.11.04 (Voice/Image + Fixes) ====
    ===================================================================== */
 var APP_NAME = 'پارسیس';
-var APP_VERSION = '25.11.03';
+var APP_VERSION = '25.11.04';
 function toFaSimple(x){ return String(x).replace(/\d/g, function(d){ return '۰۱۲۳۴۵۶۷۸۹'[d]; }); }
 var LS_PREFIX = 'parsis.';
 var DB = {
@@ -2397,7 +2456,7 @@ function updateHomeUpcomingInstallments() {
     el.innerHTML = html;
     if (totalEl && totalAmountEl) { totalEl.classList.remove('hidden'); totalAmountEl.textContent = fmtFor(totalAmount, 'widgets') + ' ' + currencyLabel(); }
 }
-/* === Week calendar widget (English bold weekday names) === */
+/* === Week calendar widget === */
 function renderCalendarWidget() {
     var el = document.getElementById('home-cal-widget'); if (!el) return;
     var now = new Date();
@@ -2406,9 +2465,7 @@ function renderCalendarWidget() {
     var offsetFromSat = (jsDay + 1) % 7;
     var satDate = new Date(now);
     satDate.setDate(satDate.getDate() - offsetFromSat);
-
     var daysEn = ['SAT','SUN','MON','TUE','WED','THU','FRI'];
-
     var html = '<div class="cal-week-grid">';
     for (var i = 0; i < 7; i++) {
         var d = new Date(satDate);
@@ -2427,7 +2484,7 @@ function renderCalendarWidget() {
     html += '<div class="cal-widget-moadel">🌍 ' + JALALI_MONTHS[todayJ[1] - 1] + ' ' + toFa(todayJ[0]) + ' — امروز ' + WEEKDAYS_FA[now.getDay()] + '</div>';
     el.innerHTML = html;
 }
-/* === Improved checklist widget === */
+/* === Checklist widget === */
 function renderTodayChecklistWidget() {
     var el = document.getElementById('home-today-checklist'); if (!el) return;
     var today = todayJalaliStr();
@@ -4172,8 +4229,11 @@ function renderVoucherLines() {
             target = target - 1; if (target === idx) return;
             var movedLine = voucherLines.splice(idx, 1)[0]; voucherLines.splice(target, 0, movedLine);
             window._focusLineId = movedLine.id; renderVoucherLines(); showToast('📍 ردیف به شماره ' + toFa(target + 1) + ' منتقل شد.'); });
-        var bX = document.createElement('button'); bX.className = 'ln-btn ln-del'; bX.textContent = '× حذف'; bX.title = 'حذف ردیف'; bX.addEventListener('click', function() { voucherLines.splice(idx, 1); renderVoucherLines(); });
-        aW.appendChild(bU); aW.appendChild(bD); aW.appendChild(bCp); aW.appendChild(bSwap); aW.appendChild(bMoveTo); aW.appendChild(bX); wrap.appendChild(aW); box.appendChild(wrap); attachDatePickers();
+        var bClearDesc = document.createElement('button'); bClearDesc.className = 'ln-btn ln-clear-desc'; bClearDesc.textContent = '🧹 پاک شرح'; bClearDesc.title = 'خالی کردن شرح این قلم';
+        bClearDesc.addEventListener('click', function() { line.description = ''; iDsc.value = ''; iDsc.classList.remove('desc-required'); iDsc.focus(); });
+        var bX = document.createElement('button'); bX.className = 'ln-btn ln-del'; bX.textContent = '× حذف ردیف'; bX.title = 'حذف این ردیف';
+        bX.addEventListener('click', function() { if (!confirm('این ردیف حذف شود؟')) return; voucherLines.splice(idx, 1); renderVoucherLines(); });
+        aW.appendChild(bU); aW.appendChild(bD); aW.appendChild(bCp); aW.appendChild(bSwap); aW.appendChild(bMoveTo); aW.appendChild(bClearDesc); aW.appendChild(bX); wrap.appendChild(aW); box.appendChild(wrap); attachDatePickers();
     })(i);
     updateVoucherTotals();
     if (window._focusLineId) { var tid = window._focusLineId; window._focusLineId = null;
@@ -4402,7 +4462,7 @@ function refreshReportPeriodSelects() {
         sel.innerHTML = '<option value="">همه</option>'; for (var i = 0; i < ps.length; i++) { var o = document.createElement('option'); o.value = ps[i].id; o.textContent = ps[i].title; sel.appendChild(o); } sel.value = v; });
 }
 
-/* ==================== NOTEPAD (NEW: File System Access API, Share, Multiline) ==================== */
+/* ==================== NOTEPAD ==================== */
 var noteChecklist = [];
 var noteImageRefs = [];
 
@@ -4870,22 +4930,23 @@ function handleNoteImages(files) {
 }
 
 /* =====================================================================
-   ==================== AI — Enhanced Dynamic Context ==================
+   ============ AI — Voice Recording + Image Analysis ==================
    ===================================================================== */
 var AVALAI_MODELS = [
-    { id: 'gpt-4o-mini',                label: 'GPT-4o Mini (پیشنهاد)' },
-    { id: 'gpt-4o',                     label: 'GPT-4o' },
-    { id: 'gpt-4.1-mini',               label: 'GPT-4.1 Mini' },
-    { id: 'gpt-4.1',                    label: 'GPT-4.1' },
+    { id: 'gpt-4o-mini',                label: 'GPT-4o Mini (پیشنهاد، vision)' },
+    { id: 'gpt-4o',                     label: 'GPT-4o (vision)' },
+    { id: 'gpt-4.1-mini',               label: 'GPT-4.1 Mini (vision)' },
+    { id: 'gpt-4.1',                    label: 'GPT-4.1 (vision)' },
     { id: 'gpt-3.5-turbo',              label: 'GPT-3.5 Turbo (اقتصادی)' },
     { id: 'deepseek-chat',              label: 'DeepSeek Chat' },
     { id: 'deepseek-reasoner',          label: 'DeepSeek Reasoner' },
-    { id: 'gemini-2.0-flash',           label: 'Gemini 2.0 Flash' },
-    { id: 'gemini-1.5-flash',           label: 'Gemini 1.5 Flash' },
-    { id: 'gemini-1.5-pro',             label: 'Gemini 1.5 Pro' },
-    { id: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet' },
+    { id: 'gemini-2.0-flash',           label: 'Gemini 2.0 Flash (vision)' },
+    { id: 'gemini-1.5-flash',           label: 'Gemini 1.5 Flash (vision)' },
+    { id: 'gemini-1.5-pro',             label: 'Gemini 1.5 Pro (vision)' },
+    { id: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet (vision)' },
     { id: 'o1-mini',                    label: 'o1-mini' }
 ];
+var VISION_MODEL_IDS = ['gpt-4o-mini','gpt-4o','gpt-4.1-mini','gpt-4.1','gemini-2.0-flash','gemini-1.5-flash','gemini-1.5-pro','claude-3-5-sonnet-20241022'];
 
 var AI_NAVIGABLE_PAGES = {
     'home': 'صفحه اصلی',
@@ -4940,8 +5001,95 @@ var AI = {
     MAX_HISTORY: 20,
     isThinking: false
 };
+var AI_PENDING_IMAGE = null;
+var AI_VOICE_ACTIVE = false;
+var AI_REC = null;
+
 function aiSaveSettings() { DB.save('ai.provider', AI.provider); DB.save('ai.apiKey', AI.apiKey); DB.save('ai.model', AI.model); DB.save('ai.autoFallback', AI.autoFallback); }
 function aiSaveHistory() { DB.save('ai.history', AI.history.slice(-AI.MAX_HISTORY)); }
+
+function aiRenderImagePreview() {
+    var box = document.getElementById('ai-image-preview-box');
+    if (!box) return;
+    if (!AI_PENDING_IMAGE) { box.style.display = 'none'; box.innerHTML = ''; return; }
+    box.style.display = 'flex';
+    box.innerHTML = '<img src="' + AI_PENDING_IMAGE.dataUrl + '" alt="">' +
+        '<div class="info"><div class="name">📷 ' + esc(AI_PENDING_IMAGE.name) + '</div>' +
+        '<div class="muted" style="font-size:0.72rem">متن سوال را بنویسید (یا خالی بگذارید تا تحلیل شود) و ارسال کنید</div></div>' +
+        '<button class="remove" title="حذف تصویر">×</button>';
+    box.querySelector('.remove').addEventListener('click', function() {
+        AI_PENDING_IMAGE = null; aiRenderImagePreview();
+    });
+}
+
+function aiAttachImage(file) {
+    if (!file || !file.type || file.type.indexOf('image') === -1) return;
+    if (file.size > 5 * 1024 * 1024) { showToast('⚠️ حجم تصویر بیش از ۵ مگابایت.'); return; }
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        AI_PENDING_IMAGE = { dataUrl: e.target.result, name: file.name || 'image' };
+        aiRenderImagePreview();
+        showToast('📷 تصویر پیوست شد.');
+    };
+    reader.readAsDataURL(file);
+}
+
+function aiToggleVoice() {
+    if (AI_VOICE_ACTIVE) { aiStopVoice(); return; }
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { showToast('⚠️ تشخیص گفتار در این مرورگر پشتیبانی نمی‌شود. از Chrome یا Edge استفاده کنید.'); return; }
+    try {
+        var rec = new SR();
+        rec.lang = 'fa-IR';
+        rec.continuous = false;
+        rec.interimResults = true;
+        rec.maxAlternatives = 1;
+        var input = document.getElementById('ai-input');
+        var startVal = input.value;
+        var micBtn = document.getElementById('ai-mic-btn');
+        AI_VOICE_ACTIVE = true;
+        micBtn.classList.add('recording');
+        micBtn.textContent = '⏹';
+        micBtn.title = 'توقف ضبط';
+        rec.onresult = function(e) {
+            var finalText = '';
+            var interimText = '';
+            for (var i = e.resultIndex; i < e.results.length; i++) {
+                var t = e.results[i][0].transcript;
+                if (e.results[i].isFinal) finalText += t;
+                else interimText += t;
+            }
+            var combined = (startVal ? startVal + ' ' : '') + finalText + interimText;
+            input.value = combined.trim();
+        };
+        rec.onerror = function(e) {
+            console.warn('SpeechRecognition error:', e);
+            if (e.error === 'not-allowed' || e.error === 'service-not-allowed') showToast('⚠️ دسترسی به میکروفون داده نشد.');
+            else if (e.error === 'no-speech') showToast('صدایی شنیده نشد، دوباره تلاش کنید.');
+            else if (e.error === 'network') showToast('⚠️ خطای شبکه در تشخیص گفتار.');
+            else if (e.error !== 'aborted') showToast('خطای تشخیص گفتار: ' + e.error);
+        };
+        rec.onend = function() {
+            AI_VOICE_ACTIVE = false;
+            AI_REC = null;
+            if (micBtn) { micBtn.classList.remove('recording'); micBtn.textContent = '🎤'; micBtn.title = 'ضبط صدا و تبدیل به متن'; }
+        };
+        rec.start();
+        AI_REC = rec;
+    } catch(err) {
+        console.warn(err);
+        AI_VOICE_ACTIVE = false;
+        var mb = document.getElementById('ai-mic-btn');
+        if (mb) { mb.classList.remove('recording'); mb.textContent = '🎤'; }
+        showToast('⚠️ شروع ضبط ناموفق بود.');
+    }
+}
+function aiStopVoice() {
+    if (AI_REC) { try { AI_REC.stop(); } catch(e) {} AI_REC = null; }
+    AI_VOICE_ACTIVE = false;
+    var micBtn = document.getElementById('ai-mic-btn');
+    if (micBtn) { micBtn.classList.remove('recording'); micBtn.textContent = '🎤'; micBtn.title = 'ضبط صدا و تبدیل به متن'; }
+}
 
 function aiBuildGenericContext() {
     var lines = [];
@@ -5084,6 +5232,7 @@ function aiBuildSystemPrompt() {
         '6. اگر داده‌ای واقعاً خالی است، صریح بگو و راهنمایی کن.\n' +
         '7. هرگز اطلاعات ساختگی نساز.\n' +
         '8. **برای گزارش‌ها** می‌توانی هم با داده‌های موجود پاسخ متنی بدهی، و هم اگر کاربر خواست از ابزار `navigate_and_run_report` استفاده کن.\n' +
+        '9. **اگر کاربر تصویر فرستاد**، آن را دقیق تحلیل کن: متن داخل تصویر، اعداد، جداول، فاکتور، فیش بانکی، فرم و... را بخوان و به سوال پاسخ بده. اگر تصویر فاکتور یا فیش بود، می‌توانی پیشنهاد صدور سند بدهی.\n' +
         '\n🔨 صدور سند (create_voucher_draft):\n' +
         '• فقط وقتی کاربر صریحاً «سند بزن»، «ثبت کن»، «پرداخت شد»، «واریز شد» گفت.\n' +
         '• تاریخ در بازه دوره فعال، فرمت YYYY/MM/DD.\n' +
@@ -5120,10 +5269,25 @@ function renderAIMarkdown(text) {
     return html;
 }
 
-async function _aiDoFetch(modelId, userMessage, includeTools) {
+async function _aiDoFetch(modelId, userMessage, includeTools, imageData) {
     var sys = aiBuildSystemPrompt();
-    var messages = AI.history.slice(-AI.MAX_HISTORY).filter(function(m) { return m.role === 'user' || m.role === 'assistant'; }).map(function(m) { return { role: m.role, content: m.content }; });
-    messages.push({ role: 'user', content: userMessage });
+    // History excluding the last entry (current user message that we just pushed)
+    var histArr = AI.history.slice();
+    for (var hi = histArr.length - 1; hi >= 0; hi--) { if (histArr[hi].role === 'user') { histArr.splice(hi, 1); break; } }
+    histArr = histArr.filter(function(m) { return m.role === 'user' || m.role === 'assistant'; }).slice(-AI.MAX_HISTORY);
+    var messages = histArr.map(function(m) { return { role: m.role, content: m.content }; });
+
+    var userContent;
+    if (imageData && imageData.dataUrl) {
+        userContent = [
+            { type: 'text', text: userMessage || 'این تصویر را تحلیل کن و توضیح بده.' },
+            { type: 'image_url', image_url: { url: imageData.dataUrl } }
+        ];
+    } else {
+        userContent = userMessage;
+    }
+    messages.push({ role: 'user', content: userContent });
+
     var url, headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.apiKey }, model = modelId;
     if (AI.provider === 'avalai') { url = 'https://api.avalai.ir/v1/chat/completions'; model = modelId || 'gpt-4o-mini'; }
     else if (AI.provider === 'chatanywhere') { url = 'https://api.chatanywhere.tech/v1/chat/completions'; model = modelId || 'deepseek-chat'; }
@@ -5131,7 +5295,7 @@ async function _aiDoFetch(modelId, userMessage, includeTools) {
     else if (AI.provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = modelId || 'openai/gpt-oss-120b'; }
     else throw new Error('سرویس نامعتبر');
     var bodyObj = { model: model, messages: [{ role: 'system', content: sys }].concat(messages), temperature: 0.3, max_tokens: 3500 };
-    if (includeTools) { bodyObj.tools = AI_TOOLS; bodyObj.tool_choice = 'auto'; }
+    if (includeTools && !imageData) { bodyObj.tools = AI_TOOLS; bodyObj.tool_choice = 'auto'; }
     var controller = new AbortController();
     var timer = setTimeout(function() { try { controller.abort(); } catch(e){} }, 60000);
     var res;
@@ -5144,19 +5308,21 @@ async function _aiDoFetch(modelId, userMessage, includeTools) {
     if (msg.tool_calls && msg.tool_calls.length > 0) return { type: 'tool_call', calls: msg.tool_calls, content: msg.content || '' };
     return { type: 'text', content: msg.content || '' };
 }
-async function aiCallOnce(modelId, userMessage) {
-    try { return await _aiDoFetch(modelId, userMessage, true); }
-    catch (e) { if (e.status === 400 && /tool/i.test(String(e.message || ''))) return await _aiDoFetch(modelId, userMessage, false); throw e; }
+async function aiCallOnce(modelId, userMessage, imageData) {
+    try { return await _aiDoFetch(modelId, userMessage, true, imageData); }
+    catch (e) { if (e.status === 400 && /tool/i.test(String(e.message || ''))) return await _aiDoFetch(modelId, userMessage, false, imageData); throw e; }
 }
-async function aiCallAPI(userMessage) {
-    if (AI.provider !== 'avalai') return await aiCallOnce(AI.model, userMessage);
-    var candidates = []; if (AI.model) candidates.push(AI.model);
+async function aiCallAPI(userMessage, imageData) {
+    if (AI.provider !== 'avalai') return await aiCallOnce(AI.model, userMessage, imageData);
+    var candidates = [];
+    if (AI.model) candidates.push(AI.model);
+    if (imageData) { VISION_MODEL_IDS.forEach(function(m) { if (candidates.indexOf(m) === -1) candidates.push(m); }); }
     AVALAI_MODELS.forEach(function(m) { if (candidates.indexOf(m.id) === -1) candidates.push(m.id); });
     if (candidates.indexOf('gpt-4o-mini') === -1) candidates.push('gpt-4o-mini');
-    if (!AI.autoFallback) return await aiCallOnce(AI.model, userMessage);
+    if (!AI.autoFallback) return await aiCallOnce(AI.model, userMessage, imageData);
     var errors = [];
     for (var i = 0; i < candidates.length; i++) { var m = candidates[i]; if (AI.failedModels[m]) continue;
-        try { var result = await aiCallOnce(m, userMessage);
+        try { var result = await aiCallOnce(m, userMessage, imageData);
             if (i > 0) showToast('⚠️ مدل ' + candidates[0] + ' پاسخ نداد → ' + m, 4000);
             if (AI.model !== m) { AI.model = m; aiSaveSettings(); updateAiModelSelectUI(); }
             return result;
@@ -5350,12 +5516,15 @@ function updateAiModelSelectUI() {
 }
 function aiRender() {
     var box = document.getElementById('ai-messages'); if (!box) return;
-    if (!AI.apiKey) { box.innerHTML = '<div class="ai-setup"><h3>🤖 به پارسیس یار خوش آمدید</h3><p>کلید API را از تنظیمات (⚙) وارد کنید.<br>سرویس AvalAI ایرانی است.<br><a href="https://avalai.ir" target="_blank">avalai.ir</a></p><button class="btn-primary" onclick="document.getElementById(\'ai-settings-btn\').click()">تنظیمات</button></div>'; return; }
-    if (AI.history.length === 0) { box.innerHTML = '<div class="ai-msg system">سلام! من پارسیس یار هستم 🤖 می‌توانم سند بسازم، اشخاص/بانک/صندوق/پروژه تعریف کنم، گزارش‌ها را باز و اجرا کنم و سوالات حسابداری‌ات را پاسخ دهم.</div>'; return; }
+    if (!AI.apiKey) { box.innerHTML = '<div class="ai-setup"><h3>🤖 به پارسیس یار خوش آمدید</h3><p>کلید API را از تنظیمات (⚙) وارد کنید.<br>سرویس AvalAI ایرانی است.<br><a href="https://avalai.ir" target="_blank">avalai.ir</a></p><p style="margin-top:12px;font-size:0.82rem;color:#667eea">🎤 می‌توانی با میکروفون صحبت کنی<br>📷 می‌توانی عکس فاکتور/فیش/فرم بفرستی و تحلیل بخواهی</p><button class="btn-primary" onclick="document.getElementById(\'ai-settings-btn\').click()">تنظیمات</button></div>'; return; }
+    if (AI.history.length === 0) { box.innerHTML = '<div class="ai-msg system">سلام! من پارسیس یار هستم 🤖 می‌توانم سند بسازم، اشخاص/بانک/صندوق/پروژه تعریف کنم، گزارش‌ها را باز و اجرا کنم، سوالات حسابداری‌ات را پاسخ دهم، <b>به صحبت‌های تو گوش کنم (🎤)</b> و <b>عکس فاکتور/فیش را تحلیل کنم (📷)</b>.</div>'; return; }
     var html = '';
     AI.history.forEach(function(m, mi) {
         var cls = m.role === 'user' ? 'user' : (m.role === 'error' ? 'error' : 'assistant');
         var content = (m.role === 'assistant') ? renderAIMarkdown(m.content || '') : esc(m.content);
+        if (m.role === 'user' && m.image && m.image.dataUrl) {
+            content += '<img class="ai-msg-image" src="' + m.image.dataUrl + '" alt="">';
+        }
         html += '<div class="ai-msg ' + cls + '">' + content;
         if (m.drafts && m.drafts.length > 0) {
             m.drafts.forEach(function(d, di) {
@@ -5398,18 +5567,26 @@ function aiRender() {
     });
 }
 function aiOpen() { document.getElementById('ai-modal').classList.add('show'); document.getElementById('ai-overlay').classList.add('show'); aiRender(); }
-function aiClose() { document.getElementById('ai-modal').classList.remove('show'); document.getElementById('ai-overlay').classList.remove('show'); }
+function aiClose() { document.getElementById('ai-modal').classList.remove('show'); document.getElementById('ai-overlay').classList.remove('show'); if (AI_VOICE_ACTIVE) aiStopVoice(); }
 async function aiSend() {
     if (AI.isThinking) return;
     var inp = document.getElementById('ai-input'); var text = (inp.value || '').trim();
-    if (!text) return;
+    var img = AI_PENDING_IMAGE;
+    if (!text && !img) return;
     if (!AI.apiKey) { alert('کلید API را وارد کنید.'); return; }
+    if (AI_VOICE_ACTIVE) aiStopVoice();
     inp.value = '';
-    AI.history.push({ role: 'user', content: text });
+    AI_PENDING_IMAGE = null;
+    aiRenderImagePreview();
+
+    var historyEntry = { role: 'user', content: text || '📷 [تحلیل تصویر]' };
+    if (img) historyEntry.image = { name: img.name, dataUrl: img.dataUrl };
+    AI.history.push(historyEntry);
+
     AI.isThinking = true; aiRender();
     var btn = document.getElementById('ai-send-btn'); if (btn) btn.disabled = true;
     try {
-        var result = await aiCallAPI(text);
+        var result = await aiCallAPI(text, img);
         if (result && result.type === 'tool_call') {
             var drafts = []; var actions = []; var errors = [];
             for (var i = 0; i < result.calls.length; i++) {
@@ -5484,6 +5661,22 @@ function aiInit() {
     document.getElementById('ai-clear-btn').addEventListener('click', function() { if (!confirm('پاک شود؟')) return; AI.history = []; aiSaveHistory(); aiRender(); });
     document.getElementById('ai-send-btn').addEventListener('click', aiSend);
     document.getElementById('ai-input').addEventListener('keydown', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); aiSend(); } });
+    // Voice
+    document.getElementById('ai-mic-btn').addEventListener('click', aiToggleVoice);
+    // Image upload
+    document.getElementById('ai-img-btn').addEventListener('click', function() { document.getElementById('ai-image-file').click(); });
+    document.getElementById('ai-image-file').addEventListener('change', function() { if (this.files && this.files[0]) aiAttachImage(this.files[0]); this.value = ''; });
+    // Paste image support
+    document.getElementById('ai-input').addEventListener('paste', function(e) {
+        var items = (e.clipboardData || {}).items || [];
+        for (var i = 0; i < items.length; i++) {
+            if (items[i].type && items[i].type.indexOf('image') !== -1) {
+                e.preventDefault();
+                aiAttachImage(items[i].getAsFile());
+                return;
+            }
+        }
+    });
     document.querySelectorAll('.ai-suggestion').forEach(function(b) { b.addEventListener('click', function() { document.getElementById('ai-input').value = this.getAttribute('data-q'); aiSend(); }); });
 }
 function initSidebarSearch() {
@@ -5680,6 +5873,7 @@ function init() {
     document.getElementById('save-voucher').addEventListener('click', function() { persistVoucher(false); });
     document.getElementById('save-voucher-approve').addEventListener('click', function() { persistVoucher(true); });
     document.getElementById('new-voucher').addEventListener('click', newVoucherForm);
+    document.getElementById('v-desc-clear').addEventListener('click', function() { document.getElementById('v-desc').value = ''; document.getElementById('v-desc').focus(); showToast('🧹 شرح سند خالی شد.'); });
     document.getElementById('vl-period-filter').addEventListener('change', renderVoucherList);
     document.getElementById('save-fac').addEventListener('click', function() { var id = document.getElementById('fc-id').value; var name = document.getElementById('fc-name').value.trim();
         if (!name) { alert('نام اجباری.'); return; }
@@ -5771,18 +5965,12 @@ function init() {
     document.getElementById('nt-save').addEventListener('click', saveNote);
     document.getElementById('nt-new').addEventListener('click', clearNoteForm);
     document.getElementById('nt-cancel').addEventListener('click', function() { clearNoteForm(); document.querySelector('[data-tab="notes-list"]').click(); });
-    // Image input: use File System Access API where available
     var ntImgInput = document.getElementById('nt-image-input');
     ntImgInput.addEventListener('click', function(e) {
-        if (window.showOpenFilePicker) {
-            e.preventDefault();
-            handleNoteImagesFS();
-        }
+        if (window.showOpenFilePicker) { e.preventDefault(); handleNoteImagesFS(); }
     });
     ntImgInput.addEventListener('change', function() {
-        if (!window.showOpenFilePicker && this.files && this.files.length) {
-            handleNoteImages(this.files);
-        }
+        if (!window.showOpenFilePicker && this.files && this.files.length) { handleNoteImages(this.files); }
         this.value = '';
     });
     updateDateDisplay(); updateTopbarPeriod(); updateHomeWidgets(); updateEyeButtons();
@@ -5804,7 +5992,7 @@ function init() {
     document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'visible') autoRead(); });
     aiInit(); aiRender();
     renderEstimateItems();
-    console.log('🎉 ' + APP_NAME + ' v' + APP_VERSION + ' — Patched (FS API + Share + Multiline + Details)');
+    console.log('🎉 ' + APP_NAME + ' v' + APP_VERSION + ' — Voice + Image + Turnover Fix');
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
