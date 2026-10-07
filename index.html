@@ -6135,6 +6135,50 @@ function init() {
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').catch(function(e) { console.log('SW:', e); }); }
+    /* ===== AvalAI Credit ===== */
+    var AVALAI_CREDIT_CACHE = DB.load('avalaiCreditCache', { data: null, ts: 0 });
+
+    async function fetchAvalaiCredit() {
+        var box = document.getElementById('avalai-credit-result');
+        if (!box) return;
+        if (!AI.apiKey) { box.innerHTML = '⚠️ کلید API ذخیره نشده.'; return; }
+        box.innerHTML = '⏳ در حال دریافت...';
+        try {
+            var res = await fetch('https://api.avalai.ir/user/v1/credit', {
+                headers: { 'Authorization': 'Bearer ' + AI.apiKey }
+            });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            var d = await res.json();
+            AVALAI_CREDIT_CACHE = { data: d, ts: Date.now() };
+            DB.save('avalaiCreditCache', AVALAI_CREDIT_CACHE);
+            renderAvalaiCredit(d);
+            showToast('✅ اعتبار به‌روز شد.');
+        } catch(e) {
+            if (AVALAI_CREDIT_CACHE.data) renderAvalaiCredit(AVALAI_CREDIT_CACHE.data);
+            else box.innerHTML = '❌ ' + e.message;
+        }
+    }
+
+    function renderAvalaiCredit(d) {
+        var box = document.getElementById('avalai-credit-result');
+        if (!box) return;
+        var irt = Number(d.remaining_irt||0), unit = Number(d.remaining_unit||0);
+        var total = Number(d.total_unit||0), rate = Number(d.exchange_rate||0), lim = Number(d.limit||0);
+        var h = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+        h += '<div class="kpi-card"><div class="kpi-lbl">💰 اعتبار تومانی</div><div class="kpi-val positive">' + formatMoney(irt) + ' تومان</div></div>';
+        h += '<div class="kpi-card"><div class="kpi-lbl">🔢 اعتبار واحدی</div><div class="kpi-val">' + toFa(unit.toFixed(4)) + '</div></div>';
+        h += '<div class="kpi-card"><div class="kpi-lbl">🏦 مجموع کیف پول</div><div class="kpi-val">' + toFa(total.toFixed(4)) + '</div></div>';
+        h += '<div class="kpi-card"><div class="kpi-lbl">📈 نرخ تبدیل</div><div class="kpi-val">' + formatMoney(rate) + '</div></div>';
+        h += '<div class="kpi-card" style="grid-column:1/-1"><div class="kpi-lbl">🎯 سقف اعتبار</div><div class="kpi-val">' + (lim > 0 ? formatMoney(lim*rate) + ' تومان' : 'بدون سقف') + '</div></div>';
+        h += '</div>';
+        box.innerHTML = h;
+    }
+
+    document.getElementById('avalai-credit-refresh').addEventListener('click', function(e) {
+        e.stopPropagation();
+        fetchAvalaiCredit();
+    });
+    if (AVALAI_CREDIT_CACHE.data) renderAvalaiCredit(AVALAI_CREDIT_CACHE.data);
 </script>
 </body>
 </html>
