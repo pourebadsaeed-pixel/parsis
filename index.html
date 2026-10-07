@@ -168,13 +168,13 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .table-wrap { overflow-x:auto; overflow-y:visible; border-radius:12px; border:1px solid var(--border); background:#fff; -webkit-overflow-scrolling:touch; }
 .table-wrap::-webkit-scrollbar { height:8px; }
 .table-wrap::-webkit-scrollbar-thumb { background:var(--primary-light); border-radius:4px; }
-.data-table { border-collapse:collapse; font-size:0.85rem; background:var(--card); table-layout:fixed; min-width:max-content; }
-.data-table th { background:linear-gradient(180deg, var(--primary-light), var(--primary-soft)); color:var(--primary-dark); padding:10px 12px; text-align:right; font-weight:bold; font-size:0.8rem; border-bottom:1px solid var(--border-strong); white-space:nowrap; position:relative; user-select:none; overflow:hidden; }
+.data-table { border-collapse:collapse; font-size:0.85rem; background:var(--card); table-layout:auto; width:auto; min-width:max-content; }
+.data-table th { background:linear-gradient(180deg, var(--primary-light), var(--primary-soft)); color:var(--primary-dark); padding:10px 12px; text-align:right; font-weight:bold; font-size:0.8rem; border-bottom:1px solid var(--border-strong); white-space:nowrap; position:relative; user-select:none; }
 .data-table th[data-sortable] { cursor:pointer; }
 .data-table th[data-sortable]:hover { background:linear-gradient(180deg, var(--primary-light), var(--primary-light)); }
 .data-table th .sort-ind { font-size:0.65rem; opacity:0.5; margin-right:4px; }
 .data-table th .sort-ind.active { opacity:1; color:var(--primary-dark); }
-.data-table td { padding:9px 12px; border-bottom:1px solid var(--border); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.data-table td { padding:9px 12px; border-bottom:1px solid var(--border); white-space:nowrap; }
 .data-table tbody tr:nth-child(even) { background:rgba(0,0,0,0.012); }
 .data-table tbody tr:hover { background:var(--primary-soft); }
 .data-table tr.approved-row { background:#f0fdf4 !important; }
@@ -191,9 +191,9 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .row-btn.moveto { color:#0891b2; }
 .row-btn.calc { color:#0284c7; }
 .empty-row { text-align:center; color:var(--text-muted); padding:24px; font-size:0.9rem; }
-.col-resizer { position:absolute; top:0; left:0; width:8px; height:100%; cursor:col-resize; user-select:none; z-index:2; }
-.col-resizer::after { content:''; position:absolute; top:20%; left:2px; width:2px; height:60%; background:transparent; transition:background 0.15s; }
-.col-resizer:hover::after { background:var(--primary); }
+.col-resizer { position:absolute; top:0; left:0; width:14px; height:100%; cursor:col-resize; user-select:none; z-index:3; display:flex; align-items:center; justify-content:center; }
+.col-resizer::after { content:'⋮'; font-size:0.95rem; font-weight:bold; color:var(--text-muted); opacity:0.28; line-height:1; transition:opacity 0.15s, color 0.15s, transform 0.15s; pointer-events:none; }
+.col-resizer:hover::after, .col-resizer:active::after { opacity:1; color:var(--primary); transform:scale(1.35); }
 .badge { display:inline-block; padding:3px 9px; border-radius:12px; font-size:0.72rem; font-weight:bold; }
 .badge-draft { background:#fff4e0; color:#c47c00; }
 .badge-approved { background:#e6f6ee; color:#1e9e6a; }
@@ -319,10 +319,10 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .cal-foot button { flex:1; padding:9px; border-radius:9px; border:none; font-family:inherit; font-size:0.88rem; font-weight:bold; cursor:pointer; }
 .cal-foot .btn-today { background:var(--primary-light); color:var(--primary-dark); }
 .cal-foot .btn-close { background:#fdeaea; color:var(--danger); }
-.report-table { width:100%; border-collapse:collapse; font-size:0.85rem; background:#fff; table-layout:fixed; }
+.report-table { width:auto; min-width:100%; border-collapse:collapse; font-size:0.85rem; background:#fff; table-layout:auto; }
 .report-table thead th { background:linear-gradient(180deg, var(--primary-light), var(--primary-soft)); color:var(--primary-dark); padding:11px 12px; text-align:right; font-weight:bold; font-size:0.8rem; border-bottom:2px solid var(--primary); white-space:nowrap; position:relative; user-select:none; }
 .report-table thead th[data-sortable] { cursor:pointer; }
-.report-table td { padding:9px 12px; border-bottom:1px solid var(--border); overflow:hidden; text-overflow:ellipsis; }
+.report-table td { padding:9px 12px; border-bottom:1px solid var(--border); white-space:nowrap; }
 .report-table tbody tr:nth-child(even) { background:rgba(0,0,0,0.015); }
 .report-table tbody tr:hover { background:var(--primary-soft); }
 .report-table .num { text-align:center; }
@@ -741,18 +741,24 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
     white-space: nowrap !important;
     padding: 8px 12px;
 }
-#turnover-body .report-table td:nth-child(4),
-#turnover-body .report-table td:nth-child(6),
-#turnover-body .report-table td:nth-child(7) {
-    white-space: normal !important;
-    word-break: break-word;
-    max-width: 220px;
-}
-#turnover-body .report-table th:nth-child(4),
-#turnover-body .report-table th:nth-child(6),
-#turnover-body .report-table th:nth-child(7) {
-    max-width: 220px;
-}
+
+/* ===== Dynamic report tables (NEW) ===== */
+.report-table th, .data-table th { white-space:nowrap; overflow:visible; }
+.report-table td, .data-table td { overflow:visible; }
+#cf-table td, #cf-table th,
+#cfd-table td, #cfd-table th,
+#rt-table td, #rt-table th,
+#ri-table td, #ri-table th,
+#rf-table td, #rf-table th,
+#rff-table td, #rff-table th,
+#rr-table td, #rr-table th,
+#dc-table td, #dc-table th { white-space:nowrap; }
+#cf-table, #cfd-table, #rt-table, #ri-table, #rf-table, #rff-table, #rr-table, #dc-table { width:auto !important; min-width:100% !important; table-layout:auto !important; }
+
+/* ===== AI TTS button ===== */
+#ai-tts-btn.speaking { background:linear-gradient(135deg,#22c55e,#15803d) !important; animation:pulse-speak 1.5s ease-in-out infinite; }
+@keyframes pulse-speak { 0%,100% { box-shadow:0 0 0 0 rgba(34,197,94,0.5); } 50% { box-shadow:0 0 0 8px rgba(34,197,94,0); } }
+.ai-auto-speak-row { display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--bg); border-radius:10px; margin-top:8px; font-size:0.85rem; }
 </style>
 </head>
 <body class="theme-sky font-tahoma">
@@ -984,7 +990,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 <section id="page-estimate-daily" class="page"><h2>📝 برآورد هزینه‌های روزانه</h2>
     <div class="tabs"><button class="tab-btn active" data-tab="est-list">📋 فهرست</button><button class="tab-btn" data-tab="est-add">✏️ تعریف</button></div>
     <div id="tab-est-list" class="tab-content active"><div class="card">
-        <div class="list-header" data-hide-key="est-list"><span class="count-badge" id="est-count">۰</span><input type="text" class="filter-input" id="est-filter" placeholder="🔍 جستجو"><button class="export-btn" data-export="dailyEstimates">📊 اکسل</button></div>
+        <div class="list-header" data-col-table="est-table" data-hide-key="est-list"><span class="count-badge" id="est-count">۰</span><input type="text" class="filter-input" id="est-filter" placeholder="🔍 جستجو"><button class="export-btn" data-export="dailyEstimates">📊 اکسل</button></div>
         <div id="est-list-body"></div>
     </div></div>
     <div id="tab-est-add" class="tab-content"><div class="card">
@@ -1186,7 +1192,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
         <div class="form-buttons"><button id="cf-run" class="btn-primary">🔍 اجرا</button><button id="cf-today" class="btn-secondary">امروز تا یک ماه</button><button id="cf-print" class="btn-secondary">🖨 چاپ</button><button id="cf-export" class="btn-secondary">📊 اکسل</button></div>
         <div class="cf-legend"><div class="lg bank"><span class="dot"></span> مانده بانک</div><div class="lg source"><span class="dot"></span> دریافتنی</div><div class="lg fac"><span class="dot"></span> تسهیلات/اقساط</div><div class="lg est"><span class="dot"></span> برآورد هزینه</div></div>
     </div>
-    <div class="card"><div class="list-header" data-hide-key="cf"><span class="count-badge" id="cf-count">۰</span><span class="unit-chip" id="cf-unit"></span></div><div id="cf-result"></div></div>
+    <div class="card"><div class="list-header" data-col-table="cf-table" data-hide-key="cf"><span class="count-badge" id="cf-count">۰</span><span class="unit-chip" id="cf-unit"></span></div><div id="cf-result"></div></div>
 </section>
 
 <section id="page-report-cashflow-desc" class="page"><h2>💸 گردش وجه نقد</h2>
@@ -1195,7 +1201,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
         <div class="grid-2"><div class="field"><label>از تاریخ</label><input type="text" id="cfd-from" class="date-picker" dir="ltr"></div><div class="field"><label>تا تاریخ</label><input type="text" id="cfd-to" class="date-picker" dir="ltr"></div></div>
         <div class="form-buttons"><button id="cfd-run" class="btn-primary">🔍 اجرا</button><button id="cfd-today" class="btn-secondary">امروز تا یک ماه</button><button id="cfd-print" class="btn-secondary">🖨 چاپ</button><button id="cfd-export" class="btn-secondary">📊 اکسل</button></div>
     </div>
-    <div class="card"><div class="list-header" data-hide-key="cfd"><span class="count-badge" id="cfd-count">۰</span><span class="unit-chip" id="cfd-unit"></span></div><div id="cfd-result"></div></div>
+    <div class="card"><div class="list-header" data-col-table="cfd-table" data-hide-key="cfd"><span class="count-badge" id="cfd-count">۰</span><span class="unit-chip" id="cfd-unit"></span></div><div id="cfd-result"></div></div>
 </section>
 
 <section id="page-report-account" class="page"><h2>📒 مرور حساب‌ها</h2>
@@ -1205,7 +1211,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
         <div class="form-buttons"><button id="ra-run" class="btn-primary">🔍 اجرا</button><button id="ra-expand" class="btn-secondary btn-mini">باز کردن</button><button id="ra-collapse" class="btn-secondary btn-mini">بستن</button><button id="ra-print" class="btn-secondary">🖨 چاپ</button><button id="ra-export" class="btn-secondary">📊 اکسل</button></div>
         <p class="muted" style="margin-top:8px;font-size:0.78rem">💡 روی هر گره (گروه/کل/معین/تفصیلی) کلیک کنید تا گردش ردیف‌به‌ردیف آن را ببینید.</p>
     </div>
-    <div class="card"><div class="list-header" data-hide-key="ra"><span class="count-badge" id="ra-count">۰</span><span class="unit-chip" id="ra-unit"></span></div><div id="ra-result"></div></div>
+    <div class="card"><div class="list-header" data-col-table="ra-table" data-hide-key="ra"><span class="count-badge" id="ra-count">۰</span><span class="unit-chip" id="ra-unit"></span></div><div id="ra-result"></div></div>
 </section>
 
 <section id="page-report-trial" class="page"><h2>⚖️ تراز آزمایشی</h2>
@@ -1214,7 +1220,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
         <div class="grid-3"><div class="field"><label>نوع سند</label><select id="rt-vtype"><option value="">همه</option><option value="general">عمومی</option><option value="opening">افتتاحیه</option><option value="establishment">افتتاحیه استقرار</option><option value="closing">بستن حساب</option><option value="final">اختتامیه</option></select></div><div class="field"><label>دوره</label><select id="rt-period"><option value="">همه</option></select></div><div class="field"><label>سطح</label><select id="rt-level"><option value="2">کل</option><option value="3" selected>معین</option><option value="4">تفصیلی</option></select></div></div>
         <div class="form-buttons"><button id="rt-run" class="btn-primary">🔍 اجرا</button><button id="rt-print" class="btn-secondary">🖨 چاپ</button><button id="rt-export" class="btn-secondary">📊 اکسل</button></div>
     </div>
-    <div class="card"><div class="list-header" data-hide-key="rt"><span class="count-badge" id="rt-count">۰</span><span class="unit-chip" id="rt-unit"></span></div><div id="rt-result"></div></div>
+    <div class="card"><div class="list-header" data-col-table="rt-table" data-hide-key="rt"><span class="count-badge" id="rt-count">۰</span><span class="unit-chip" id="rt-unit"></span></div><div id="rt-result"></div></div>
 </section>
 
 <section id="page-report-incomplete" class="page"><h2>🔍 تراکنش‌های تکمیل نشده</h2>
@@ -1222,7 +1228,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
         <div class="grid-2"><div class="field"><label>وضعیت</label><select id="ri-status"><option value="">همه</option><option value="draft">پیش‌نویس</option><option value="approved">تأیید شده</option></select></div><div class="field"><label>دوره</label><select id="ri-period"><option value="">همه</option></select></div></div>
         <div class="form-buttons"><button id="ri-run" class="btn-primary">🔍 اجرا</button><button id="ri-print" class="btn-secondary">🖨 چاپ</button><button id="ri-export" class="btn-secondary">📊 اکسل</button></div>
     </div>
-    <div class="card"><div class="list-header" data-hide-key="ri"><span class="count-badge" id="ri-count">۰</span><span class="unit-chip" id="ri-unit"></span></div><div id="ri-result"></div></div>
+    <div class="card"><div class="list-header" data-col-table="ri-table" data-hide-key="ri"><span class="count-badge" id="ri-count">۰</span><span class="unit-chip" id="ri-unit"></span></div><div id="ri-result"></div></div>
 </section>
 
 <section id="page-report-facility" class="page"><h2>🏦 خلاصه تسهیلات</h2>
@@ -1230,7 +1236,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
         <div class="grid-2"><div class="field"><label>دسته</label><select id="rf-category"><option value="">همه</option><option value="facility">تسهیلات</option><option value="scheduled">زمانبندی</option></select></div><div class="field"><label>وضعیت</label><select id="rf-status"><option value="">همه</option><option value="active">در جریان</option><option value="settled">تسویه</option></select></div></div>
         <div class="form-buttons"><button id="rf-run" class="btn-primary">🔍 اجرا</button><button id="rf-print" class="btn-secondary">🖨 چاپ</button><button id="rf-export" class="btn-secondary">📊 اکسل</button></div>
     </div>
-    <div class="card"><div class="list-header" data-hide-key="rf"><span class="count-badge" id="rf-count">۰</span><span class="unit-chip" id="rf-unit"></span></div><div id="rf-result"></div></div>
+    <div class="card"><div class="list-header" data-col-table="rf-table" data-hide-key="rf"><span class="count-badge" id="rf-count">۰</span><span class="unit-chip" id="rf-unit"></span></div><div id="rf-result"></div></div>
 </section>
 
 <section id="page-report-facility-full" class="page"><h2>📊 گزارش جامع تسهیلات</h2>
@@ -1249,7 +1255,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
         <div class="field"><label>جستجو</label><input type="text" id="rff-search" placeholder="🔍"></div>
         <div class="form-buttons"><button id="rff-run" class="btn-primary">🔍 اجرا</button><button id="rff-print" class="btn-secondary">🖨 چاپ</button><button id="rff-export" class="btn-secondary">📊 اکسل</button></div>
     </div>
-    <div class="card"><div class="list-header" data-hide-key="rff"><span class="count-badge" id="rff-count">۰</span><span class="unit-chip" id="rff-unit"></span></div><div id="rff-result"></div></div>
+    <div class="card"><div class="list-header" data-col-table="rff-table" data-hide-key="rff"><span class="count-badge" id="rff-count">۰</span><span class="unit-chip" id="rff-unit"></span></div><div id="rff-result"></div></div>
 </section>
 
 <section id="page-report-rates" class="page"><h2>📈 گزارش نرخ ارز و طلا</h2>
@@ -1285,7 +1291,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
         <p class="muted" style="margin-top:8px;font-size:0.78rem">💡 داده‌ها از تاریخچه ذخیره‌شده در همین مرورگر استفاده می‌کنند.</p>
     </div>
     <div class="card">
-        <div class="list-header" data-hide-key="rr"><span class="count-badge" id="rr-count">۰</span><span class="unit-chip" id="rr-unit"></span></div>
+        <div class="list-header" data-col-table="rr-table" data-hide-key="rr"><span class="count-badge" id="rr-count">۰</span><span class="unit-chip" id="rr-unit"></span></div>
         <div id="rr-result"><div class="widget-empty">برای دریافت داده، روی «دریافت گزارش» بزنید.</div></div>
     </div>
 </section>
@@ -1300,7 +1306,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
         <p class="muted" style="margin-top:8px;font-size:0.8rem">💡 قیمت‌ها به‌صورت خودکار دریافت می‌شوند (به ریال). می‌توانید قبل از ذخیره، مقادیر را به‌صورت دستی ویرایش کنید.</p>
     </div>
     <div class="card">
-        <div class="list-header" data-hide-key="dc"><span class="count-badge" id="dc-count">۰</span><span class="unit-chip" id="dc-unit"></span></div>
+        <div class="list-header" data-col-table="dc-table" data-hide-key="dc"><span class="count-badge" id="dc-count">۰</span><span class="unit-chip" id="dc-unit"></span></div>
         <div id="dc-result"><div class="widget-empty">در حال دریافت...</div></div>
     </div>
     <div class="card">
@@ -1399,7 +1405,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 <button id="ai-fab" class="ai-fab" title="دستیار هوشمند">🤖</button>
 <div id="ai-overlay" class="ai-overlay"></div>
 <div id="ai-modal" class="ai-modal">
-    <div class="ai-head"><span class="ai-title">🤖 پارسیس یار</span><div class="ai-actions"><button id="ai-settings-btn">⚙</button><button id="ai-clear-btn">🗑</button><button id="ai-close-btn">×</button></div></div>
+    <div class="ai-head"><span class="ai-title">🤖 پارسیس یار</span><div class="ai-actions"><button id="ai-tts-btn" title="پخش صوتی آخرین پاسخ">🔊</button><button id="ai-settings-btn">⚙</button><button id="ai-clear-btn">🗑</button><button id="ai-close-btn">×</button></div></div>
     <div id="ai-messages" class="ai-messages"></div>
     <div id="ai-suggestions" class="ai-suggestions">
         <button class="ai-suggestion" data-q="وضعیت نقدینگی من چطور است؟">💰 وضعیت نقدینگی</button>
@@ -1439,6 +1445,12 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
             <label class="checkbox-item" style="margin-top:6px"><input type="checkbox" id="ai-auto-fallback" checked> <span>جایگزینی خودکار در صورت خطا</span></label>
             <div id="ai-model-status" class="muted" style="font-size:0.72rem;margin-top:6px"></div>
         </div>
+        <div class="modal-section">
+          <h3>🔊 دستیار صوتی</h3>
+          <label class="checkbox-item"><input type="checkbox" id="ai-auto-speak"> <span>خواندن خودکار پاسخ‌ها به صورت صوتی</span></label>
+          <label class="checkbox-item" style="margin-top:6px"><input type="checkbox" id="ai-speak-voice-only"> <span>فقط پاسخ‌های متنی (نه ابزارها)</span></label>
+          <div class="field" style="margin-top:8px"><label>سرعت گفتار</label><input type="range" id="ai-speak-rate" min="0.5" max="1.5" step="0.1" value="1" style="width:100%"></div>
+        </div>
         <div class="form-buttons"><button id="ai-settings-save" class="btn-primary">💾 ذخیره</button><button id="ai-settings-cancel" class="btn-secondary">انصراف</button></div>
     </div>
 </div>
@@ -1469,10 +1481,10 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 
 <script>
 /* =====================================================================
-   =============  پارسیس — PWA v25.11.04 (Voice/Image + Fixes) ====
+   =============  پارسیس — PWA v25.11.05 (Dynamic Tables + AI TTS) ====
    ===================================================================== */
 var APP_NAME = 'پارسیس';
-var APP_VERSION = '25.11.04';
+var APP_VERSION = '25.11.05';
 function toFaSimple(x){ return String(x).replace(/\d/g, function(d){ return '۰۱۲۳۴۵۶۷۸۹'[d]; }); }
 var LS_PREFIX = 'parsis.';
 var DB = {
@@ -2193,7 +2205,7 @@ function applyColVisibility(tableId) {
     for (var r = 0; r < rows.length; r++) { var cells = rows[r].children; if (cells.length === 1 && cells[0].hasAttribute('colspan')) continue; for (var c = 0; c < cells.length; c++) cells[c].style.display = hidden.indexOf(c) !== -1 ? 'none' : ''; }
     updateTableMinWidth(table);
 }
-function applyColVisibilityAll() { ['fiscal-table','persons-table','comp-table','ba-table','cb-table','proj-table','voucher-table-list','rt-table','ri-table','rf-table','rff-table','cfs-table','rr-table'].forEach(applyColVisibility); }
+function applyColVisibilityAll() { ['fiscal-table','persons-table','comp-table','ba-table','cb-table','proj-table','voucher-table-list','rt-table','ri-table','rf-table','rff-table','cfs-table','rr-table','cf-table','cfd-table','dc-table'].forEach(applyColVisibility); }
 function buildHeaderButtons() {
     var headers = document.querySelectorAll('.list-header');
     for (var i = 0; i < headers.length; i++) { (function(h) {
@@ -2398,7 +2410,9 @@ function renderBankBalancesWidget() {
     if (banks.length === 0) { el.innerHTML = '<div class="widget-empty">حساب بانکی ثبت نشده.</div>'; return; }
     banks = banks.slice().sort(function(a, b) { var oa = Number(a.order) || 9999, ob = Number(b.order) || 9999; if (oa !== ob) return oa - ob; return (a.bank || '').localeCompare(b.bank || '', 'fa'); });
     var html = '', total = 0, shown = 0;
-    for (var i = 0; i < banks.length; i++) { var b = banks[i]; var bal = getBankBalance(b.id); if (bal === 0) continue; shown++; total += bal;
+    for (var i = 0; i < banks.length; i++) { var b = banks[i];
+        if (b.status === 'inactive' || b.active === false) continue;
+        var bal = getBankBalance(b.id); if (bal === 0) continue; shown++; total += bal;
         var cls = bal > 0 ? 'positive' : 'negative';
         html += '<div class="balance-row"><div class="info"><div class="name">' + esc(b.bank || '—') + '</div><div class="meta">' + (b.branchName ? esc(b.branchName) + ' — ' : '') + toFa(esc(b.account || '—')) + '</div></div><div class="amount ' + cls + '">' + fmtFor(bal, 'widgets') + ' ' + currencyLabel() + '</div></div>'; }
     if (shown === 0) { el.innerHTML = '<div class="widget-empty">حساب با مانده غیرصفر نیست.</div>'; return; }
@@ -2411,7 +2425,9 @@ function renderCashBalancesWidget() {
     if (cbs.length === 0) { el.innerHTML = '<div class="widget-empty">صندوقی نیست.</div>'; return; }
     cbs = cbs.slice().sort(function(a, b) { var oa = Number(a.order) || 9999, ob = Number(b.order) || 9999; if (oa !== ob) return oa - ob; return (a.title || '').localeCompare(b.title || '', 'fa'); });
     var html = '', total = 0, shown = 0;
-    for (var i = 0; i < cbs.length; i++) { var c = cbs[i]; var bal = getCashBoxBalance(c.id); if (bal === 0) continue; shown++; total += bal;
+    for (var i = 0; i < cbs.length; i++) { var c = cbs[i];
+        if (c.status === 'inactive' || c.active === false) continue;
+        var bal = getCashBoxBalance(c.id); if (bal === 0) continue; shown++; total += bal;
         var cls = bal > 0 ? 'positive' : 'negative';
         html += '<div class="balance-row"><div class="info"><div class="name">' + esc(c.title || '—') + '</div><div class="meta">' + esc(c.type || '—') + (c.unit ? ' — ' + esc(c.unit) : '') + '</div></div><div class="amount ' + cls + '">' + fmtFor(bal, 'widgets') + ' ' + currencyLabel() + '</div></div>'; }
     if (shown === 0) { el.innerHTML = '<div class="widget-empty">صندوق با مانده غیرصفر نیست.</div>'; return; }
@@ -2437,18 +2453,25 @@ function renderBirthdaysWidget() {
 }
 function updateHomeBankTotal() { var el = document.getElementById('home-bank-total'); if (!el) return;
     var banks = DB.load('bankAccounts', []); var total = 0;
-    for (var i = 0; i < banks.length; i++) total += getBankBalance(banks[i].id);
+    for (var i = 0; i < banks.length; i++) {
+        var b = banks[i];
+        if (b.status === 'inactive' || b.active === false) continue;
+        total += getBankBalance(b.id);
+    }
     el.textContent = fmtFor(total, 'widgets') + ' ' + currencyLabel(); }
 function updateHomeUpcomingInstallments() {
     var el = document.getElementById('home-upcoming-installments'); if (!el) return;
     var totalEl = document.getElementById('home-upcoming-total'); var totalAmountEl = document.getElementById('home-upcoming-total-amount');
     var facilities = DB.load('facilities', []); var today = toJalali(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
     var tY = today[0], tM = today[1], tD = today[2]; var upcoming = []; var totalAmount = 0;
-    facilities.forEach(function(f) { (f.installments || []).forEach(function(inst) {
-        if (inst.status === 'paid') return; if (!inst.date) return;
-        var p = inst.date.split('/').map(Number); if (p.length !== 3) return;
-        var diff = jalaliDiff(tY, tM, tD, p[0], p[1], p[2]);
-        if (diff >= 0 && diff <= 3) { upcoming.push({ facility: f, date: inst.date, amount: inst.amount, diff: diff }); totalAmount += Number(inst.amount) || 0; } }); });
+    facilities.forEach(function(f) {
+        if (f.status === 'settled' || f.status === 'inactive') return;
+        (f.installments || []).forEach(function(inst) {
+            if (inst.status === 'paid') return; if (!inst.date) return;
+            var p = inst.date.split('/').map(Number); if (p.length !== 3) return;
+            var diff = jalaliDiff(tY, tM, tD, p[0], p[1], p[2]);
+            if (diff >= 0 && diff <= 3) { upcoming.push({ facility: f, date: inst.date, amount: inst.amount, diff: diff }); totalAmount += Number(inst.amount) || 0; } });
+    });
     if (upcoming.length === 0) { el.innerHTML = '<div class="widget-empty">قسطی نیست.</div>'; if (totalEl) totalEl.classList.add('hidden'); return; }
     upcoming.sort(function(a, b) { return a.diff - b.diff; }); var html = '';
     upcoming.forEach(function(u) { var dl = u.diff === 0 ? 'امروز' : (u.diff === 1 ? 'فردا' : toFa(u.diff) + ' روز دیگر');
@@ -2477,7 +2500,7 @@ function renderCalendarWidget() {
         html += '<div class="' + cls + '">';
         html += '<div class="cwd-name-en">' + daysEn[i] + '</div>';
         html += '<div class="cwd-circle">' + toFa(j[2]) + '</div>';
-        html += '<div class="cwd-square">' + toFa(d.getDate()) + '</div>';
+        html += '<div class="cwd-square">' + d.getDate() + '</div>';
         html += '</div>';
     }
     html += '</div>';
@@ -2769,6 +2792,7 @@ async function renderDailyClosePage() {
     })(inputs[k]); }
     document.getElementById('dc-save-btn').addEventListener('click', saveDailyClosePrices);
     renderDailyCloseHistory();
+    autoAttachReportHelpers();
 }
 function saveDailyClosePrices() {
     var dateInput = document.getElementById('dc-date'); var date = normalizeDigits(dateInput.value.trim());
@@ -2813,6 +2837,7 @@ function renderDailyCloseHistory() {
         var newList = getDailyCloseData().filter(function(x) { return x.date !== date; });
         saveDailyCloseData(newList); renderDailyCloseHistory(); showToast('🗑 حذف شد.');
     });
+    autoAttachReportHelpers();
 }
 async function runRatesReport() {
     var asset = document.getElementById('rr-asset').value; var range = document.getElementById('rr-range').value;
@@ -2853,6 +2878,7 @@ async function runRatesReport() {
     box.innerHTML = html;
     document.getElementById('rr-count').textContent = toFa(points.length) + ' ردیف';
     var unitEl = document.getElementById('rr-unit'); if (unitEl) unitEl.textContent = 'واحد: ریال';
+    autoAttachReportHelpers();
 }
 
 /* ==================== Dashboard ==================== */
@@ -3625,6 +3651,7 @@ function runCashFlowReport() {
     document.getElementById('cf-result').innerHTML = html;
     document.getElementById('cf-count').textContent = toFa(items.length + 1) + ' ردیف';
     var unitEl = document.getElementById('cf-unit'); if (unitEl) unitEl.textContent = 'واحد: ' + currencyLabel();
+    autoAttachReportHelpers();
 }
 function runCashFlowByDescReport() {
     var fromD = normalizeDigits((document.getElementById('cfd-from').value || '').trim());
@@ -3669,6 +3696,7 @@ function runCashFlowByDescReport() {
     document.getElementById('cfd-result').innerHTML = html;
     document.getElementById('cfd-count').textContent = toFa(keys.length) + ' دسته';
     var unitEl = document.getElementById('cfd-unit'); if (unitEl) unitEl.textContent = 'واحد: ' + currencyLabel();
+    autoAttachReportHelpers();
 }
 function getDescendantIds(accountId) {
     var accounts = DB.load('accounts', []); var result = [accountId]; var queue = [accountId];
@@ -3713,6 +3741,7 @@ function openAccountTurnover(accountId, detailInfo) {
     }
     document.getElementById('turnover-modal').classList.add('show');
     document.getElementById('turnover-overlay').classList.add('show');
+    setTimeout(function() { autoAttachReportHelpers(); }, 50);
 }
 function closeTurnover() { document.getElementById('turnover-modal').classList.remove('show'); document.getElementById('turnover-overlay').classList.remove('show'); }
 function runIncompleteReport() {
@@ -3747,6 +3776,7 @@ function runIncompleteReport() {
         var v = findVoucherById(vid); if (!v) return;
         if (act === 'open-voucher') loadVoucherForEdit(v);
         else if (act === 'preview-voucher') openVoucherPreview(v); });
+    autoAttachReportHelpers();
 }
 function runFacilityReport() {
     var facilities = DB.load('facilities', []); var cf = document.getElementById('rf-category').value; var sf = document.getElementById('rf-status').value;
@@ -3780,6 +3810,7 @@ function runFacilityReport() {
     document.getElementById('rf-result').innerHTML = html; document.getElementById('rf-count').textContent = toFa(rows.length);
     var unitEl = document.getElementById('rf-unit'); if (unitEl) unitEl.textContent = 'واحد: ' + currencyLabel();
     setupRfSorting();
+    autoAttachReportHelpers();
 }
 function setupRfSorting() { var ths = document.querySelectorAll('#rf-result th[data-sort]');
     for (var i = 0; i < ths.length; i++) ths[i].addEventListener('click', function() {
@@ -3860,6 +3891,7 @@ function runFacilityFullReport() {
         }
         return st.dir === 'asc' ? compareVals(va, vb) : -compareVals(va, vb); });
     if (state.rffView === 'detail') renderFacilityFullDetail(rows); else renderFacilityFullSummary(rows);
+    autoAttachReportHelpers();
 }
 function renderFacilityFullSummary(rows) {
     var st = sortState.rff; var hide = getHideState('rff');
@@ -4015,6 +4047,7 @@ function runAccountReport() {
         footer.innerHTML = '<span>جمع بدهکار: ' + (hide ? '—' : fmtRep(tD, 'ra')) + '</span><span>جمع بستانکار: ' + (hide ? '—' : fmtRep(tC, 'ra')) + '</span><span>' + bt + '</span><span>واحد: ' + currencyLabel() + '</span>';
         container.appendChild(footer); document.getElementById('ra-count').textContent = toFa(shown); }
     rerender(); window._renderAccountReportTree = rerender;
+    autoAttachReportHelpers();
 }
 function runTrialBalance() {
     var opts = { from: document.getElementById('rt-from').value, to: document.getElementById('rt-to').value, vtype: document.getElementById('rt-vtype').value, periodId: document.getElementById('rt-period').value, cat: document.getElementById('rt-cat').value, nature: document.getElementById('rt-nature').value, level: Number(document.getElementById('rt-level').value) || 3 };
@@ -4040,6 +4073,7 @@ function runTrialBalance() {
     html += '</tbody><tfoot><tr><td colspan="2" style="text-align:left">جمع</td><td class="num dr">' + (hide ? '—' : fmtRep(tD, 'rt')) + '</td><td class="num cr">' + (hide ? '—' : fmtRep(tC, 'rt')) + '</td><td class="num dr">' + (hide ? '—' : fmtRep(tMD, 'rt')) + '</td><td class="num cr">' + (hide ? '—' : fmtRep(tMC, 'rt')) + '</td></tr></tfoot></table></div>';
     document.getElementById('rt-result').innerHTML = html; document.getElementById('rt-count').textContent = toFa(rows.length);
     applyColVisibility('rt-table');
+    autoAttachReportHelpers();
 }
 function clearPersonForm() { ['pr-id','pr-first','pr-last','pr-father','pr-national-id','pr-birth','pr-mobile','pr-phone','pr-email','pr-bank-title','pr-acc','pr-iban','pr-card','pr-address'].forEach(function(i) { document.getElementById(i).value = ''; }); }
 function clearCompanyForm() { ['co-id','co-name','co-phone','co-email','co-address'].forEach(function(i) { document.getElementById(i).value = ''; }); }
@@ -4047,7 +4081,21 @@ function clearBAForm() { ['ba-id','ba-bank','ba-branch-code','ba-branch-name','b
 function clearCBForm() { ['cb-id','cb-title','cb-unit','cb-order'].forEach(function(i) { document.getElementById(i).value = ''; }); document.getElementById('cb-type').value = ''; }
 function clearFiscalForm() { ['fiscal-id','fiscal-title','fiscal-from','fiscal-to'].forEach(function(x) { document.getElementById(x).value = ''; }); }
 function clearFacForm() { ['fc-id','fc-name','fc-date','fc-initial','fc-paid'].forEach(function(x) { document.getElementById(x).value = ''; }); document.getElementById('fc-category').value = 'facility'; document.getElementById('fc-bank').value = ''; document.getElementById('fac-installments-card').style.display = 'none'; currentFacilityId = null; currentInstallments = []; }
-function makeAllTablesResizable() { ['fiscal-table','persons-table','comp-table','ba-table','cb-table','proj-table','voucher-table-list','rt-table','ri-table','rf-table','rff-table','cfs-table','cf-table','rr-table','dc-table'].forEach(function(id) { var t = document.getElementById(id); if (t) makeTableResizable(t); }); }
+function makeAllTablesResizable() { ['fiscal-table','persons-table','comp-table','ba-table','cb-table','proj-table','voucher-table-list','rt-table','ri-table','rf-table','rff-table','cfs-table','cf-table','cfd-table','rr-table','dc-table','turnover-table'].forEach(function(id) { var t = document.getElementById(id); if (t) makeTableResizable(t); }); }
+
+/* ===== Auto Attach Helpers (Dynamic tables + col visibility) ===== */
+function autoAttachReportHelpers() {
+    setTimeout(function() {
+        makeAllTablesResizable();
+        ['cf-table','cfd-table','rt-table','ri-table','rf-table','rff-table','rr-table','dc-table','turnover-table'].forEach(function(id) {
+            var t = document.getElementById(id);
+            if (t) applyColVisibility(id);
+        });
+        buildHeaderButtons();
+        attachDatePickers();
+    }, 60);
+}
+
 function renderChartTree(cid, editable) {
     var box = document.getElementById(cid); if (!box) return;
     var accounts = DB.load('accounts', []); box.innerHTML = '';
@@ -4930,7 +4978,7 @@ function handleNoteImages(files) {
 }
 
 /* =====================================================================
-   ============ AI — Voice Recording + Image Analysis ==================
+   ============ AI — Voice Recording + Image Analysis + TTS ============
    ===================================================================== */
 var AVALAI_MODELS = [
     { id: 'gpt-4o-mini',                label: 'GPT-4o Mini (پیشنهاد، vision)' },
@@ -5089,6 +5137,84 @@ function aiStopVoice() {
     AI_VOICE_ACTIVE = false;
     var micBtn = document.getElementById('ai-mic-btn');
     if (micBtn) { micBtn.classList.remove('recording'); micBtn.textContent = '🎤'; micBtn.title = 'ضبط صدا و تبدیل به متن'; }
+}
+
+/* ==================== AI Text-to-Speech (TTS) ==================== */
+var AI_TTS = {
+    autoSpeak: DB.load('ai.autoSpeak', false),
+    rate: DB.load('ai.speakRate', 1.0),
+    voice: null
+};
+function aiSaveTTS() { DB.save('ai.autoSpeak', AI_TTS.autoSpeak); DB.save('ai.speakRate', AI_TTS.rate); }
+function aiPickPersianVoice() {
+    if (!window.speechSynthesis) return null;
+    var voices = window.speechSynthesis.getVoices();
+    if (!voices || voices.length === 0) return null;
+    var v = voices.find(function(x) { return (x.lang || '').toLowerCase() === 'fa-ir'; });
+    if (v) return v;
+    v = voices.find(function(x) { return (x.lang || '').toLowerCase().indexOf('fa') === 0; });
+    if (v) return v;
+    v = voices.find(function(x) { return (x.lang || '').toLowerCase().indexOf('per') === 0; });
+    return v || null;
+}
+function aiStripMarkdownForSpeech(text) {
+    return String(text || '')
+        .replace(/```[\s\S]*?```/g, ' ')
+        .replace(/`([^`]+)`/g, '$1')
+        .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+        .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+        .replace(/#{1,6}\s*/g, '')
+        .replace(/\*\*([^*]+)\*\*/g, '$1')
+        .replace(/\*([^*]+)\*/g, '$1')
+        .replace(/__([^_]+)__/g, '$1')
+        .replace(/^\s*[|>\-*+▸▾▲▼⇅•]+\s*/gm, '')
+        .replace(/\|/g, ' ')
+        .replace(/[ \t]+/g, ' ')
+        .replace(/\n{2,}/g, '. ')
+        .replace(/\n/g, ' . ')
+        .replace(/\.\s*\./g, '.')
+        .trim();
+}
+function aiSpeak(text) {
+    if (!window.speechSynthesis) { showToast('⚠️ مرورگر از پخش صوتی پشتیبانی نمی‌کند.'); return; }
+    try { window.speechSynthesis.cancel(); } catch(e) {}
+    var clean = aiStripMarkdownForSpeech(text);
+    if (!clean) { showToast('متنی برای خواندن نیست.'); return; }
+    var utt = new SpeechSynthesisUtterance(clean);
+    utt.lang = 'fa-IR';
+    utt.rate = Math.max(0.5, Math.min(1.5, Number(AI_TTS.rate) || 1));
+    utt.pitch = 1.0;
+    var v = AI_TTS.voice || aiPickPersianVoice();
+    if (v) { utt.voice = v; AI_TTS.voice = v; }
+    var btn = document.getElementById('ai-tts-btn');
+    if (btn) { btn.textContent = '⏹'; btn.classList.add('speaking'); btn.title = 'توقف'; }
+    utt.onend = function() { if (btn) { btn.textContent = '🔊'; btn.classList.remove('speaking'); btn.title = 'پخش صوتی آخرین پاسخ'; } };
+    utt.onerror = function() { if (btn) { btn.textContent = '🔊'; btn.classList.remove('speaking'); } };
+    window.speechSynthesis.speak(utt);
+}
+function aiStopSpeaking() {
+    if (!window.speechSynthesis) return;
+    try { window.speechSynthesis.cancel(); } catch(e) {}
+    var btn = document.getElementById('ai-tts-btn');
+    if (btn) { btn.textContent = '🔊'; btn.classList.remove('speaking'); btn.title = 'پخش صوتی آخرین پاسخ'; }
+}
+function aiToggleSpeak() {
+    if (!window.speechSynthesis) { showToast('⚠️ مرورگر پشتیبانی نمی‌کند.'); return; }
+    if (window.speechSynthesis.speaking) { aiStopSpeaking(); return; }
+    var lastMsg = null;
+    for (var i = AI.history.length - 1; i >= 0; i--) {
+        if (AI.history[i].role === 'assistant' && AI.history[i].content) { lastMsg = AI.history[i]; break; }
+    }
+    if (!lastMsg) { showToast('پاسخی برای خواندن نیست.'); return; }
+    aiSpeak(lastMsg.content);
+}
+function aiAutoSpeakIfNeeded(msg) {
+    if (!AI_TTS.autoSpeak) return;
+    if (!msg || msg.role !== 'assistant' || !msg.content) return;
+    setTimeout(function() { aiSpeak(msg.content); }, 250);
+}
+if (window.speechSynthesis) {
+    window.speechSynthesis.onvoiceschanged = function() { AI_TTS.voice = aiPickPersianVoice(); };
 }
 
 function aiBuildGenericContext() {
@@ -5271,7 +5397,6 @@ function renderAIMarkdown(text) {
 
 async function _aiDoFetch(modelId, userMessage, includeTools, imageData) {
     var sys = aiBuildSystemPrompt();
-    // History excluding the last entry (current user message that we just pushed)
     var histArr = AI.history.slice();
     for (var hi = histArr.length - 1; hi >= 0; hi--) { if (histArr[hi].role === 'user') { histArr.splice(hi, 1); break; } }
     histArr = histArr.filter(function(m) { return m.role === 'user' || m.role === 'assistant'; }).slice(-AI.MAX_HISTORY);
@@ -5516,8 +5641,8 @@ function updateAiModelSelectUI() {
 }
 function aiRender() {
     var box = document.getElementById('ai-messages'); if (!box) return;
-    if (!AI.apiKey) { box.innerHTML = '<div class="ai-setup"><h3>🤖 به پارسیس یار خوش آمدید</h3><p>کلید API را از تنظیمات (⚙) وارد کنید.<br>سرویس AvalAI ایرانی است.<br><a href="https://avalai.ir" target="_blank">avalai.ir</a></p><p style="margin-top:12px;font-size:0.82rem;color:#667eea">🎤 می‌توانی با میکروفون صحبت کنی<br>📷 می‌توانی عکس فاکتور/فیش/فرم بفرستی و تحلیل بخواهی</p><button class="btn-primary" onclick="document.getElementById(\'ai-settings-btn\').click()">تنظیمات</button></div>'; return; }
-    if (AI.history.length === 0) { box.innerHTML = '<div class="ai-msg system">سلام! من پارسیس یار هستم 🤖 می‌توانم سند بسازم، اشخاص/بانک/صندوق/پروژه تعریف کنم، گزارش‌ها را باز و اجرا کنم، سوالات حسابداری‌ات را پاسخ دهم، <b>به صحبت‌های تو گوش کنم (🎤)</b> و <b>عکس فاکتور/فیش را تحلیل کنم (📷)</b>.</div>'; return; }
+    if (!AI.apiKey) { box.innerHTML = '<div class="ai-setup"><h3>🤖 به پارسیس یار خوش آمدید</h3><p>کلید API را از تنظیمات (⚙) وارد کنید.<br>سرویس AvalAI ایرانی است.<br><a href="https://avalai.ir" target="_blank">avalai.ir</a></p><p style="margin-top:12px;font-size:0.82rem;color:#667eea">🎤 می‌توانی با میکروفون صحبت کنی<br>📷 می‌توانی عکس فاکتور/فیش/فرم بفرستی و تحلیل بخواهی<br>🔊 پاسخ‌ها به صورت صوتی هم پخش می‌شوند</p><button class="btn-primary" onclick="document.getElementById(\'ai-settings-btn\').click()">تنظیمات</button></div>'; return; }
+    if (AI.history.length === 0) { box.innerHTML = '<div class="ai-msg system">سلام! من پارسیس یار هستم 🤖 می‌توانم سند بسازم، اشخاص/بانک/صندوق/پروژه تعریف کنم، گزارش‌ها را باز و اجرا کنم، سوالات حسابداری‌ات را پاسخ دهم، <b>به صحبت‌های تو گوش کنم (🎤)</b>، <b>عکس فاکتور/فیش را تحلیل کنم (📷)</b> و <b>پاسخ‌ها را با صدای بلند برایت بخوانم (🔊)</b>.</div>'; return; }
     var html = '';
     AI.history.forEach(function(m, mi) {
         var cls = m.role === 'user' ? 'user' : (m.role === 'error' ? 'error' : 'assistant');
@@ -5567,7 +5692,7 @@ function aiRender() {
     });
 }
 function aiOpen() { document.getElementById('ai-modal').classList.add('show'); document.getElementById('ai-overlay').classList.add('show'); aiRender(); }
-function aiClose() { document.getElementById('ai-modal').classList.remove('show'); document.getElementById('ai-overlay').classList.remove('show'); if (AI_VOICE_ACTIVE) aiStopVoice(); }
+function aiClose() { document.getElementById('ai-modal').classList.remove('show'); document.getElementById('ai-overlay').classList.remove('show'); if (AI_VOICE_ACTIVE) aiStopVoice(); aiStopSpeaking(); }
 async function aiSend() {
     if (AI.isThinking) return;
     var inp = document.getElementById('ai-input'); var text = (inp.value || '').trim();
@@ -5601,7 +5726,12 @@ async function aiSend() {
             if (actions.length > 0) msg.actions = actions;
             if (errors.length > 0) msg.errors = errors;
             AI.history.push(msg);
-        } else { AI.history.push({ role: 'assistant', content: (result && result.content) || '' }); }
+            aiAutoSpeakIfNeeded(msg);
+        } else {
+            var txtMsg = { role: 'assistant', content: (result && result.content) || '' };
+            AI.history.push(txtMsg);
+            aiAutoSpeakIfNeeded(txtMsg);
+        }
     } catch (e) { AI.history.push({ role: 'error', content: '⚠️ ' + (e.message || 'خطا') }); }
     finally { AI.isThinking = false; if (btn) btn.disabled = false; aiSaveHistory(); aiRender(); }
 }
@@ -5610,6 +5740,8 @@ function aiOpenSettings() {
     document.getElementById('ai-apikey-input').value = AI.apiKey;
     document.getElementById('ai-model-input').value = AI.model || '';
     document.getElementById('ai-auto-fallback').checked = !!AI.autoFallback;
+    var ttsAutoS = document.getElementById('ai-auto-speak'); if (ttsAutoS) ttsAutoS.checked = !!AI_TTS.autoSpeak;
+    var ttsRateS = document.getElementById('ai-speak-rate'); if (ttsRateS) ttsRateS.value = AI_TTS.rate;
     var sel = document.getElementById('ai-model-select');
     sel.innerHTML = '<option value="__auto__">🤖 خودکار (پیشنهاد: gpt-4o-mini)</option>';
     AVALAI_MODELS.forEach(function(m) { var o = document.createElement('option'); o.value = m.id; o.textContent = m.label; if (AI.model === m.id) o.selected = true; sel.appendChild(o); });
@@ -5661,12 +5793,9 @@ function aiInit() {
     document.getElementById('ai-clear-btn').addEventListener('click', function() { if (!confirm('پاک شود؟')) return; AI.history = []; aiSaveHistory(); aiRender(); });
     document.getElementById('ai-send-btn').addEventListener('click', aiSend);
     document.getElementById('ai-input').addEventListener('keydown', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); aiSend(); } });
-    // Voice
     document.getElementById('ai-mic-btn').addEventListener('click', aiToggleVoice);
-    // Image upload
     document.getElementById('ai-img-btn').addEventListener('click', function() { document.getElementById('ai-image-file').click(); });
     document.getElementById('ai-image-file').addEventListener('change', function() { if (this.files && this.files[0]) aiAttachImage(this.files[0]); this.value = ''; });
-    // Paste image support
     document.getElementById('ai-input').addEventListener('paste', function(e) {
         var items = (e.clipboardData || {}).items || [];
         for (var i = 0; i < items.length; i++) {
@@ -5678,6 +5807,14 @@ function aiInit() {
         }
     });
     document.querySelectorAll('.ai-suggestion').forEach(function(b) { b.addEventListener('click', function() { document.getElementById('ai-input').value = this.getAttribute('data-q'); aiSend(); }); });
+    // TTS
+    var ttsBtn = document.getElementById('ai-tts-btn');
+    if (ttsBtn) ttsBtn.addEventListener('click', function(e) { e.stopPropagation(); aiToggleSpeak(); });
+    var ttsAuto = document.getElementById('ai-auto-speak');
+    if (ttsAuto) { ttsAuto.checked = !!AI_TTS.autoSpeak; ttsAuto.addEventListener('change', function() { AI_TTS.autoSpeak = this.checked; aiSaveTTS(); showToast(this.checked ? '🔊 خواندن خودکار فعال شد' : '🔇 خواندن خودکار غیرفعال شد'); }); }
+    var ttsRate = document.getElementById('ai-speak-rate');
+    if (ttsRate) { ttsRate.value = AI_TTS.rate; ttsRate.addEventListener('input', function() { AI_TTS.rate = Number(this.value) || 1; aiSaveTTS(); }); }
+    if (window.speechSynthesis) AI_TTS.voice = aiPickPersianVoice();
 }
 function initSidebarSearch() {
     var inp = document.getElementById('sidebar-search-input'); if (!inp) return;
@@ -5992,7 +6129,8 @@ function init() {
     document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'visible') autoRead(); });
     aiInit(); aiRender();
     renderEstimateItems();
-    console.log('🎉 ' + APP_NAME + ' v' + APP_VERSION + ' — Voice + Image + Turnover Fix');
+    autoAttachReportHelpers();
+    console.log('🎉 ' + APP_NAME + ' v' + APP_VERSION + ' — Dynamic Tables + AI TTS + Voice/Image');
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
