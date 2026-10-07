@@ -29,7 +29,6 @@ body.theme-midnight .data-table thead th { background:linear-gradient(180deg, va
 body.theme-midnight .data-table td { color:var(--text); }
 body.theme-midnight .data-table tbody tr:hover { background:rgba(129,140,248,0.15) !important; }
 body.theme-midnight .data-table tbody tr:nth-child(even) { background:rgba(255,255,255,0.02); }
-/* === تم‌های سه‌بعدی جدید === */
 body.theme-glass3d { --bg:#c9d8f0; --bg-grad:linear-gradient(135deg,#c9d8f0 0%,#e0e8f5 50%,#e8d8f0 100%); --card:rgba(255,255,255,0.62); --card-alt:rgba(255,255,255,0.4); --border:rgba(255,255,255,0.85); --border-strong:rgba(180,200,230,0.7); --primary:#5b8def; --primary-dark:#3b6fd4; --primary-light:rgba(214,228,255,0.85); --primary-soft:rgba(230,240,255,0.55); --topbar-from:#7aaaf5; --topbar-to:#4a7fdd; --text:#1e2a44; --text-muted:#7a8aa8; --accent:#22c55e; --danger:#ef4444; --warning:#f59e0b; }
 body.theme-glass3d .card, body.theme-glass3d .modal, body.theme-glass3d .sidebar, body.theme-glass3d .topbar { backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); }
 body.theme-glass3d .card { box-shadow:0 8px 32px rgba(31,38,135,0.12), inset 0 1px 0 rgba(255,255,255,0.9); border:1px solid rgba(255,255,255,0.6); }
@@ -437,7 +436,6 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 @media (max-width: 760px) { .home-grid { grid-template-columns: 1fr; } }
 .home-grid .widget-card { margin-bottom: 0; }
 .home-grid .widget-card.widget-wide { grid-column: 1 / -1; }
-/* === NEW: Week calendar widget === */
 .cal-week-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
 .cal-week-day { padding:8px 3px; border-radius:10px; text-align:center; background:var(--bg); display:flex; flex-direction:column; align-items:center; gap:4px; min-width:0; }
 .cal-week-day.today { background:linear-gradient(135deg, var(--primary-light), var(--primary-soft)); box-shadow:0 0 0 2px var(--primary); }
@@ -448,7 +446,6 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .cwd-circle { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:var(--primary); color:#fff; font-weight:bold; font-size:0.82rem; }
 .cwd-square { width:26px; height:20px; border-radius:4px; display:flex; align-items:center; justify-content:center; background:var(--accent); color:#fff; font-size:0.68rem; font-weight:bold; }
 .cal-widget-moadel { margin-top:8px; padding:8px 10px; background:var(--primary-soft); border-radius:8px; font-size:0.8rem; color:var(--primary-dark); font-weight:bold; text-align:center; }
-/* === Checklist widget === */
 .cl-widget-item { display:flex; align-items:center; gap:8px; padding:7px 10px; border-radius:8px; margin-bottom:4px; background:var(--bg); font-size:0.85rem; cursor:pointer; }
 .cl-widget-item.done { opacity:0.6; }
 .cl-widget-item.done .cl-widget-text { text-decoration:line-through; }
@@ -628,6 +625,88 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 .ai-draft-errors strong { display:block; margin-bottom:4px; }
 .ai-action-card { margin-top:10px; padding:10px 12px; border-radius:12px; background:#eef7f2; border:1.5px solid #22a06b; font-size:0.85rem; color:#065f46; line-height:1.9; white-space:normal; }
 .ai-action-card.warn { background:#fff4e0; border-color:#e8a33d; color:#92400e; }
+
+/* ===== Horizontal scroll improvements ===== */
+.table-wrap {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-x pan-y !important;
+    scroll-behavior: smooth;
+    overscroll-behavior-x: contain;
+    max-width: 100%;
+}
+.report-tree, #ra-result, #rt-result, #ri-result, #rf-result, #rff-result, #cf-result, #cfd-result {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+    scroll-behavior: smooth;
+}
+.rt-node { min-width: max-content; }
+.rt-amounts { min-width: max-content; }
+#rff-result .rff-fac-card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.rff-inst-table { min-width: max-content; }
+.cf-table, .cfd-details table { min-width: max-content; }
+.table-wrap * { -webkit-tap-highlight-color: transparent; }
+
+/* ===== Week calendar English bold names ===== */
+.cwd-name-en {
+    font-size: 0.66rem;
+    font-weight: 900;
+    font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+    letter-spacing: 0.4px;
+    color: #4a5568;
+    text-transform: uppercase;
+    line-height: 1;
+}
+.cal-week-day.today .cwd-name-en { color: var(--primary-dark); }
+.cal-week-day.holiday .cwd-name-en { color: #dc2626; }
+
+/* ===== Multiline checklist items in note editor ===== */
+.cl-item-row { align-items: flex-start !important; }
+.cl-item-row textarea {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    resize: vertical;
+    min-height: 38px;
+    line-height: 1.6;
+    background: var(--card);
+    color: var(--text);
+    outline: none;
+    overflow: hidden;
+    word-wrap: break-word;
+}
+.cl-item-row textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+
+/* ===== Note images ===== */
+.note-img-loading, .note-img-missing {
+    width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;
+    background: var(--bg); border-radius: 8px; border: 1px dashed var(--border-strong);
+    font-size: 0.7rem; color: var(--text-muted); text-align: center; padding: 4px;
+}
+.note-img-missing { color: var(--danger); font-size: 1.1rem; }
+.note-images img { width: 70px; height: 70px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; }
+
+/* ===== Share bar in note view ===== */
+.note-share-bar {
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    margin-top: 12px; padding: 10px 12px; background: var(--primary-soft);
+    border-radius: 10px; border: 1px solid var(--primary-light);
+}
+.note-share-bar label { font-size: 0.82rem; font-weight: bold; color: var(--primary-dark); }
+.note-share-bar button {
+    padding: 8px 14px; border-radius: 10px; border: none; font-family: inherit;
+    font-weight: bold; cursor: pointer; font-size: 0.82rem;
+}
+.note-share-btn { background: linear-gradient(135deg, #4a90e2, #357abd); color: #fff; }
+.note-share-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.note-share-sel { background: var(--card); color: var(--primary-dark); border: 1px solid var(--border); }
+.note-share-sel.active { background: var(--primary); color: #fff; }
+.note-checklist li .item-select { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; flex-shrink: 0; }
 </style>
 </head>
 <body class="theme-sky font-tahoma">
@@ -1011,7 +1090,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
         <div id="nt-checklist"></div>
         <div class="form-buttons"><button id="nt-add-item" class="btn-secondary btn-mini">+ افزودن آیتم</button></div>
         <h3 style="margin:12px 0 8px;color:var(--primary-dark);font-size:0.9rem">🖼 تصاویر</h3>
-        <div class="field"><input type="file" id="nt-image-input" accept="image/*" multiple><p class="muted" style="font-size:0.72rem;margin-top:4px">💡 تصاویر کوچک (زیر ۲۰۰ کیلوبایت) در مرورگر ذخیره می‌شوند.</p></div>
+        <div class="field"><input type="file" id="nt-image-input" accept="image/*" multiple><p class="muted" style="font-size:0.72rem;margin-top:4px">💡 تصاویر به‌صورت لینک به فایل اصلی در گوشی ذخیره می‌شوند (بدون کپی در برنامه).</p></div>
         <div id="nt-images-preview" class="note-images"></div>
         <div class="form-buttons"><button id="nt-save" class="btn-primary">💾 ذخیره</button><button id="nt-new" class="btn-secondary">جدید</button><button id="nt-cancel" class="btn-secondary">انصراف</button></div>
     </div></div>
@@ -1072,7 +1151,7 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
         <div class="grid-4"><div class="field"><label>از تاریخ</label><input type="text" id="ra-from" class="date-picker" dir="ltr"></div><div class="field"><label>تا تاریخ</label><input type="text" id="ra-to" class="date-picker" dir="ltr"></div><div class="field"><label>نوع</label><select id="ra-cat"><option value="">همه</option><option value="permanent">دائمی</option><option value="temporary">موقت</option><option value="none">مهم نیست</option></select></div><div class="field"><label>ماهیت</label><select id="ra-nature"><option value="">همه</option><option value="debit">بدهکار</option><option value="credit">بستانکار</option><option value="none">مهم نیست</option></select></div></div>
         <div class="grid-3"><div class="field"><label>نوع سند</label><select id="ra-vtype"><option value="">همه</option><option value="general">عمومی</option><option value="opening">افتتاحیه</option><option value="establishment">افتتاحیه استقرار</option><option value="closing">بستن حساب</option><option value="final">اختتامیه</option></select></div><div class="field"><label>سطح</label><select id="ra-level"><option value="1">گروه</option><option value="2">کل</option><option value="3" selected>معین</option><option value="4">تفصیلی</option></select></div><div class="field"><label>دوره</label><select id="ra-period"><option value="">همه</option></select></div></div>
         <div class="form-buttons"><button id="ra-run" class="btn-primary">🔍 اجرا</button><button id="ra-expand" class="btn-secondary btn-mini">باز کردن</button><button id="ra-collapse" class="btn-secondary btn-mini">بستن</button><button id="ra-print" class="btn-secondary">🖨 چاپ</button><button id="ra-export" class="btn-secondary">📊 اکسل</button></div>
-        <p class="muted" style="margin-top:8px;font-size:0.78rem">💡 روی هر گره کلیک کنید تا گردش ردیف‌به‌ردیف آن را ببینید.</p>
+        <p class="muted" style="margin-top:8px;font-size:0.78rem">💡 روی هر گره (گروه/کل/معین/تفصیلی) کلیک کنید تا گردش ردیف‌به‌ردیف آن را ببینید.</p>
     </div>
     <div class="card"><div class="list-header" data-hide-key="ra"><span class="count-badge" id="ra-count">۰</span><span class="unit-chip" id="ra-unit"></span></div><div id="ra-result"></div></div>
 </section>
@@ -1257,7 +1336,12 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 <div id="noteview-modal" class="modal" style="max-width:680px">
     <div class="modal-head"><h2 id="noteview-title">📔 یادداشت</h2><button id="close-noteview" class="close-btn">×</button></div>
     <div class="modal-body" id="noteview-body"></div>
-    <div style="padding:10px 18px;border-top:1px solid var(--border);display:flex;gap:6px;justify-content:flex-end"><button id="noteview-archive" class="btn-secondary">📦 آرشیو</button><button id="noteview-edit" class="btn-secondary">✎ ویرایش</button><button id="noteview-close-btn" class="btn-primary">بستن</button></div>
+    <div style="padding:10px 18px;border-top:1px solid var(--border);display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
+      <button id="noteview-share" class="btn-secondary">📤 اشتراک‌گذاری چک‌لیست</button>
+      <button id="noteview-archive" class="btn-secondary">📦 آرشیو</button>
+      <button id="noteview-edit" class="btn-secondary">✎ ویرایش</button>
+      <button id="noteview-close-btn" class="btn-primary">بستن</button>
+    </div>
 </div>
 
 <button id="ai-fab" class="ai-fab" title="دستیار هوشمند">🤖</button>
@@ -1326,10 +1410,10 @@ body { font-family:var(--app-font); background:var(--bg-grad); background-attach
 
 <script>
 /* =====================================================================
-   =============  پارسیس — PWA v25.11.02 (Calculator + 3D + Widget) ====
+   =============  پارسیس — PWA v25.11.03 (Full Patch) ====
    ===================================================================== */
 var APP_NAME = 'پارسیس';
-var APP_VERSION = '25.11.02';
+var APP_VERSION = '25.11.03';
 function toFaSimple(x){ return String(x).replace(/\d/g, function(d){ return '۰۱۲۳۴۵۶۷۸۹'[d]; }); }
 var LS_PREFIX = 'parsis.';
 var DB = {
@@ -1418,7 +1502,6 @@ function renderFrequentNav() {
         'report-rates': { label:'📈 نرخ ارز و طلا', icon:'📈' }
     };
     container.innerHTML = '';
-    // Clear history button at top
     var clearBtn = document.createElement('button');
     clearBtn.className = 'clear-freq-btn';
     clearBtn.type = 'button';
@@ -1576,7 +1659,7 @@ document.getElementById('cal-overlay').addEventListener('click', closeCalendar);
 
 /* ==================== Calculator ==================== */
 var calcExpr = '0';
-var calcTarget = null; // {get:fn, set:fn}
+var calcTarget = null;
 function calcOpen(targetGetter, targetSetter, title) {
     calcTarget = { get: targetGetter, set: targetSetter };
     var v = targetGetter ? (Number(targetGetter()) || 0) : 0;
@@ -1590,40 +1673,18 @@ function calcOpen(targetGetter, targetSetter, title) {
 function updateCalcDisplay() {
     var el = document.getElementById('calc-display');
     if (!el) return;
-    try {
-        // نمایش با جداکننده و تبدیل اعداد فارسی
-        var display = calcExpr.replace(/[0-9]+/g, function(m){ return m; });
-        el.value = toFa(display);
-    } catch(e) { el.value = calcExpr; }
+    try { var display = calcExpr.replace(/[0-9]+/g, function(m){ return m; }); el.value = toFa(display); } catch(e) { el.value = calcExpr; }
 }
 function calcEval() {
-    try {
-        var expr = calcExpr.replace(/[^0-9+\-*/().]/g, '');
-        if (!expr) return 0;
-        // eslint-disable-next-line no-new-func
-        var result = Function('"use strict";return (' + expr + ')')();
-        if (!isFinite(result)) return 0;
-        return Math.round(result);
-    } catch(e) { return 0; }
+    try { var expr = calcExpr.replace(/[^0-9+\-*/().]/g, ''); if (!expr) return 0; var result = Function('"use strict";return (' + expr + ')')(); if (!isFinite(result)) return 0; return Math.round(result); } catch(e) { return 0; }
 }
 function calcButtonPress(key) {
     if (key === 'C') { calcExpr = '0'; }
     else if (key === '←') { calcExpr = calcExpr.length > 1 ? calcExpr.slice(0, -1) : '0'; }
     else if (key === '=') { var r = calcEval(); calcExpr = String(r); }
-    else if (['+','-','*','/'].indexOf(key) !== -1) {
-        var lastChar = calcExpr.slice(-1);
-        if (['+','-','*','/'].indexOf(lastChar) !== -1) calcExpr = calcExpr.slice(0, -1) + key;
-        else calcExpr += key;
-    }
-    else if (key === '.') {
-        var parts = calcExpr.split(/[+\-*/]/);
-        var lastPart = parts[parts.length - 1];
-        if (lastPart.indexOf('.') === -1) calcExpr += '.';
-    }
-    else if (/^\d$/.test(key)) {
-        if (calcExpr === '0') calcExpr = key;
-        else calcExpr += key;
-    }
+    else if (['+','-','*','/'].indexOf(key) !== -1) { var lastChar = calcExpr.slice(-1); if (['+','-','*','/'].indexOf(lastChar) !== -1) calcExpr = calcExpr.slice(0, -1) + key; else calcExpr += key; }
+    else if (key === '.') { var parts = calcExpr.split(/[+\-*/]/); var lastPart = parts[parts.length - 1]; if (lastPart.indexOf('.') === -1) calcExpr += '.'; }
+    else if (/^\d$/.test(key)) { if (calcExpr === '0') calcExpr = key; else calcExpr += key; }
     updateCalcDisplay();
 }
 function initCalculator() {
@@ -1631,8 +1692,7 @@ function initCalculator() {
     var keys = ['7','8','9','/','4','5','6','*','1','2','3','-','0','.','=','+','←','C'];
     box.innerHTML = '';
     keys.forEach(function(k) {
-        var b = document.createElement('button');
-        b.type = 'button';
+        var b = document.createElement('button'); b.type = 'button';
         b.className = 'calc-btn-key' + (['+','-','*','/'].indexOf(k) !== -1 ? ' op' : '') + (k === '=' ? ' eq' : '');
         b.textContent = k === '←' ? '⌫' : k === '*' ? '×' : k === '/' ? '÷' : k;
         b.addEventListener('click', function() { calcButtonPress(k); });
@@ -1647,42 +1707,23 @@ function initCalculator() {
     });
     document.getElementById('calc-add').addEventListener('click', function() {
         var r = calcEval();
-        if (calcTarget && calcTarget.get && calcTarget.set) {
-            var cur = Number(calcTarget.get()) || 0;
-            calcTarget.set(cur + r);
-            showToast('➕ افزوده شد: ' + formatRaw(r));
-        }
+        if (calcTarget && calcTarget.get && calcTarget.set) { var cur = Number(calcTarget.get()) || 0; calcTarget.set(cur + r); showToast('➕ افزوده شد: ' + formatRaw(r)); }
         calcClose();
     });
     document.getElementById('calc-clear').addEventListener('click', function() { calcExpr = '0'; updateCalcDisplay(); });
 }
-function calcClose() {
-    document.getElementById('calc-popup').classList.remove('show');
-    document.getElementById('calc-overlay').classList.remove('show');
-    calcTarget = null;
-}
+function calcClose() { document.getElementById('calc-popup').classList.remove('show'); document.getElementById('calc-overlay').classList.remove('show'); calcTarget = null; }
 
-/* === Date picker wrapper === */
 function attachDatePickers() {
     var els = document.querySelectorAll('.date-picker');
     for (var i = 0; i < els.length; i++) {
-        var el = els[i];
-        if (el.dataset.picker === '1') continue;
-        el.dataset.picker = '1';
+        var el = els[i]; if (el.dataset.picker === '1') continue; el.dataset.picker = '1';
         if (el.parentNode && el.parentNode.classList && el.parentNode.classList.contains('date-wrap')) continue;
         try {
-            var wrap = document.createElement('div');
-            wrap.className = 'date-wrap';
-            el.parentNode.insertBefore(wrap, el);
-            wrap.appendChild(el);
-            var btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'cal-btn';
-            btn.innerHTML = '📅';
-            btn.title = 'باز کردن تقویم';
-            (function(inp) {
-                btn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); openCalendar(inp); });
-            })(el);
+            var wrap = document.createElement('div'); wrap.className = 'date-wrap';
+            el.parentNode.insertBefore(wrap, el); wrap.appendChild(el);
+            var btn = document.createElement('button'); btn.type = 'button'; btn.className = 'cal-btn'; btn.innerHTML = '📅'; btn.title = 'باز کردن تقویم';
+            (function(inp) { btn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); openCalendar(inp); }); })(el);
             wrap.appendChild(btn);
         } catch(err) { console.warn('date picker wrap failed', err); }
     }
@@ -2215,9 +2256,6 @@ function makeCardCollapsible(cardEl, key, defaultOpen) {
     if (!cardEl || cardEl.dataset.collapsible === '1') return;
     cardEl.dataset.collapsible = '1';
     var collapsed = state.cardCollapsed[key] === true;
-    if (!collapsed && defaultOpen !== false) {
-        // default open - if never set, keep open
-    }
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'card-collapse-btn' + (collapsed ? ' collapsed' : '');
@@ -2359,26 +2397,28 @@ function updateHomeUpcomingInstallments() {
     el.innerHTML = html;
     if (totalEl && totalAmountEl) { totalEl.classList.remove('hidden'); totalAmountEl.textContent = fmtFor(totalAmount, 'widgets') + ' ' + currencyLabel(); }
 }
-/* === Week calendar widget === */
+/* === Week calendar widget (English bold weekday names) === */
 function renderCalendarWidget() {
     var el = document.getElementById('home-cal-widget'); if (!el) return;
     var now = new Date();
     var todayJ = toJalali(now.getFullYear(), now.getMonth() + 1, now.getDate());
-    var jsDay = now.getDay(); // 0=Sun..6=Sat
-    var offsetFromSat = (jsDay + 1) % 7; // Sat->0, Sun->1, ..., Fri->6
+    var jsDay = now.getDay();
+    var offsetFromSat = (jsDay + 1) % 7;
     var satDate = new Date(now);
     satDate.setDate(satDate.getDate() - offsetFromSat);
-    var daysFa = ['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'];
+
+    var daysEn = ['SAT','SUN','MON','TUE','WED','THU','FRI'];
+
     var html = '<div class="cal-week-grid">';
     for (var i = 0; i < 7; i++) {
         var d = new Date(satDate);
         d.setDate(satDate.getDate() + i);
         var j = toJalali(d.getFullYear(), d.getMonth() + 1, d.getDate());
         var isToday = (j[0] === todayJ[0] && j[1] === todayJ[1] && j[2] === todayJ[2]);
-        var isHoliday = (d.getDay() === 5); // Friday
+        var isHoliday = (d.getDay() === 5);
         var cls = 'cal-week-day' + (isToday ? ' today' : '') + (isHoliday ? ' holiday' : '');
         html += '<div class="' + cls + '">';
-        html += '<div class="cwd-name">' + daysFa[i] + '</div>';
+        html += '<div class="cwd-name-en">' + daysEn[i] + '</div>';
         html += '<div class="cwd-circle">' + toFa(j[2]) + '</div>';
         html += '<div class="cwd-square">' + toFa(d.getDate()) + '</div>';
         html += '</div>';
@@ -2394,19 +2434,17 @@ function renderTodayChecklistWidget() {
     var notes = DB.load('notes', []);
     var allItems = [];
     notes.forEach(function(n) {
-        if (n.archived) return; // skip archived
+        if (n.archived) return;
         (n.checklist || []).forEach(function(c) {
             if (!c.text) return;
             allItems.push({ note: n, item: c });
         });
     });
-    // Filter: today (all) OR past days with undone items
     var filtered = allItems.filter(function(x) {
         if (x.note.date === today) return true;
         return !x.item.done;
     });
     if (filtered.length === 0) { el.innerHTML = '<div class="widget-empty">✅ چک‌لیستی برای نمایش نیست.</div>'; return; }
-    // Sort: today first, then by date desc
     filtered.sort(function(a, b) {
         var aT = a.note.date === today ? 0 : 1;
         var bT = b.note.date === today ? 0 : 1;
@@ -2425,7 +2463,6 @@ function renderTodayChecklistWidget() {
     el.innerHTML = html;
     el.querySelectorAll('.cl-widget-item').forEach(function(row) {
         var cb = row.querySelector('input[type=checkbox]');
-        // Click on checkbox -> toggle done
         cb.addEventListener('click', function(e) {
             e.stopPropagation();
             var noteId = row.getAttribute('data-note-id');
@@ -2444,7 +2481,6 @@ function renderTodayChecklistWidget() {
             DB.save('notes', notes);
             renderTodayChecklistWidget();
         });
-        // Click on row (text or badge) -> open note
         row.addEventListener('click', function(e) {
             if (e.target.tagName === 'INPUT') return;
             var noteId = row.getAttribute('data-note-id');
@@ -3904,12 +3940,14 @@ function runAccountReport() {
             parentEl.appendChild(div); tD += b.debit; tC += b.credit; shown++; }
         if (sS && isE) { var cB = document.createElement('div'); cB.className = 'rt-children';
             var chs = getCh(node.id); for (var ci = 0; ci < chs.length; ci++) renderNode(chs[ci], level + 1, cB);
-            if (level === 3 && tL === 4 && dM[node.id]) { var ds = dM[node.id];
-                for (var di = 0; di < ds.length; di++) { var d = ds[di]; var dn = d.debit - d.credit; var dnD = dn === 0 ? '۰' : (hide ? '—' : fmtRep(Math.abs(dn), 'ra'));
-                    var dD = document.createElement('div'); dD.className = 'rt-node level-4';
+            if (level === 3 && dM[node.id]) { var ds = dM[node.id];
+                for (var di = 0; di < ds.length; di++) { (function(d) {
+                    var dn = d.debit - d.credit; var dnD = dn === 0 ? '۰' : (hide ? '—' : fmtRep(Math.abs(dn), 'ra'));
+                    var dD = document.createElement('div'); dD.className = 'rt-node level-4'; dD.style.cursor = 'pointer';
                     dD.innerHTML = '<span class="rt-toggle empty">•</span><span class="rt-name">' + esc(getDetailLabel(d.linkType, d.id)) + '</span><span class="rt-level-badge l4">' + linkTypeName(d.linkType) + '</span><span class="rt-amounts"><span class="amt dr">بدهکار: ' + (hide ? '—' : fmtRep(d.debit, 'ra')) + '</span><span class="amt cr">بستانکار: ' + (hide ? '—' : fmtRep(d.credit, 'ra')) + '</span><span class="amt net">مانده: ' + dnD + '</span></span>';
-                    (function(dd) { dD.addEventListener('click', function(ev) { ev.stopPropagation(); openAccountTurnover(dd.parent, { linkType: dd.linkType, detailId: dd.id }); }); })(d);
-                    cB.appendChild(dD); tD += d.debit; tC += d.credit; shown++; } }
+                    dD.addEventListener('click', function(ev) { ev.stopPropagation(); openAccountTurnover(node.id, { linkType: d.linkType, detailId: d.id }); });
+                    cB.appendChild(dD); tD += d.debit; tC += d.credit; shown++;
+                })(ds[di]); } }
             if (cB.children.length > 0) parentEl.appendChild(cB); }
     }
     function rerender() { container.innerHTML = ''; tD = 0; tC = 0; shown = 0;
@@ -4068,7 +4106,6 @@ function renderVoucherLines() {
         var line = voucherLines[idx]; if (!line.details) line.details = {};
         var wrap = document.createElement('div'); wrap.className = 'voucher-line' + (line.locked ? ' locked' : ''); wrap.setAttribute('data-line-id', line.id);
         var numSpan = document.createElement('span'); numSpan.className = 'ln-num' + (line.locked ? ' locked-tag' : ''); numSpan.textContent = '#' + toFa(idx + 1) + (line.locked ? ' 🔒' : ''); wrap.appendChild(numSpan);
-        // === Search + Select side by side for main account ===
         var mainGrid = document.createElement('div'); mainGrid.className = 'ln-search-row'; mainGrid.style.paddingTop = '14px';
         var sA = document.createElement('input'); sA.type = 'text'; sA.className = 'ln-search'; sA.placeholder = '🔍 معین...';
         var selA = document.createElement('select');
@@ -4080,7 +4117,6 @@ function renderVoucherLines() {
         sA.addEventListener('input', function() { fillA(normalizeDigits(this.value.trim().toLowerCase())); });
         mainGrid.appendChild(sA); mainGrid.appendChild(selA);
         wrap.appendChild(mainGrid);
-        // === Details: search + select side by side ===
         var acc = accounts.find(function(a) { return a.id === line.account; });
         if (acc && acc.links && acc.links.length > 0) {
             for (var li = 0; li < acc.links.length; li++) { var lt = acc.links[li]; var items = getLinkedItems(lt); if (items.length === 0) continue;
@@ -4097,33 +4133,20 @@ function renderVoucherLines() {
                     buildOptionsInto(sR, f, function(it) { return getLinkedItemLabel(ltype, it); }, cv, '— ' + linkTypeName(ltype) + ' —'); }); })(selD, items, lt, sD);
                 detGrid.appendChild(sD); detGrid.appendChild(selD);
                 wrap.appendChild(detGrid); } }
-        // === Amounts with calculator ===
         var r3 = document.createElement('div'); r3.className = 'ln-row r4'; r3.style.marginTop = '8px';
-        // Debit with calculator
         var wD = document.createElement('div'); wD.className = 'ln-amount-wrap';
         var iD = document.createElement('input'); iD.type = 'text'; iD.inputMode = 'numeric'; iD.dir = 'ltr'; iD.placeholder = 'بدهکار'; iD.value = line.debit ? formatRaw(line.debit) : '';
         iD.addEventListener('input', function() { var v = normalizeDigits(this.value); var r = v.replace(/[^\d]/g, ''); this.value = r; var x = Number(r) || 0; line.debit = x; if (x > 0 && line.credit !== 0) { line.credit = 0; iC.value = ''; } updateVoucherTotals(); });
         iD.addEventListener('blur', function() { var v = Number(normalizeDigits(this.value).replace(/[^\d]/g, '')) || 0; this.value = v ? formatRaw(v) : ''; line.debit = v; updateVoucherTotals(); });
         var cD = document.createElement('button'); cD.type = 'button'; cD.className = 'calc-btn'; cD.title = 'ماشین حساب'; cD.textContent = '🧮';
-        cD.addEventListener('click', function() {
-            calcOpen(function() { return line.debit || 0; }, function(v) {
-                line.debit = v; if (v > 0 && line.credit !== 0) { line.credit = 0; }
-                renderVoucherLines(); updateVoucherTotals();
-            }, 'ماشین حساب بدهکار');
-        });
+        cD.addEventListener('click', function() { calcOpen(function() { return line.debit || 0; }, function(v) { line.debit = v; if (v > 0 && line.credit !== 0) { line.credit = 0; } renderVoucherLines(); updateVoucherTotals(); }, 'ماشین حساب بدهکار'); });
         wD.appendChild(iD); wD.appendChild(cD);
-        // Credit with calculator
         var wC = document.createElement('div'); wC.className = 'ln-amount-wrap';
         var iC = document.createElement('input'); iC.type = 'text'; iC.inputMode = 'numeric'; iC.dir = 'ltr'; iC.placeholder = 'بستانکار'; iC.value = line.credit ? formatRaw(line.credit) : '';
         iC.addEventListener('input', function() { var v = normalizeDigits(this.value); var r = v.replace(/[^\d]/g, ''); this.value = r; var x = Number(r) || 0; line.credit = x; if (x > 0 && line.debit !== 0) { line.debit = 0; iD.value = ''; } updateVoucherTotals(); });
         iC.addEventListener('blur', function() { var v = Number(normalizeDigits(this.value).replace(/[^\d]/g, '')) || 0; this.value = v ? formatRaw(v) : ''; line.credit = v; updateVoucherTotals(); });
         var cC = document.createElement('button'); cC.type = 'button'; cC.className = 'calc-btn'; cC.title = 'ماشین حساب'; cC.textContent = '🧮';
-        cC.addEventListener('click', function() {
-            calcOpen(function() { return line.credit || 0; }, function(v) {
-                line.credit = v; if (v > 0 && line.debit !== 0) { line.debit = 0; }
-                renderVoucherLines(); updateVoucherTotals();
-            }, 'ماشین حساب بستانکار');
-        });
+        cC.addEventListener('click', function() { calcOpen(function() { return line.credit || 0; }, function(v) { line.credit = v; if (v > 0 && line.debit !== 0) { line.debit = 0; } renderVoucherLines(); updateVoucherTotals(); }, 'ماشین حساب بستانکار'); });
         wC.appendChild(iC); wC.appendChild(cC);
         r3.appendChild(wD); r3.appendChild(wC);
         var iT = document.createElement('input'); iT.type = 'text'; iT.dir = 'ltr'; iT.placeholder = 'ش پیگیری'; iT.value = line.trackingNumber || ''; iT.addEventListener('input', function() { line.trackingNumber = this.value; }); r3.appendChild(iT);
@@ -4136,35 +4159,19 @@ function renderVoucherLines() {
         r4.appendChild(iDsc);
         var btnAddDesc = document.createElement('button'); btnAddDesc.type = 'button'; btnAddDesc.className = 'desc-add-btn'; btnAddDesc.textContent = '＋';
         btnAddDesc.addEventListener('click', function() { addDescriptionToStandard(iDsc.value); }); r4.appendChild(btnAddDesc); wrap.appendChild(r4);
-        // === Actions ===
         var aW = document.createElement('div'); aW.className = 'ln-actions';
         var bU = document.createElement('button'); bU.className = 'ln-btn'; bU.textContent = '↑'; if (idx === 0) bU.disabled = true; bU.title = 'انتقال به بالا'; bU.addEventListener('click', function() { moveLine(idx, -1); });
         var bD = document.createElement('button'); bD.className = 'ln-btn'; bD.textContent = '↓'; if (idx === voucherLines.length - 1) bD.disabled = true; bD.title = 'انتقال به پایین'; bD.addEventListener('click', function() { moveLine(idx, 1); });
         var bCp = document.createElement('button'); bCp.className = 'ln-btn ln-copy'; bCp.textContent = '📋 کپی'; bCp.title = 'کپی ردیف'; bCp.addEventListener('click', function() { copyVoucherLine(idx); });
-        // === Swap debit/credit between copy and delete ===
         var bSwap = document.createElement('button'); bSwap.className = 'ln-btn ln-swap'; bSwap.textContent = '🔄 بدهکار/بستانکار'; bSwap.title = 'جابه‌جایی بدهکار و بستانکار';
-        bSwap.addEventListener('click', function() {
-            var tmpD = line.debit; line.debit = line.credit; line.credit = tmpD;
-            renderVoucherLines();
-            showToast('🔄 بدهکار/بستانکار جابه‌جا شد.');
-        });
-        // === Move to specific row ===
+        bSwap.addEventListener('click', function() { var tmpD = line.debit; line.debit = line.credit; line.credit = tmpD; renderVoucherLines(); showToast('🔄 بدهکار/بستانکار جابه‌جا شد.'); });
         var bMoveTo = document.createElement('button'); bMoveTo.className = 'ln-btn ln-moveto'; bMoveTo.textContent = '📍 انتقال به ردیف'; bMoveTo.title = 'انتقال به ردیف مشخص';
-        bMoveTo.addEventListener('click', function() {
-            var total = voucherLines.length;
-            if (total < 2) { showToast('فقط یک ردیف موجود است.'); return; }
-            var ans = prompt('این ردیف به کدام شماره ردیف منتقل شود؟ (۱ تا ' + toFa(total) + ')\nشماره فعلی: ' + toFa(idx + 1), String(idx + 1));
-            if (!ans) return;
-            var target = Number(normalizeDigits(ans));
-            if (isNaN(target) || target < 1 || target > total) { alert('شماره نامعتبر.'); return; }
-            target = target - 1;
-            if (target === idx) return;
-            var movedLine = voucherLines.splice(idx, 1)[0];
-            voucherLines.splice(target, 0, movedLine);
-            window._focusLineId = movedLine.id;
-            renderVoucherLines();
-            showToast('📍 ردیف به شماره ' + toFa(target + 1) + ' منتقل شد.');
-        });
+        bMoveTo.addEventListener('click', function() { var total = voucherLines.length; if (total < 2) { showToast('فقط یک ردیف موجود است.'); return; }
+            var ans = prompt('این ردیف به کدام شماره ردیف منتقل شود؟ (۱ تا ' + toFa(total) + ')\nشماره فعلی: ' + toFa(idx + 1), String(idx + 1)); if (!ans) return;
+            var target = Number(normalizeDigits(ans)); if (isNaN(target) || target < 1 || target > total) { alert('شماره نامعتبر.'); return; }
+            target = target - 1; if (target === idx) return;
+            var movedLine = voucherLines.splice(idx, 1)[0]; voucherLines.splice(target, 0, movedLine);
+            window._focusLineId = movedLine.id; renderVoucherLines(); showToast('📍 ردیف به شماره ' + toFa(target + 1) + ' منتقل شد.'); });
         var bX = document.createElement('button'); bX.className = 'ln-btn ln-del'; bX.textContent = '× حذف'; bX.title = 'حذف ردیف'; bX.addEventListener('click', function() { voucherLines.splice(idx, 1); renderVoucherLines(); });
         aW.appendChild(bU); aW.appendChild(bD); aW.appendChild(bCp); aW.appendChild(bSwap); aW.appendChild(bMoveTo); aW.appendChild(bX); wrap.appendChild(aW); box.appendChild(wrap); attachDatePickers();
     })(i);
@@ -4395,9 +4402,128 @@ function refreshReportPeriodSelects() {
         sel.innerHTML = '<option value="">همه</option>'; for (var i = 0; i < ps.length; i++) { var o = document.createElement('option'); o.value = ps[i].id; o.textContent = ps[i].title; sel.appendChild(o); } sel.value = v; });
 }
 
-/* ==================== NOTEPAD ==================== */
+/* ==================== NOTEPAD (NEW: File System Access API, Share, Multiline) ==================== */
 var noteChecklist = [];
-var noteImages = [];
+var noteImageRefs = [];
+
+var _noteImageDB = {
+    _db: null,
+    open: function() {
+        if (this._db) return Promise.resolve(this._db);
+        var self = this;
+        return new Promise(function(resolve, reject) {
+            if (!window.indexedDB) { reject(new Error('IndexedDB نیست')); return; }
+            var req = indexedDB.open('parsisNoteImages', 1);
+            req.onupgradeneeded = function(e) {
+                var db = e.target.result;
+                if (!db.objectStoreNames.contains('handles')) {
+                    db.createObjectStore('handles', { keyPath: 'id' });
+                }
+            };
+            req.onsuccess = function(e) { self._db = e.target.result; resolve(self._db); };
+            req.onerror = function(e) { reject(e.target.error); };
+        });
+    },
+    put: function(id, handle) {
+        return this.open().then(function(db) {
+            return new Promise(function(resolve, reject) {
+                var tx = db.transaction('handles', 'readwrite');
+                tx.objectStore('handles').put({ id: id, handle: handle, savedAt: Date.now() });
+                tx.oncomplete = function() { resolve(id); };
+                tx.onerror = function(e) { reject(e.target.error); };
+            });
+        });
+    },
+    get: function(id) {
+        return this.open().then(function(db) {
+            return new Promise(function(resolve, reject) {
+                var tx = db.transaction('handles', 'readonly');
+                var req = tx.objectStore('handles').get(id);
+                req.onsuccess = function() { resolve(req.result); };
+                req.onerror = function(e) { reject(e.target.error); };
+            });
+        });
+    },
+    del: function(id) {
+        return this.open().then(function(db) {
+            return new Promise(function(resolve, reject) {
+                var tx = db.transaction('handles', 'readwrite');
+                tx.objectStore('handles').delete(id);
+                tx.oncomplete = function() { resolve(); };
+                tx.onerror = function(e) { reject(e.target.error); };
+            });
+        });
+    }
+};
+
+var _noteImageUrlCache = {};
+
+function pickNoteImagesFS() {
+    if (!window.showOpenFilePicker) return Promise.resolve(null);
+    return window.showOpenFilePicker({
+        multiple: true,
+        types: [{ description: 'تصاویر', accept: { 'image/*': ['.png','.jpg','.jpeg','.gif','.webp','.bmp'] } }]
+    }).then(function(handles) { return handles; })
+      .catch(function(e) { if (e.name !== 'AbortError') console.warn(e); return null; });
+}
+
+function loadNoteImageRef(ref) {
+    if (!ref || !ref.id) return Promise.resolve(null);
+    if (_noteImageUrlCache[ref.id]) return Promise.resolve(_noteImageUrlCache[ref.id]);
+    return _noteImageDB.get(ref.id).then(function(rec) {
+        if (!rec || !rec.handle) return null;
+        return rec.handle.getFile().then(function(file) {
+            var url = URL.createObjectURL(file);
+            _noteImageUrlCache[ref.id] = url;
+            return url;
+        });
+    }).catch(function() { return null; });
+}
+
+async function addNoteImageHandles(handles) {
+    if (!handles || !handles.length) return;
+    for (var i = 0; i < handles.length; i++) {
+        try {
+            var h = handles[i];
+            var file = await h.getFile();
+            if (!file.type.startsWith('image/')) continue;
+            var id = 'img-' + uid();
+            await _noteImageDB.put(id, h);
+            noteImageRefs.push({ id: id, name: file.name, size: file.size, type: file.type });
+        } catch(e) { console.warn('image add failed', e); }
+    }
+    renderNoteImages();
+}
+
+async function addNoteImageFromFile(file) {
+    if (!file.type.startsWith('image/')) return;
+    if (file.size > 2 * 1024 * 1024) {
+        if (!confirm('حجم تصویر بیشتر از ۲ مگابایت است. ادامه؟')) return;
+    }
+    var id = 'img-' + uid();
+    var rec = { id: id, blob: file, name: file.name, size: file.size, type: file.type, isBlob: true };
+    await _noteImageDB.open().then(function(db) {
+        return new Promise(function(resolve, reject) {
+            var tx = db.transaction('handles', 'readwrite');
+            tx.objectStore('handles').put(rec);
+            tx.oncomplete = resolve; tx.onerror = function(e) { reject(e.target.error); };
+        });
+    });
+    noteImageRefs.push({ id: id, name: file.name, size: file.size, type: file.type, isBlob: true });
+}
+
+async function loadNoteImageRefBlob(ref) {
+    if (_noteImageUrlCache[ref.id]) return _noteImageUrlCache[ref.id];
+    var rec = await _noteImageDB.get(ref.id);
+    if (!rec) return null;
+    if (rec.blob) {
+        var u = URL.createObjectURL(rec.blob);
+        _noteImageUrlCache[ref.id] = u;
+        return u;
+    }
+    return null;
+}
+
 function renderNoteChecklist() {
     var box = document.getElementById('nt-checklist'); if (!box) return; box.innerHTML = '';
     if (noteChecklist.length === 0) noteChecklist.push({ id: uid(), text: '', done: false });
@@ -4406,39 +4532,76 @@ function renderNoteChecklist() {
         var row = document.createElement('div'); row.className = 'cl-item-row';
         var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!it.done;
         cb.addEventListener('change', function() { it.done = this.checked; });
-        var inp = document.createElement('input'); inp.type = 'text'; inp.placeholder = 'آیتم ' + toFa(idx + 1); inp.value = it.text || '';
-        inp.addEventListener('input', function() { it.text = this.value; });
-        // === Up/Down arrows like voucher lines ===
-        var upBtn = document.createElement('button'); upBtn.type = 'button'; upBtn.className = 'cl-move-btn'; upBtn.textContent = '↑'; upBtn.title = 'انتقال به بالا';
-        if (idx === 0) upBtn.disabled = true;
+
+        var ta = document.createElement('textarea');
+        ta.rows = 1;
+        ta.placeholder = 'آیتم ' + toFa(idx + 1);
+        ta.value = it.text || '';
+        function autoResize() {
+            ta.style.height = 'auto';
+            ta.style.height = Math.min(ta.scrollHeight, 200) + 'px';
+        }
+        ta.addEventListener('input', function() { it.text = this.value; autoResize(); });
+        ta.addEventListener('focus', autoResize);
+        setTimeout(autoResize, 0);
+
+        var upBtn = document.createElement('button'); upBtn.type = 'button'; upBtn.className = 'cl-move-btn'; upBtn.textContent = '↑';
+        upBtn.title = 'انتقال به بالا'; if (idx === 0) upBtn.disabled = true;
         upBtn.addEventListener('click', function() {
             var tmp = noteChecklist[idx]; noteChecklist[idx] = noteChecklist[idx - 1]; noteChecklist[idx - 1] = tmp;
             renderNoteChecklist();
         });
-        var downBtn = document.createElement('button'); downBtn.type = 'button'; downBtn.className = 'cl-move-btn'; downBtn.textContent = '↓'; downBtn.title = 'انتقال به پایین';
-        if (idx === noteChecklist.length - 1) downBtn.disabled = true;
+        var downBtn = document.createElement('button'); downBtn.type = 'button'; downBtn.className = 'cl-move-btn'; downBtn.textContent = '↓';
+        downBtn.title = 'انتقال به پایین'; if (idx === noteChecklist.length - 1) downBtn.disabled = true;
         downBtn.addEventListener('click', function() {
             var tmp = noteChecklist[idx]; noteChecklist[idx] = noteChecklist[idx + 1]; noteChecklist[idx + 1] = tmp;
             renderNoteChecklist();
         });
         var del = document.createElement('button'); del.className = 'row-btn del'; del.textContent = '×';
         del.addEventListener('click', function() { noteChecklist.splice(idx, 1); renderNoteChecklist(); });
-        row.appendChild(cb); row.appendChild(inp); row.appendChild(upBtn); row.appendChild(downBtn); row.appendChild(del);
+
+        row.appendChild(cb); row.appendChild(ta); row.appendChild(upBtn); row.appendChild(downBtn); row.appendChild(del);
         box.appendChild(row);
     })(i); }
 }
+
 function renderNoteImages() {
     var box = document.getElementById('nt-images-preview'); if (!box) return; box.innerHTML = '';
-    for (var i = 0; i < noteImages.length; i++) { (function(idx) {
+    if (noteImageRefs.length === 0) { box.innerHTML = '<div class="muted" style="font-size:0.75rem">تصویری اضافه نشده.</div>'; return; }
+    for (var i = 0; i < noteImageRefs.length; i++) { (function(idx) {
+        var ref = noteImageRefs[idx];
         var wrap = document.createElement('div'); wrap.className = 'note-img-thumb';
-        var img = document.createElement('img'); img.src = noteImages[idx]; img.alt = 'تصویر';
-        img.addEventListener('click', function() { openImageView(noteImages[idx]); });
-        var rm = document.createElement('button'); rm.className = 'rm-img'; rm.textContent = '×';
-        rm.addEventListener('click', function(e) { e.stopPropagation(); noteImages.splice(idx, 1); renderNoteImages(); });
-        wrap.appendChild(img); wrap.appendChild(rm);
+        var loading = document.createElement('div'); loading.className = 'note-img-loading'; loading.textContent = '⏳';
+        wrap.appendChild(loading);
+        var rm = document.createElement('button'); rm.className = 'rm-img'; rm.textContent = '×'; rm.title = 'حذف';
+        rm.addEventListener('click', function(e) {
+            e.stopPropagation();
+            _noteImageDB.del(ref.id).catch(function(){});
+            delete _noteImageUrlCache[ref.id];
+            noteImageRefs.splice(idx, 1);
+            renderNoteImages();
+        });
+        wrap.appendChild(rm);
         box.appendChild(wrap);
+
+        var loader = ref.isBlob ? loadNoteImageRefBlob(ref) : loadNoteImageRef(ref);
+        loader.then(function(url) {
+            loading.remove();
+            if (url) {
+                var img = document.createElement('img');
+                img.src = url; img.alt = ref.name || '';
+                img.title = ref.name || '';
+                img.addEventListener('click', function() { openImageView(url); });
+                wrap.insertBefore(img, rm);
+            } else {
+                var ph = document.createElement('div'); ph.className = 'note-img-missing';
+                ph.textContent = '❌'; ph.title = 'فایل «' + (ref.name || '') + '» در گوشی یافت نشد یا دسترسی لغو شده';
+                wrap.insertBefore(ph, rm);
+            }
+        });
     })(i); }
 }
+
 function openImageView(src) {
     document.getElementById('imgview-src').src = src;
     document.getElementById('imgview-modal').classList.add('show');
@@ -4450,7 +4613,7 @@ function clearNoteForm() {
     document.getElementById('nt-date').value = todayJalaliStr();
     document.getElementById('nt-content').value = '';
     noteChecklist = []; renderNoteChecklist();
-    noteImages = []; renderNoteImages();
+    noteImageRefs = []; renderNoteImages();
 }
 function renderNotesList() {
     var list = DB.load('notes', []); var filter = (document.getElementById('notes-filter').value || '').toLowerCase();
@@ -4498,7 +4661,7 @@ function renderNotesList() {
         document.getElementById('nt-date').value = n.date || '';
         document.getElementById('nt-content').value = n.content || '';
         noteChecklist = JSON.parse(JSON.stringify(n.checklist || []));
-        noteImages = (n.images || []).slice();
+        noteImageRefs = (n.imageRefs || []).slice();
         renderNoteChecklist(); renderNoteImages();
         document.querySelector('[data-tab="notes-add"]').click();
     });
@@ -4517,40 +4680,56 @@ function renderNotesList() {
         DB.save('notes', l); renderNotesList();
     });
 }
-function openNoteView(noteId) {
+
+async function openNoteView(noteId) {
     var n = DB.load('notes', []).find(function(x) { return x.id === noteId; });
-    if (!n) return;
+    if (!n) { showToast('یادداشت یافت نشد.'); return; }
     document.getElementById('noteview-title').textContent = '📔 ' + (n.title || 'یادداشت');
     var body = document.getElementById('noteview-body');
+    var selectedIds = {};
+
     var html = '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">' +
         '<div><b>📅 ' + toFa(esc(n.date || '—')) + '</b></div>' +
-        (n.archived ? '<span class="badge badge-archived">📦 آرشیو شده</span>' : '') +
-        '</div>';
+        (n.archived ? '<span class="badge badge-archived">📦 آرشیو شده</span>' : '') + '</div>';
+
     if (n.content) html += '<div style="background:var(--bg);padding:12px;border-radius:10px;font-size:0.9rem;white-space:pre-wrap;line-height:2;margin-bottom:12px">' + esc(n.content) + '</div>';
+
     if (n.checklist && n.checklist.length > 0) {
         var done = n.checklist.filter(function(c) { return c.done; }).length;
-        html += '<h3 style="margin-bottom:8px;color:var(--primary-dark);font-size:0.95rem">✅ چک‌لیست (' + toFa(done) + '/' + toFa(n.checklist.length) + ')</h3>';
-        html += '<ul class="note-checklist">';
-        n.checklist.forEach(function(c) { if (!c.text) return;
-            html += '<li class="' + (c.done ? 'done' : '') + '"><input type="checkbox" disabled ' + (c.done ? 'checked' : '') + '><span>' + esc(c.text) + '</span></li>';
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
+            '<h3 style="color:var(--primary-dark);font-size:0.95rem;margin:0">✅ چک‌لیست (' + toFa(done) + '/' + toFa(n.checklist.length) + ')</h3>' +
+            '<button class="note-share-sel" id="note-sel-all" style="padding:5px 10px;border-radius:8px;font-size:0.75rem">انتخاب همه</button></div>';
+        html += '<ul class="note-checklist" id="note-checklist-ul">';
+        n.checklist.forEach(function(c, i) {
+            if (!c.text) return;
+            html += '<li class="' + (c.done ? 'done' : '') + '">' +
+                '<input type="checkbox" class="item-select" data-item-idx="' + i + '">' +
+                '<input type="checkbox" disabled ' + (c.done ? 'checked' : '') + ' style="width:16px;height:16px;accent-color:var(--primary);flex-shrink:0">' +
+                '<span style="flex:1;word-break:break-word">' + esc(c.text) + '</span></li>';
         });
         html += '</ul>';
+        html += '<div class="note-share-bar">' +
+            '<label>📤 اشتراک‌گذاری:</label>' +
+            '<button class="note-share-btn" id="note-share-selected" disabled>ارسال موارد انتخابی</button>' +
+            '<span id="note-sel-count" style="font-size:0.75rem;color:var(--text-muted)">۰ مورد انتخاب شده</span>' +
+            '</div>';
     }
-    if (n.images && n.images.length > 0) {
-        html += '<h3 style="margin:12px 0 8px;color:var(--primary-dark);font-size:0.95rem">🖼 تصاویر (' + toFa(n.images.length) + ')</h3>';
-        html += '<div class="note-images">';
-        n.images.forEach(function(src, i) { html += '<img src="' + src + '" alt="" data-note-view-img="' + i + '">'; });
-        html += '</div>';
+
+    if (n.imageRefs && n.imageRefs.length > 0) {
+        html += '<h3 style="margin:12px 0 8px;color:var(--primary-dark);font-size:0.95rem">🖼 تصاویر (' + toFa(n.imageRefs.length) + ')</h3>';
+        html += '<div class="note-images" id="note-view-images"></div>';
     }
+
     body.innerHTML = html;
-    body.querySelectorAll('[data-note-view-img]').forEach(function(img) {
-        img.addEventListener('click', function() { var idx = Number(this.getAttribute('data-note-view-img')); openImageView(n.images[idx]); });
-    });
+
     var archBtn = document.getElementById('noteview-archive');
     archBtn.textContent = n.archived ? '↩ خارج از آرشیو' : '📦 آرشیو';
     archBtn.onclick = function() {
-        var l = DB.load('notes', []); for (var i = 0; i < l.length; i++) if (l[i].id === n.id) l[i].archived = !l[i].archived;
-        DB.save('notes', l); renderNotesList(); closeNoteView();
+        var l = DB.load('notes', []);
+        for (var i = 0; i < l.length; i++) if (l[i].id === n.id) l[i].archived = !l[i].archived;
+        DB.save('notes', l);
+        renderNotesList();
+        closeNoteView();
         showToast(l.find(function(x) { return x.id === n.id; }).archived ? '📦 به آرشیو رفت' : '↩ از آرشیو خارج شد');
     };
     document.getElementById('noteview-edit').onclick = function() {
@@ -4561,10 +4740,82 @@ function openNoteView(noteId) {
         document.getElementById('nt-date').value = note.date || '';
         document.getElementById('nt-content').value = note.content || '';
         noteChecklist = JSON.parse(JSON.stringify(note.checklist || []));
-        noteImages = (note.images || []).slice();
+        noteImageRefs = (note.imageRefs || []).slice();
         renderNoteChecklist(); renderNoteImages();
         document.querySelector('[data-tab="notes-add"]').click();
     };
+    document.getElementById('noteview-share').onclick = function() {
+        var list = (n.checklist || []).filter(function(c) { return c.text && c.text.trim(); });
+        if (list.length === 0) { showToast('چک‌لیستی وجود ندارد.'); return; }
+        var text = '📔 ' + (n.title || 'یادداشت') + '\n📅 ' + toFa(n.date || '') + '\n\n' +
+            list.map(function(c, i) { return (c.done ? '✅' : '⬜') + ' ' + c.text; }).join('\n');
+        if (navigator.share) {
+            navigator.share({ title: n.title || 'یادداشت', text: text }).catch(function(){});
+        } else {
+            navigator.clipboard.writeText(text).then(function() { showToast('📋 متن کپی شد.'); }).catch(function() { alert(text); });
+        }
+    };
+    document.getElementById('noteview-close-btn').onclick = closeNoteView;
+
+    if (n.imageRefs && n.imageRefs.length > 0) {
+        var imgBox = document.getElementById('note-view-images');
+        for (var ii = 0; ii < n.imageRefs.length; ii++) { (function(ref) {
+            var loading = document.createElement('div'); loading.className = 'note-img-loading'; loading.textContent = '⏳';
+            imgBox.appendChild(loading);
+            var loader = ref.isBlob ? loadNoteImageRefBlob(ref) : loadNoteImageRef(ref);
+            loader.then(function(url) {
+                if (loading.parentNode) loading.parentNode.removeChild(loading);
+                if (url) {
+                    var img = document.createElement('img'); img.src = url; img.alt = ref.name;
+                    img.addEventListener('click', function() { openImageView(url); });
+                    imgBox.appendChild(img);
+                } else {
+                    var ph = document.createElement('div'); ph.className = 'note-img-missing';
+                    ph.textContent = '❌'; ph.title = 'فایل حذف شده: ' + (ref.name || '');
+                    imgBox.appendChild(ph);
+                }
+            });
+        })(n.imageRefs[ii]); }
+    }
+
+    var selAllBtn = document.getElementById('note-sel-all');
+    if (selAllBtn) {
+        selAllBtn.onclick = function() {
+            var boxes = body.querySelectorAll('.item-select');
+            var allChecked = Array.from(boxes).every(function(b) { return b.checked; });
+            boxes.forEach(function(b) { b.checked = !allChecked; });
+            updateShareState();
+        };
+    }
+    function updateShareState() {
+        var boxes = body.querySelectorAll('.item-select');
+        var selected = [];
+        boxes.forEach(function(b) { if (b.checked) selected.push(Number(b.getAttribute('data-item-idx'))); });
+        var shareBtn = document.getElementById('note-share-selected');
+        var cnt = document.getElementById('note-sel-count');
+        if (shareBtn) shareBtn.disabled = selected.length === 0;
+        if (cnt) cnt.textContent = toFa(selected.length) + ' مورد انتخاب شده';
+        return selected;
+    }
+    body.querySelectorAll('.item-select').forEach(function(cb) {
+        cb.addEventListener('change', updateShareState);
+    });
+    var shareBtn = document.getElementById('note-share-selected');
+    if (shareBtn) {
+        shareBtn.onclick = function() {
+            var selected = updateShareState();
+            if (selected.length === 0) return;
+            var items = selected.map(function(i) { return n.checklist[i]; }).filter(Boolean);
+            var text = '📔 ' + (n.title || 'یادداشت') + '\n📅 ' + toFa(n.date || '') + '\n\n' +
+                items.map(function(c, i) { return (i+1) + '. ' + (c.done ? '✅' : '⬜') + ' ' + c.text; }).join('\n');
+            if (navigator.share) {
+                navigator.share({ title: n.title || 'یادداشت', text: text }).catch(function(){});
+            } else {
+                navigator.clipboard.writeText(text).then(function() { showToast('📋 متن کپی شد.'); }).catch(function() { alert(text); });
+            }
+        };
+    }
+
     document.getElementById('noteview-modal').classList.add('show');
     document.getElementById('noteview-overlay').classList.add('show');
 }
@@ -4580,22 +4831,42 @@ function saveNote() {
     var content = document.getElementById('nt-content').value;
     var checklist = noteChecklist.filter(function(c) { return c.text && c.text.trim(); });
     var existing = id ? DB.load('notes', []).find(function(x) { return x.id === id; }) : null;
-    var note = { id: id || uid(), title: title, date: date, content: content, checklist: checklist, images: noteImages.slice(), archived: existing ? !!existing.archived : false, savedAt: Date.now() };
+
+    var note = {
+        id: id || uid(),
+        title: title,
+        date: date,
+        content: content,
+        checklist: checklist,
+        imageRefs: noteImageRefs.slice(),
+        archived: existing ? !!existing.archived : false,
+        savedAt: Date.now()
+    };
     var l = DB.load('notes', []);
     if (id) { for (var i = 0; i < l.length; i++) if (l[i].id === id) l[i] = note; } else l.push(note);
-    try { DB.save('notes', l); } catch(e) { alert('⚠️ حجم تصاویر زیاد است. لطفاً تصاویر کمتری اضافه کنید.'); return; }
+    DB.save('notes', l);
     showToast('✅ یادداشت ذخیره شد.');
     clearNoteForm(); renderNotesList();
     document.querySelector('[data-tab="notes-list"]').click();
 }
+async function handleNoteImagesFS() {
+    var handles = await pickNoteImagesFS();
+    if (handles) { await addNoteImageHandles(handles); }
+    else {
+        var inp = document.createElement('input');
+        inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = true;
+        inp.onchange = async function() {
+            if (inp.files && inp.files.length) {
+                for (var i = 0; i < inp.files.length; i++) await addNoteImageFromFile(inp.files[i]);
+                renderNoteImages();
+            }
+        };
+        inp.click();
+    }
+}
 function handleNoteImages(files) {
     if (!files || files.length === 0) return;
-    for (var i = 0; i < files.length; i++) { (function(file) {
-        if (file.size > 800 * 1024) { alert('⚠️ تصویر "' + file.name + '" بیش از ۸۰۰ کیلوبایت است.'); return; }
-        var reader = new FileReader();
-        reader.onload = function(e) { noteImages.push(e.target.result); renderNoteImages(); };
-        reader.readAsDataURL(file);
-    })(files[i]); }
+    for (var i = 0; i < files.length; i++) { addNoteImageFromFile(files[i]).then(renderNoteImages); }
 }
 
 /* =====================================================================
@@ -5051,7 +5322,7 @@ function aiHandleCreateNote(args) {
     if (!args.title) return { error: 'عنوان اجباری' };
     var list = DB.load('notes', []); var cl = [];
     if (Array.isArray(args.checklist)) cl = args.checklist.filter(function(t) { return t && String(t).trim(); }).map(function(t) { return { id: uid(), text: String(t).trim(), done: false }; });
-    var o = { id: uid(), title: String(args.title).trim(), date: normalizeDigits(String(args.date || todayJalaliStr()).trim()), content: String(args.content || ''), checklist: cl, images: [], archived: false, savedAt: Date.now() };
+    var o = { id: uid(), title: String(args.title).trim(), date: normalizeDigits(String(args.date || todayJalaliStr()).trim()), content: String(args.content || ''), checklist: cl, imageRefs: [], archived: false, savedAt: Date.now() };
     list.push(o); DB.save('notes', list); renderNotesList();
     return { action: '✅ یادداشت «' + o.title + '» ایجاد شد.' };
 }
@@ -5263,7 +5534,6 @@ function init() {
     document.getElementById('overlay').addEventListener('click', function() { closeSidebar(); closeSettings(); });
     var titles = document.querySelectorAll('.nav-group-title');
     for (var i = 0; i < titles.length; i++) titles[i].addEventListener('click', function() { this.parentElement.classList.toggle('collapsed'); });
-    // Nav click handlers
     document.addEventListener('click', function(e) {
         var btn = e.target.closest('.nav-group-items button[data-page]');
         if (btn) { goToPage(btn.getAttribute('data-page')); }
@@ -5306,7 +5576,6 @@ function init() {
     document.getElementById('close-imgview').addEventListener('click', function() { document.getElementById('imgview-modal').classList.remove('show'); document.getElementById('imgview-overlay').classList.remove('show'); });
     document.getElementById('imgview-overlay').addEventListener('click', function() { document.getElementById('imgview-modal').classList.remove('show'); document.getElementById('imgview-overlay').classList.remove('show'); });
     document.getElementById('close-noteview').addEventListener('click', closeNoteView);
-    document.getElementById('noteview-close-btn').addEventListener('click', closeNoteView);
     document.getElementById('noteview-overlay').addEventListener('click', closeNoteView);
     var tC = document.querySelectorAll('.theme-card');
     for (var k = 0; k < tC.length; k++) tC[k].addEventListener('click', function() { state.theme = this.getAttribute('data-theme'); saveState('theme'); applyTheme(state.theme); });
@@ -5502,7 +5771,20 @@ function init() {
     document.getElementById('nt-save').addEventListener('click', saveNote);
     document.getElementById('nt-new').addEventListener('click', clearNoteForm);
     document.getElementById('nt-cancel').addEventListener('click', function() { clearNoteForm(); document.querySelector('[data-tab="notes-list"]').click(); });
-    document.getElementById('nt-image-input').addEventListener('change', function() { handleNoteImages(this.files); this.value = ''; });
+    // Image input: use File System Access API where available
+    var ntImgInput = document.getElementById('nt-image-input');
+    ntImgInput.addEventListener('click', function(e) {
+        if (window.showOpenFilePicker) {
+            e.preventDefault();
+            handleNoteImagesFS();
+        }
+    });
+    ntImgInput.addEventListener('change', function() {
+        if (!window.showOpenFilePicker && this.files && this.files.length) {
+            handleNoteImages(this.files);
+        }
+        this.value = '';
+    });
     updateDateDisplay(); updateTopbarPeriod(); updateHomeWidgets(); updateEyeButtons();
     setInterval(function() { updateDateDisplay(); updateTopbarPeriod(); }, 60000);
     newVoucherForm(); attachDatePickers();
@@ -5513,7 +5795,6 @@ function init() {
     initSidebarSearch();
     initHomeSwipe();
     initCalculator();
-    // Make template and head cards collapsible
     makeCardCollapsible(document.getElementById('voucher-template-card'), 'voucher-template-card', true);
     makeCardCollapsible(document.getElementById('voucher-head-card'), 'voucher-head-card', true);
     setTimeout(function() { fetchLiveRates(true); }, 1500);
@@ -5523,7 +5804,7 @@ function init() {
     document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'visible') autoRead(); });
     aiInit(); aiRender();
     renderEstimateItems();
-    console.log('🎉 ' + APP_NAME + ' v' + APP_VERSION + ' — Calculator + 3D + Widgets ready');
+    console.log('🎉 ' + APP_NAME + ' v' + APP_VERSION + ' — Patched (FS API + Share + Multiline + Details)');
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
