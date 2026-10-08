@@ -2311,7 +2311,6 @@ body.theme-midnight .note-content { background:var(--card-alt); }
 @media (max-width:480px) { #avalai-credit-result { grid-template-columns:1fr; } }
 </style>
 </head>
-
 <body class="theme-sky font-tahoma">
 
 <div id="app">
@@ -6541,7 +6540,7 @@ function aiPickPersianVoice() {
     /* ✅ تلاش با نام زبان */
     var v2 = voices.find(function(x) { return /persian|farsi|parsi/i.test(x.name || ''); });
     if (v2) return v2;
-    /* ✅ fallback: صدای عربی مشابه فarsi */
+    /* ✅ fallback: صدای عربی مشابه farsi */
     var v3 = voices.find(function(x) { return (x.lang || '').toLowerCase().indexOf('ar') === 0; });
     return v3 || null;
 }
@@ -7079,7 +7078,7 @@ function aiHandleVoucherDraft(args) {
     if (!/^\d{4}\/\d{1,2}\/\d{1,2}$/.test(date)) date = todayJalaliStr();
     var dv = validateDateInActivePeriod(date); if (!dv.ok) problems.push(dv.msg);
     if (problems.length > 0) {
-        return { error: problems.join('\n• ') };
+        return { draft: { date: date, desc: String(args.desc || '').trim() || 'سند هوشمند', type: args.type || 'general', lines: lines }, warnings: problems };
     }
     return { draft: { date: date, desc: String(args.desc || '').trim() || 'سند هوشمند', type: args.type || 'general', lines: lines } };
 }
@@ -7242,6 +7241,7 @@ function aiRender() {
         }
         if (m.actions && m.actions.length > 0) { m.actions.forEach(function(a) { html += '<div class="ai-action-card">' + esc(a) + '</div>'; }); }
         if (m.errors && m.errors.length > 0) { html += '<div class="ai-draft-errors"><strong>⚠️ نتوانستم انجام دهم:</strong>' + m.errors.map(esc).join('<br>') + '</div>'; }
+        if (m.warnings && m.warnings.length > 0) { html += '<div class="ai-draft-errors"><strong>⚠️ هشدار (قابل بارگذاری):</strong>' + m.warnings.map(esc).join('<br>') + '</div>'; }
         html += '</div>';
     });
     if (AI.isThinking) html += '<div class="ai-msg thinking">در حال فکر کردن</div>';
@@ -7277,11 +7277,12 @@ async function aiSend() {
     try {
         var result = await aiCallAPI(text, img);
         if (result && result.type === 'tool_call') {
-            var drafts = []; var actions = []; var errors = [];
+            var drafts = []; var actions = []; var errors = []; var warnings = [];
             for (var i = 0; i < result.calls.length; i++) {
                 var r = aiHandleToolCall(result.calls[i]);
                 if (!r) continue;
                 if (r.draft) drafts.push(r.draft); else if (r.action) actions.push(r.action); else if (r.error) errors.push(r.error);
+                if (r.warnings) warnings = warnings.concat(r.warnings);
             }
             var msgContent = result.content || '';
             if (!msgContent) {
@@ -7294,6 +7295,7 @@ async function aiSend() {
             if (drafts.length > 0) msg.drafts = drafts;
             if (actions.length > 0) msg.actions = actions;
             if (errors.length > 0) msg.errors = errors;
+            if (warnings.length > 0) msg.warnings = warnings;
             AI.history.push(msg);
             aiAutoSpeakIfNeeded(msg);
         } else {
@@ -7734,3 +7736,7 @@ if (AVALAI_CREDIT_CACHE.data) renderAvalaiCredit(AVALAI_CREDIT_CACHE.data);
 </script>
 </body>
 </html>
+
+   
+
+   
