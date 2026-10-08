@@ -8,6 +8,7 @@ var ASSETS = [
   './manifest.json'
 ];
 
+// نصب: پاک کردن کش قدیمی و ساخت کش جدید
 self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE_NAME).then(function(cache) {
@@ -17,6 +18,7 @@ self.addEventListener('install', function(event) {
   self.skipWaiting();
 });
 
+// فعال‌سازی: پاک کردن تمام کش‌های قبلی
 self.addEventListener('activate', function(event) {
   event.waitUntil(
     caches.keys().then(function(names) {
@@ -30,6 +32,7 @@ self.addEventListener('activate', function(event) {
   );
 });
 
+// استراتژی fetch
 self.addEventListener('fetch', function(event) {
   if (event.request.method !== 'GET') return;
 
