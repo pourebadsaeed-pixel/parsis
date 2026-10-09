@@ -1,9 +1,8 @@
 /* =====================================================================
-   پارسیس v27 — 06c-sms-patterns-fixes.js
-   اصلاح باگ‌های 06 و 06b:
-   ۱) تشخیص مبلغ و نوع تراکنش (برداشت/واریز) از کلمات کلیدی
-   ۲) کارکردن دکمه «ساخت سند» در صندوق پیامک
-   ۳) نمایش لیست و جزئیات الگوها در یک modal تمیز
+   پارسیس v27 — 06c-sms-patterns-fixes.js (v2)
+   - اولویت جهت از الگو (نه از متن SMS)
+   - اصلاح تشخیص مبلغ و نوع
+   - مدیریت الگوها با Modal
    ===================================================================== */
 'use strict';
 
@@ -11,50 +10,52 @@
 (function () {
     var _orig = window.parseBankSms;
     if (typeof _orig !== 'function') return;
-
     window.parseBankSms = function (text) {
         var r = _orig(text) || {};
         var t = normalizeDigits(String(text || ''));
-
-        // مبلغ: اولویت اول — عدد بلافاصله بعد از «مبلغ»
         var mamt = t.match(/مبلغ\s*[:ـ]?\s*([\d][\d,]*)/);
         if (mamt) {
             var vamt = Number(mamt[1].replace(/,/g, ''));
             if (vamt > 0) r.amount = vamt;
-        } else if (!r.amount || r.amount === 0) {
-            // اولویت دوم — عددی که با کاما نوشته شده (شماره حساب‌ها معمولاً کاما ندارند)
+        } else if (!r.amount || r.amount === 0 || r.amount > 1e12) {
             var mcomma = t.match(/([\d]{1,3}(?:,[\d]{3})+)/);
             if (mcomma) {
                 var vc = Number(mcomma[1].replace(/,/g, ''));
                 if (vc > 1000) r.amount = vc;
             }
         }
-
-        // نوع تراکنش از کلمات کلیدی (وقتی علامت +/- وجود ندارد)
         if (!r.direction) {
             if (/برداشت|پرداخت|خرید|کسر|بدهکار|انتقال\s*از|کاهش|قسط/.test(t)) r.direction = 'out';
             else if (/واریز|دریافت|افزایش|بستانکار|انتقال\s*به|حقوق|افزودن/.test(t)) r.direction = 'in';
-            else if (/-\s*[\d]/.test(t)) r.direction = 'out';
-            else if (/\+\s*[\d]/.test(t)) r.direction = 'in';
         }
-
         return r;
     };
 })();
 
-/* ==================== ۲) اصلاح convertSmsToVoucher ==================== */
+/* ==================== ۲) convertSmsToVoucher با اولویت الگو ==================== */
 window.convertSmsToVoucher = function (smsId) {
     var list = getSmsInbox();
     var item = list.find(function (s) { return s.id === smsId; });
     if (!item) { showToast('پیامک یافت نشد.'); return; }
 
-    var p = item.parsed || {};
     var raw = normalizeDigits(item.rawText);
+    var p = item.parsed || {};
     var amount = p.amount || 0;
     var direction = p.direction || '';
     var bankAccountId = p.matchedAccountId || '';
+    var patternLabel = '';
 
-    // اگر مبلغ نداریم یا مشکوک است (بیش از ۱۲ رقم = شبیه شماره حساب) → از متن استخراج کن
+    // ⭐️ مهم: اول الگوی یادگرفته‌شده رو نگاه کن
+    var matched = (typeof findMatchingSmsPattern === 'function')
+        ? findMatchingSmsPattern(item.rawText) : null;
+    if (matched && matched.pattern) {
+        var pat = matched.pattern;
+        if (pat.direction) direction = pat.direction;   // ← اولویت مطلق الگو
+        if (!bankAccountId && pat.linkedAccountId) bankAccountId = pat.linkedAccountId;
+        patternLabel = pat.label || '';
+    }
+
+    // اگر مبلغ مشکوک یا صفره، از متن خام استخراج کن
     if (!amount || amount > 1e12) {
         var mamt = raw.match(/مبلغ\s*[:ـ]?\s*([\d][\d,]*)/);
         if (mamt) amount = Number(mamt[1].replace(/,/g, ''));
@@ -63,17 +64,17 @@ window.convertSmsToVoucher = function (smsId) {
             if (mcomma) amount = Number(mcomma[1].replace(/,/g, ''));
         }
     }
-
     if (!amount || amount > 1e13) {
-        alert('⚠️ مبلغ در پیامک قابل تشخیص نیست.\nبرای این پیامک از باکس «ثبت نشده» الگو تعریف کن.');
+        alert('⚠️ مبلغ قابل تشخیص نیست.\nبرای این پیامک از باکس «ثبت نشده» الگو تعریف کن.');
         return;
     }
 
-    // نوع تراکنش
+    // اگر بازهم جهت نداریم، از متن استخراج کن
     if (!direction) {
         if (/برداشت|پرداخت|خرید|کسر|بدهکار|قسط/.test(raw)) direction = 'out';
         else if (/واریز|دریافت|افزایش|بستانکار|حقوق/.test(raw)) direction = 'in';
     }
+    // در نهایت اگه بازم نبود، از کاربر بپرس
     if (!direction) {
         var d = prompt('نوع تراکنش این پیامک:\n1 = برداشت\n2 = واریز', '1');
         if (d === '1') direction = 'out';
@@ -100,16 +101,21 @@ window.convertSmsToVoucher = function (smsId) {
 
     var bankMoein = getBankMoeinId();
     if (!bankMoein) {
-        alert('⚠️ معین بانک تعریف نشده.\nاز «تعریف حساب‌ها» یک حساب معین با گزینه «بانکی» بساز.');
+        alert('⚠️ معین بانک تعریف نشده.');
         return;
     }
 
+    // ⭐️ منطق حسابداری درست:
+    //   واریز (in)  → بانک بدهکار (money enters bank)
+    //   برداشت (out) → بانک بستانکار (money leaves bank)
     var bankDetail = { bank: bankAccountId };
     var lines = [];
     if (direction === 'out') {
+        // برداشت: بانک بستانکار + طرف مقابل بدهکار
         lines.push({ id: uid(), account: '', details: {}, debit: amount, credit: 0, description: '' });
         lines.push({ id: uid(), account: bankMoein, details: bankDetail, debit: 0, credit: amount, description: '', locked: true });
     } else {
+        // واریز: بانک بدهکار + طرف مقابل بستانکار
         lines.push({ id: uid(), account: bankMoein, details: bankDetail, debit: amount, credit: 0, description: '', locked: true });
         lines.push({ id: uid(), account: '', details: {}, debit: 0, credit: amount, description: '' });
     }
@@ -123,7 +129,7 @@ window.convertSmsToVoucher = function (smsId) {
         date: todayJalaliStr(),
         type: 'general',
         periodId: state.activePeriodId || '',
-        desc: '',
+        desc: patternLabel || '',
         lines: lines,
         status: 'draft'
     };
@@ -143,10 +149,19 @@ window.convertSmsToVoucher = function (smsId) {
     if (typeof renderSmsInbox === 'function') renderSmsInbox();
     if (typeof window.updateSmsBadge === 'function') window.updateSmsBadge();
     if (typeof loadVoucherForEdit === 'function') loadVoucherForEdit(v);
-    showToast('✅ پیش‌نویس سند ساخته شد');
+
+    var dirLabel = direction === 'out' ? '🔴 برداشت' : '🟢 واریز';
+    showToast('✅ پیش‌نویس ساخته شد — ' + dirLabel + (patternLabel ? ' | الگو: ' + patternLabel : ''));
 };
 
-/* ==================== ۳) مدیریت الگوها با Modal ==================== */
+/* ==================== ۳) همگام‌سازی: اولویت الگو در handleIncomingSms ==================== */
+(function () {
+    var _orig = window.handleIncomingSms;
+    if (typeof _orig !== 'function') return;
+    // (این override ضروری نیست، فقط برای سازگاری بیشتر)
+})();
+
+/* ==================== ۴) مدیریت الگوها با Modal ==================== */
 function ensureSmsPatternsModal() {
     if (document.getElementById('sms-patterns-modal')) return;
     var html = ''
@@ -168,13 +183,12 @@ function ensureSmsPatternsModal() {
     document.getElementById('sms-patterns-overlay').addEventListener('click', closeSmsPatternsManager);
     document.getElementById('sms-patterns-del-all').addEventListener('click', function () {
         if (loadSmsPatterns().length === 0) { showToast('الگویی وجود ندارد.'); return; }
-        if (!confirm('همه الگوها حذف شوند؟ این کار قابل بازگشت نیست.')) return;
+        if (!confirm('همه الگوها حذف شوند؟')) return;
         saveSmsPatterns([]);
         renderSmsPatternsManagerBody();
         showToast('🗑 همه الگوها حذف شد');
     });
 }
-
 function openSmsPatternsManager() {
     ensureSmsPatternsModal();
     renderSmsPatternsManagerBody();
@@ -187,24 +201,17 @@ function closeSmsPatternsManager() {
     if (o) o.classList.remove('show');
     if (m) m.classList.remove('show');
 }
-
 function renderSmsPatternsManagerBody() {
     var box = document.getElementById('sms-patterns-body');
     if (!box) return;
     var patterns = loadSmsPatterns();
-
     if (patterns.length === 0) {
-        box.innerHTML = '<div class="widget-empty">هنوز هیچ الگویی ثبت نشده.<br>'
-            + '<span style="font-size:.75rem;opacity:.8">'
-            + 'وقتی پیامک بانکی جدیدی دیدی، در باکس «ثبت نشده» فرم را پر کن و «ثبت الگو» را بزن.'
-            + '</span></div>';
+        box.innerHTML = '<div class="widget-empty">هنوز الگویی ثبت نشده.</div>';
         return;
     }
-
     var sorted = patterns.slice().sort(function (a, b) {
         return (b.lastUsed || 0) - (a.lastUsed || 0);
     });
-
     var accounts = DB.load('bankAccounts', []);
     var accMap = {};
     accounts.forEach(function (a) { accMap[a.id] = a; });
@@ -221,7 +228,6 @@ function renderSmsPatternsManagerBody() {
                       : '❔ نامشخص';
         var dirCls = p.direction === 'out' ? 'badge-draft'
                     : p.direction === 'in' ? 'badge-approved' : '';
-
         var preview = (p.tokens || []).join(' ');
         if (preview.length > 140) preview = preview.slice(0, 140) + '…';
 
@@ -229,21 +235,19 @@ function renderSmsPatternsManagerBody() {
             +   '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px">'
             +     '<div style="flex:1;min-width:0">'
             +       '<div style="font-weight:800;color:var(--primary-dark);font-size:.95rem">'
-            +         esc(p.label || 'بدون نام')
-            +       '</div>'
+            +         esc(p.label || 'بدون نام') + '</div>'
             +       '<div style="font-size:.74rem;color:var(--text-muted);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap">'
             +         '<span>🏦 ' + esc(accLabel) + '</span>'
             +         '<span class="badge ' + dirCls + '">' + dirLabel + '</span>'
             +       '</div>'
             +     '</div>'
-            +     '<button class="row-btn del" data-pattern-del="' + p.id + '" title="حذف" '
+            +     '<button class="row-btn del" data-pattern-del="' + p.id + '" '
             +       'style="background:#fee2e2;color:#dc2626;border-radius:9px;padding:8px 12px;font-weight:800">🗑 حذف</button>'
             +   '</div>'
             +   '<div style="background:var(--card-alt);border:1px solid var(--border);border-radius:10px;padding:10px;font-size:.76rem;direction:rtl;line-height:1.8">'
-            +     '<div style="color:var(--text-muted);margin-bottom:4px;font-weight:700">نمونهٔ الگو (توکن‌ها):</div>'
+            +     '<div style="color:var(--text-muted);margin-bottom:4px;font-weight:700">نمونهٔ الگو:</div>'
             +     '<div style="font-family:monospace;direction:rtl;white-space:pre-wrap;word-break:break-word;color:var(--primary-dark)">'
-            +       esc(preview)
-            +     '</div>'
+            +       esc(preview) + '</div>'
             +   '</div>'
             +   '<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:.72rem;color:var(--text-muted);margin-top:8px">'
             +     '<span>📊 ' + toFa(p.uses || 0) + ' بار استفاده</span>'
@@ -269,8 +273,6 @@ function renderSmsPatternsManagerBody() {
         });
     }
 }
-
-/* ==================== ۴) جایگزینی showSmsPatternsManager ==================== */
 window.showSmsPatternsManager = openSmsPatternsManager;
 
 /* ==================== Init ==================== */
@@ -278,12 +280,10 @@ window.showSmsPatternsManager = openSmsPatternsManager;
     function bind() {
         var btn = document.getElementById('sms-patterns-manage');
         if (!btn) return;
-        // جایگزینی listener قدیمی
         var newBtn = btn.cloneNode(true);
         btn.parentNode.replaceChild(newBtn, btn);
         newBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
+            e.preventDefault(); e.stopPropagation();
             openSmsPatternsManager();
         });
     }
@@ -292,5 +292,5 @@ window.showSmsPatternsManager = openSmsPatternsManager;
     } else {
         setTimeout(bind, 400);
     }
-    console.log('🔧 06c SMS fixes loaded');
+    console.log('🔧 06c v2 loaded — pattern direction wins');
 })();
