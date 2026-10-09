@@ -1,6 +1,7 @@
 /* =====================================================================
    پارسیس v27 — 08-ai,assistant,tts,tools,vision,voice.js
-   دستیار هوشمند: AI، ابزارها، TTS چند-موتوره (AvalAI/Google/Browser)، Vision، Voice
+   دستیار هوشمند: AI، ابزارها، TTS چند-موتوره + تبدیل اعداد فارسی،
+   Vision، Voice
    ===================================================================== */
 'use strict';
 
@@ -179,9 +180,97 @@ function aiSaveTTS() {
     DB.save('ai.speakRate', AI_TTS.rate);
 }
 
+/* ==================== تبدیل عدد به کلمات فارسی ==================== */
+function faNumToWords(num) {
+    num = Number(num);
+    if (!isFinite(num)) return String(num);
+    if (num === 0) return 'صفر';
+    if (num < 0) return 'منفی ' + faNumToWords(-num);
+
+    var yekan = ['', 'یک', 'دو', 'سه', 'چهار', 'پنج', 'شش', 'هفت', 'هشت', 'نه'];
+    var dahgan = ['', '', 'بیست', 'سی', 'چهل', 'پنجاه', 'شصت', 'هفتاد', 'هشتاد', 'نود'];
+    var dah = ['ده', 'یازده', 'دوازده', 'سیزده', 'چهارده', 'پانزده', 'شانزده', 'هفده', 'هجده', 'نوزده'];
+    var sadgan = ['', 'صد', 'دویست', 'سیصد', 'چهارصد', 'پانصد', 'ششصد', 'هفتصد', 'هشتصد', 'نهصد'];
+
+    function threeDigit(n) {
+        var parts = [];
+        var s = Math.floor(n / 100);
+        var rem = n % 100;
+        if (s > 0) parts.push(sadgan[s]);
+        if (rem >= 10 && rem < 20) {
+            parts.push(dah[rem - 10]);
+        } else {
+            var d = Math.floor(rem / 10);
+            var y = rem % 10;
+            if (d > 0) parts.push(dahgan[d]);
+            if (y > 0) parts.push(yekan[y]);
+        }
+        return parts.join(' و ');
+    }
+
+    var scales = [
+        { value: 1000000000000, name: 'تریلیون' },
+        { value: 1000000000,    name: 'میلیارد' },
+        { value: 1000000,       name: 'میلیون' },
+        { value: 1000,          name: 'هزار' }
+    ];
+    var parts = [];
+    for (var i = 0; i < scales.length; i++) {
+        var sc = scales[i];
+        if (num >= sc.value) {
+            var cnt = Math.floor(num / sc.value);
+            num = num % sc.value;
+            parts.push(threeDigit(cnt) + ' ' + sc.name);
+        }
+    }
+    if (num > 0) parts.push(threeDigit(num));
+    return parts.join(' و ');
+}
+
+/**
+ * اعداد، مبالغ، تاریخ‌ها و شماره‌حساب‌ها را برای TTS آماده می‌کند.
+ */
+function prepareNumbersForTTS(text) {
+    var t = String(text || '');
+
+    // ۱) تاریخ شمسی YYYY/MM/DD یا YYYY-MM-DD
+    t = t.replace(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/g, function(m, y, mo, d) {
+        return 'سال ' + faNumToWords(Number(y)) + ' ماه ' + faNumToWords(Number(mo)) + ' روز ' + faNumToWords(Number(d));
+    });
+
+    // ۲) زمان HH:MM یا HH:MM:SS
+    t = t.replace(/(\d{1,2}):(\d{2})(?::(\d{2}))?/g, function(m, h, mn, s) {
+        var out = 'ساعت ' + faNumToWords(Number(h)) + ' و ' + faNumToWords(Number(mn)) + ' دقیقه';
+        if (s) out += ' و ' + faNumToWords(Number(s)) + ' ثانیه';
+        return out;
+    });
+
+    // ۳) مبالغ با کاما: 116,664,000
+    t = t.replace(/\d{1,3}(?:,\d{3})+/g, function(m) {
+        return faNumToWords(Number(m.replace(/,/g, '')));
+    });
+
+    // ۴) اعداد ۶ رقمی و بیشتر (شماره حساب/کارت) → رقم‌به‌رقم
+    t = t.replace(/\b\d{6,}\b/g, function(m) {
+        return m.split('').map(function(d) { return faNumToWords(Number(d)); }).join('، ');
+    });
+
+    // ۵) اعداد ۴-۵ رقمی باقی‌مانده (سال‌ها)
+    t = t.replace(/\b\d{4,5}\b/g, function(m) {
+        return faNumToWords(Number(m));
+    });
+
+    // ۶) اعداد ۱-۳ رقمی باقی‌مانده
+    t = t.replace(/\b\d+\b/g, function(m) {
+        return faNumToWords(Number(m));
+    });
+
+    return t;
+}
+
 /* ==================== پاکسازی متن ==================== */
 function aiStripMarkdownForSpeech(text) {
-    return String(text || '')
+    var out = String(text || '')
         .replace(/```[\s\S]*?```/g, ' ')
         .replace(/`([^`]+)`/g, '$1')
         .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
@@ -197,7 +286,14 @@ function aiStripMarkdownForSpeech(text) {
         .replace(/^\s*\d+\.\s+/gm, '')
         .replace(/^\s*>\s*/gm, '')
         .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F02F}]/gu, '')
-        .replace(/[0-9]/g, function(m) { return toFa(m); })
+        // اعداد فارسی و عربی → لاتین
+        .replace(/[۰-۹]/g, function(c) { return String(c.charCodeAt(0) - 0x06F0); })
+        .replace(/[٠-٩]/g, function(c) { return String(c.charCodeAt(0) - 0x0660); });
+
+    // تبدیل اعداد لاتین به کلمات فارسی
+    out = prepareNumbersForTTS(out);
+
+    return out
         .replace(/[ \t]+/g, ' ')
         .replace(/\n{2,}/g, '. ')
         .replace(/\n/g, ' . ')
@@ -451,7 +547,7 @@ function openTtsDiagnosticPanel() {
         +         '<input type="radio" name="tts-engine" value="avalai" style="margin-top:3px;accent-color:var(--primary)">'
         +         '<div style="flex:1">'
         +           '<div style="font-weight:800;color:var(--primary-dark)">🌟 AvalAI / OpenAI TTS <span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:8px;font-size:.68rem">پیشنهاد</span></div>'
-        +           '<div style="font-size:.75rem;color:var(--text-muted);margin-top:4px;line-height:1.7">طبیعی‌ترین صدا. از همون API key فعلی استفاده می‌کنه. هزینه تقریباً صفر. <b>نیاز به اینترنت</b></div>'
+        +           '<div style="font-size:.75rem;color:var(--text-muted);margin-top:4px;line-height:1.7">طبیعی‌ترین صدا. از همون API key فعلی استفاده می‌کنه. <b>نیاز به اینترنت</b></div>'
         +         '</div>'
         +       '</label>'
         +       '<label style="display:flex;gap:10px;padding:12px;background:var(--card-alt);border-radius:12px;cursor:pointer;align-items:flex-start">'
@@ -541,7 +637,7 @@ function openTtsDiagnosticPanel() {
     document.getElementById('tts-diag-test').onclick = function() {
         var resBox = document.getElementById('tts-diag-result');
         var engine = document.querySelector('input[name="tts-engine"]:checked').value;
-        var testText = 'سلام. من پارسیس یار هستم. اگر این جمله را واضح و طبیعی می‌شنوی، صدا به‌درستی تنظیم شده است.';
+        var testText = 'سلام. من پارسیس یار هستم. مبلغ یک میلیون و دویست هزار ریال در تاریخ ۱۴۰۵/۰۷/۱۵ پرداخت شد. اگر این جمله را واضح و طبیعی می‌شنوی، صدا به‌درستی تنظیم شده است.';
 
         var oldEngine = AI_TTS.engine, oldVoice = AI_TTS.avaliaiVoice, oldModel = AI_TTS.avaliaiModel, oldRate = AI_TTS.rate;
         AI_TTS.engine = engine;
@@ -563,7 +659,7 @@ function openTtsDiagnosticPanel() {
                 AI_TTS.avaliaiVoice = oldVoice;
                 AI_TTS.avaliaiModel = oldModel;
                 AI_TTS.rate = oldRate;
-            }, 4000);
+            }, 6000);
         }, 200);
     };
 
