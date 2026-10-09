@@ -1,5 +1,5 @@
 /* ============================================================
-   پارسیس v26 — UI مدرن / Glassmorphism / Vibrant
+   پارسیس v27 — UI مدرن / Glassmorphism / Vibrant
    ============================================================ */
 @font-face { font-family:'B Nazanin'; src: local('B Nazanin'), local('BNazanin'); }
 @font-face { font-family:'B Sans'; src: local('B Sans'), local('BSans'); }
@@ -2298,3 +2298,214 @@ body.theme-midnight .note-content { background:var(--card-alt); }
 }
 #avalai-credit-result .kpi-card { margin-bottom:0; }
 @media (max-width:480px) { #avalai-credit-result { grid-template-columns:1fr; } }
+
+/* ============================================================
+   ================ ENHANCEMENTS v27 ==========================
+   ============================================================ */
+
+/* ---------- نمایش مبالغ منفی در پرانتز قرمز ---------- */
+.neg-money {
+  color: #dc2626 !important;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+  unicode-bidi: embed;
+}
+.amount.negative,
+.rt-amounts .amt.net.neg,
+.cf-table td.cf-neg,
+.cfd-head .cfd-nums .out,
+.rff-fac-stats .item .val.neg {
+  color: #dc2626 !important;
+}
+.kpi-val.negative { color: #dc2626 !important; }
+.report-table .dr { color: #dc2626; font-weight: 800; }
+
+/* ---------- ویجت مانده بانک‌ها با ستون کسری ---------- */
+.balance-row .amounts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 10px;
+  align-items: center;
+}
+.balance-row .amt-cell {
+  text-align: center;
+  min-width: 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.balance-row .amt-lbl {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+  font-weight: 700;
+}
+.balance-row .amt-cell .amount { font-size: 0.85rem; }
+@media (max-width: 600px) {
+  .balance-row .amounts-grid { grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .balance-row .amt-cell { min-width: 0; }
+  .balance-row .amt-lbl { font-size: 0.6rem; }
+  .balance-row .amt-cell .amount { font-size: 0.76rem; }
+}
+
+/* ---------- ویجت اقساط: تاریخ آخرین قسط + بانک ---------- */
+.inst-row .meta.extra {
+  font-size: 0.68rem;
+  color: var(--primary-dark);
+  margin-top: 4px;
+  line-height: 1.7;
+  padding-top: 4px;
+  border-top: 1px dashed var(--border);
+}
+
+/* ---------- گردش وجه نقد: اسکرول افقی + ویرایش سند ---------- */
+.cfd-details { overflow: hidden; }
+.cfd-hscroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card-solid);
+  max-width: 100%;
+}
+.cfd-detail-table {
+  min-width: max-content;
+  width: auto;
+  table-layout: auto;
+}
+.cfd-detail-table th,
+.cfd-detail-table td {
+  white-space: nowrap;
+  padding: 9px 13px;
+}
+.cfd-row {
+  transition: background 0.2s;
+}
+.cfd-row:hover {
+  background: var(--primary-soft) !important;
+}
+.cfd-row .row-btn.edit {
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+/* ---------- داشبورد: گرید کارت‌ها ---------- */
+.dash-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+@media (max-width: 760px) { .dash-cards-grid { grid-template-columns: 1fr; } }
+.dash-cards-grid .dash-card { margin-bottom: 0; }
+.dash-cards-grid .dash-wide { grid-column: 1 / -1; }
+.dash-card h3 {
+  margin-bottom: 14px;
+  color: var(--primary-dark);
+  font-size: 0.95rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ---------- Mini trend chart (cash liquidity) ---------- */
+.mini-trend {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  height: 160px;
+  padding: 10px 5px 30px;
+  position: relative;
+}
+.mini-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  height: 100%;
+  position: relative;
+}
+.mini-bar-fill {
+  width: 100%;
+  border-radius: 6px 6px 0 0;
+  min-height: 8px;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.mini-bar-fill.in { background: linear-gradient(180deg, #34d399, #059669); }
+.mini-bar-fill.out { background: linear-gradient(180deg, #f87171, #dc2626); }
+.mini-lbl {
+  position: absolute;
+  bottom: -22px;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.mini-val {
+  position: absolute;
+  top: -18px;
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ---------- تنظیمات: گروه‌های قابل باز/بسته ---------- */
+.settings-details {
+  border-bottom: 1px solid var(--border);
+  padding: 8px 0;
+}
+.settings-details:last-of-type { border-bottom: none; }
+.settings-summary {
+  cursor: pointer;
+  padding: 12px 8px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--primary-dark);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+  border-radius: 10px;
+  transition: background 0.25s;
+}
+.settings-summary:hover { background: var(--card-alt); }
+.settings-summary::-webkit-details-marker { display: none; }
+.settings-summary::before {
+  content: '▶';
+  font-size: 0.7rem;
+  transition: transform 0.25s;
+  display: inline-block;
+  color: var(--primary);
+}
+.settings-details[open] > .settings-summary::before { transform: rotate(90deg); }
+.settings-details > *:not(.settings-summary) {
+  padding: 0 8px 12px 8px;
+}
+.settings-expand-btns {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 8px 0;
+}
+.settings-expand-btns .mini-btn {
+  flex: 1;
+  max-width: 140px;
+}
+
+/* ---------- Widget/Dashboard order row: checkbox ---------- */
+.widget-order-row .wo-name input[type=checkbox] {
+  accent-color: var(--primary);
+  vertical-align: middle;
+  width: 17px;
+  height: 17px;
+  margin-left: 4px;
+}
