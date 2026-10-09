@@ -1,6 +1,6 @@
 /* =====================================================================
    پارسیس v27 — 08-ai,assistant,tts,tools,vision,voice.js
-   دستیار هوشمند: AI، ابزارها، TTS پارسی، Vision، Voice
+   دستیار هوشمند: AI، ابزارها، TTS پارسی (v3 تشخیصی)، Vision، Voice
    ===================================================================== */
 'use strict';
 
@@ -157,25 +157,54 @@ function aiStopVoice() {
     if (mb) { mb.classList.remove('recording'); mb.textContent = '🎤'; mb.title = 'ضبط صدا'; }
 }
 
-/* ==================== TTS پارسی ==================== */
-var AI_TTS = { autoSpeak: DB.load('ai.autoSpeak', false), rate: DB.load('ai.speakRate', 1.0), voice: null };
-function aiSaveTTS() { DB.save('ai.autoSpeak', AI_TTS.autoSpeak); DB.save('ai.speakRate', AI_TTS.rate); }
-function aiPickPersianVoice() {
+/* ==================== TTS پارسی (نسخه v3 تشخیصی) ==================== */
+var AI_TTS = {
+    autoSpeak: DB.load('ai.autoSpeak', false),
+    rate: DB.load('ai.speakRate', 1.0),
+    voice: null,
+    queue: [],
+    isSpeaking: false,
+    lastError: ''
+};
+
+function aiSaveTTS() {
+    DB.save('ai.autoSpeak', AI_TTS.autoSpeak);
+    DB.save('ai.speakRate', AI_TTS.rate);
+}
+
+function aiFindBestPersianVoice() {
     if (!window.speechSynthesis) return null;
     var voices = window.speechSynthesis.getVoices();
     if (!voices || voices.length === 0) return null;
-    var priorityLangs = ['fa-ir', 'fa', 'persian'];
-    for (var p = 0; p < priorityLangs.length; p++) {
-        var v = voices.find(function(x) {
-            return (x.lang || '').toLowerCase().indexOf(priorityLangs[p]) === 0 || (x.lang || '').toLowerCase() === priorityLangs[p];
-        });
-        if (v) return v;
-    }
-    var v2 = voices.find(function(x) { return /persian|farsi|parsi/i.test(x.name || ''); });
-    if (v2) return v2;
-    var v3 = voices.find(function(x) { return (x.lang || '').toLowerCase().indexOf('ar') === 0; });
-    return v3 || null;
+
+    // ۱: دقیقاً fa-IR یا fa
+    var v = voices.find(function (x) {
+        var lang = (x.lang || '').toLowerCase().replace('_', '-');
+        return lang === 'fa-ir' || lang === 'fa';
+    });
+    if (v) return v;
+
+    // ۲: هر زبانی که با fa شروع شود
+    v = voices.find(function (x) { return (x.lang || '').toLowerCase().indexOf('fa') === 0; });
+    if (v) return v;
+
+    // ۳: اسم شامل Persian/Farsi/Parsi/Iranian
+    v = voices.find(function (x) { return /persian|farsi|parsi|iranian/i.test(x.name || ''); });
+    if (v) return v;
+
+    // ۴: eSpeak (چون خیلی وقتا lang رو fa ست نمی‌کنه)
+    v = voices.find(function (x) { return /espeak/i.test(x.name || ''); });
+    if (v) return v;
+
+    // ۵: عربی (نزدیک‌ترین آوایی)
+    v = voices.find(function (x) { return (x.lang || '').toLowerCase().indexOf('ar') === 0; });
+    if (v) return v;
+
+    // ۶: هر صدایی که هست
+    if (voices.length > 0) return voices[0];
+    return null;
 }
+
 function aiStripMarkdownForSpeech(text) {
     return String(text || '')
         .replace(/```[\s\S]*?```/g, ' ')
@@ -186,45 +215,110 @@ function aiStripMarkdownForSpeech(text) {
         .replace(/\*\*([^*]+)\*\*/g, '$1')
         .replace(/\*([^*]+)\*/g, '$1')
         .replace(/__([^_]+)__/g, '$1')
-        .replace(/^\s*[|>\-*+▸▾▲▼⇅•]+\s*/gm, '')
+        .replace(/_([^_]+)_/g, '$1')
         .replace(/\|/g, ' ')
-        .replace(/[0-9]+/g, function(m) { return toFa(m); })
+        .replace(/^\s*[-:| ]+\s*$/gm, ' ')
+        .replace(/^\s*[-*+]\s+/gm, '')
+        .replace(/^\s*\d+\.\s+/gm, '')
+        .replace(/^\s*>\s*/gm, '')
+        .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F02F}]/gu, '')
+        .replace(/[0-9]/g, function(m) { return toFa(m); })
         .replace(/[ \t]+/g, ' ')
         .replace(/\n{2,}/g, '. ')
         .replace(/\n/g, ' . ')
         .replace(/\.\s*\./g, '.')
+        .replace(/\s+([.،؛!؟])/g, '$1')
         .trim();
 }
+
+function aiChunkTextForSpeech(text, maxLen) {
+    maxLen = maxLen || 180;
+    if (!text) return [];
+    if (text.length <= maxLen) return [text];
+    var chunks = [];
+    var remaining = text;
+    var sentenceEnders = /[.،؛!؟\n]/;
+    while (remaining.length > 0) {
+        if (remaining.length <= maxLen) { chunks.push(remaining.trim()); break; }
+        var slice = remaining.slice(0, maxLen);
+        var lastBoundary = -1;
+        for (var i = slice.length - 1; i > maxLen * 0.5; i--) {
+            if (sentenceEnders.test(slice[i])) { lastBoundary = i; break; }
+        }
+        if (lastBoundary === -1) lastBoundary = maxLen;
+        chunks.push(slice.slice(0, lastBoundary + 1).trim());
+        remaining = remaining.slice(lastBoundary + 1).trim();
+    }
+    return chunks.filter(function(c) { return c.length > 0; });
+}
+
 function aiSpeak(text) {
-    if (!window.speechSynthesis) { showToast('⚠️ مرورگر از پخش صوتی پشتیبانی نمی‌کند.'); return; }
-    try { window.speechSynthesis.cancel(); } catch(e) {}
+    if (!window.speechSynthesis) {
+        showToast('⚠️ مرورگر از پخش صوتی پشتیبانی نمی‌کند.');
+        return;
+    }
+    aiStopSpeaking();
+
     var clean = aiStripMarkdownForSpeech(text);
     if (!clean) { showToast('متنی برای خواندن نیست.'); return; }
-    var utt = new SpeechSynthesisUtterance(clean);
-    utt.lang = 'fa-IR';
-    utt.rate = Math.max(0.5, Math.min(1.5, Number(AI_TTS.rate) || 1));
-    utt.pitch = 1.0;
-    var v = AI_TTS.voice || aiPickPersianVoice();
-    if (v) { utt.voice = v; AI_TTS.voice = v; }
+
+    var chunks = aiChunkTextForSpeech(clean, 180);
+    AI_TTS.queue = chunks;
+    AI_TTS.isSpeaking = true;
+    AI_TTS.lastError = '';
+
     var btn = document.getElementById('ai-tts-btn');
-    if (btn) { btn.textContent = '⏹'; btn.classList.add('speaking'); btn.title = 'توقف'; }
-    utt.onend = function() {
-        if (btn) { btn.textContent = '🔊'; btn.classList.remove('speaking'); btn.title = 'پخش صوتی آخرین پاسخ'; }
-    };
-    utt.onerror = function() {
-        if (btn) { btn.textContent = '🔊'; btn.classList.remove('speaking'); }
-    };
-    window.speechSynthesis.speak(utt);
+    if (btn) { btn.textContent = '⏹'; btn.classList.add('speaking'); }
+
+    var voice = AI_TTS.voice || aiFindBestPersianVoice();
+    if (voice) AI_TTS.voice = voice;
+    var rate = Math.max(0.5, Math.min(1.5, Number(AI_TTS.rate) || 1));
+    var playedAny = false;
+    console.log('🔊 شروع پخش — تعداد تکه:', chunks.length, '| صدا:', voice ? voice.name + ' (' + voice.lang + ')' : 'پیش‌فرض');
+
+    function playNext() {
+        if (AI_TTS.queue.length === 0) {
+            AI_TTS.isSpeaking = false;
+            if (btn) { btn.textContent = '🔊'; btn.classList.remove('speaking'); }
+            if (!playedAny) {
+                console.warn('🔇 هیچ تکه‌ای پخش نشد. خطا:', AI_TTS.lastError);
+                showToast('⚠️ صدا پخش نشد — تنظیمات صدا را بررسی کن');
+            }
+            return;
+        }
+        var chunk = AI_TTS.queue.shift();
+        var utt = new SpeechSynthesisUtterance(chunk);
+        utt.lang = voice ? voice.lang : 'fa-IR';
+        utt.rate = rate;
+        utt.pitch = 1.0;
+        utt.volume = 1.0;
+        if (voice) utt.voice = voice;
+        utt.onstart = function() { playedAny = true; };
+        utt.onend = function() { setTimeout(playNext, 120); };
+        utt.onerror = function(e) {
+            AI_TTS.lastError = e.error || 'unknown';
+            console.warn('❌ خطای TTS:', e.error);
+            if (e.error === 'interrupted' || e.error === 'canceled') return;
+            setTimeout(playNext, 100);
+        };
+        try { window.speechSynthesis.speak(utt); }
+        catch(err) { AI_TTS.lastError = err.message; setTimeout(playNext, 100); }
+    }
+    playNext();
 }
+
 function aiStopSpeaking() {
     if (!window.speechSynthesis) return;
     try { window.speechSynthesis.cancel(); } catch(e) {}
+    AI_TTS.queue = [];
+    AI_TTS.isSpeaking = false;
     var btn = document.getElementById('ai-tts-btn');
     if (btn) { btn.textContent = '🔊'; btn.classList.remove('speaking'); btn.title = 'پخش صوتی آخرین پاسخ'; }
 }
+
 function aiToggleSpeak() {
     if (!window.speechSynthesis) { showToast('⚠️ مرورگر پشتیبانی نمی‌کند.'); return; }
-    if (window.speechSynthesis.speaking) { aiStopSpeaking(); return; }
+    if (AI_TTS.isSpeaking) { aiStopSpeaking(); return; }
     var lastMsg = null;
     for (var i = AI.history.length - 1; i >= 0; i--) {
         if (AI.history[i].role === 'assistant' && AI.history[i].content) { lastMsg = AI.history[i]; break; }
@@ -232,14 +326,121 @@ function aiToggleSpeak() {
     if (!lastMsg) { showToast('پاسخی برای خواندن نیست.'); return; }
     aiSpeak(lastMsg.content);
 }
+
 function aiAutoSpeakIfNeeded(msg) {
     if (!AI_TTS.autoSpeak) return;
     if (!msg || msg.role !== 'assistant' || !msg.content) return;
     setTimeout(function() { aiSpeak(msg.content); }, 250);
 }
+
+/* ============ پنل تشخیصی TTS ============ */
+function openTtsDiagnosticPanel() {
+    var old = document.getElementById('tts-diag-modal');
+    if (old) old.remove();
+    var oldO = document.getElementById('tts-diag-overlay');
+    if (oldO) oldO.remove();
+
+    var voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+    var best = aiFindBestPersianVoice();
+    var supported = !!window.speechSynthesis;
+
+    var voiceRows = '';
+    if (!supported) {
+        voiceRows = '<div style="padding:14px;background:#fee2e2;color:#991b1b;border-radius:10px;text-align:center;font-weight:800">❌ مرورگر شما از speechSynthesis پشتیبانی نمی‌کند</div>';
+    } else if (voices.length === 0) {
+        voiceRows = '<div style="padding:14px;background:#fef3c7;color:#92400e;border-radius:10px;text-align:center;font-weight:800">⚠️ هیچ صدایی در مرورگر یافت نشد.<br><span style="font-size:.75rem;font-weight:600;display:block;margin-top:6px">صداهای فارسی را داخل اپ eSpeak دانلود کن، مرورگر را کامل ببند و باز کن.</span></div>';
+    } else {
+        voiceRows = voices.map(function(v) {
+            var isFa = (v.lang || '').toLowerCase().indexOf('fa') === 0;
+            var isEspeak = /espeak/i.test(v.name || '');
+            var bg = isFa ? '#d1fae5' : (isEspeak ? '#fef3c7' : '#f8fafc');
+            var color = isFa ? '#065f46' : (isEspeak ? '#92400e' : '#334155');
+            var badge = isFa ? ' ✅ فارسی' : (isEspeak ? ' ⚙ eSpeak' : '');
+            return '<div style="padding:10px 12px;background:' + bg + ';color:' + color +
+                ';border-radius:10px;margin-bottom:6px;font-size:.82rem;display:flex;justify-content:space-between;align-items:center;gap:8px">'
+                + '<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>' + esc(v.name) + '</b>' + badge + '</div>'
+                + '<div style="font-family:monospace;font-size:.78rem;direction:ltr">' + esc(v.lang) + '</div>'
+                + '</div>';
+        }).join('');
+    }
+
+    var bestInfo = best
+        ? '<div style="padding:12px;background:#dbeafe;color:#1e40af;border-radius:10px;font-weight:800;font-size:.85rem;margin-bottom:12px">🎯 بهترین انتخاب: ' + esc(best.name) + ' (' + esc(best.lang) + ')</div>'
+        : '<div style="padding:12px;background:#fee2e2;color:#991b1b;border-radius:10px;font-weight:800;font-size:.85rem;margin-bottom:12px">❌ صدای مناسبی پیدا نشد</div>';
+
+    var html = ''
+        + '<div id="tts-diag-overlay" class="overlay show" style="z-index:1200"></div>'
+        + '<div id="tts-diag-modal" class="modal show" style="max-width:560px;z-index:1210">'
+        +   '<div class="modal-head">'
+        +     '<h2>🔊 تشخیص و تنظیمات صدا</h2>'
+        +     '<button id="tts-diag-close" class="close-btn">×</button>'
+        +   '</div>'
+        +   '<div class="modal-body" style="max-height:70vh;overflow-y:auto">'
+        +     '<div style="font-size:.8rem;color:var(--text-muted);margin-bottom:12px;line-height:1.8">'
+        +       'اگر eSpeak NG نصب کردی و زبان فارسی را داخلش دانلود کردی، باید اینجا یک صدا با کد <b style="direction:ltr;display:inline-block">fa</b> ببینی. اگر نمی‌بینی، مشکل از اندروید است نه اپ.'
+        +     '</div>'
+        +     bestInfo
+        +     '<h3 style="font-size:.9rem;color:var(--primary-dark);margin:12px 0 8px">📋 صداهای موجود در مرورگر (' + voices.length + ')</h3>'
+        +     voiceRows
+        +     '<div style="margin-top:16px;display:grid;gap:8px">'
+        +       '<button id="tts-diag-test" style="padding:12px;background:var(--gradient-accent);color:#fff;border:none;border-radius:12px;font-family:inherit;font-weight:800;font-size:.88rem;cursor:pointer">🔊 پخش تست (سلام، این یک تست صدا است)</button>'
+        +       '<button id="tts-diag-refresh" style="padding:12px;background:var(--primary-light);color:var(--primary-dark);border:none;border-radius:12px;font-family:inherit;font-weight:800;font-size:.88rem;cursor:pointer">🔄 بازخوانی لیست صداها</button>'
+        +     '</div>'
+        +     '<div id="tts-diag-result" style="margin-top:12px;padding:10px;background:var(--card-alt);border-radius:10px;font-size:.8rem;min-height:40px;text-align:center;color:var(--text-muted)">نتیجه تست اینجا نمایش داده می‌شود…</div>'
+        +   '</div>'
+        + '</div>';
+
+    document.body.insertAdjacentHTML('beforeend', html);
+
+    document.getElementById('tts-diag-close').onclick = function() {
+        var o = document.getElementById('tts-diag-overlay'); if (o) o.remove();
+        var m = document.getElementById('tts-diag-modal'); if (m) m.remove();
+    };
+    document.getElementById('tts-diag-overlay').onclick = function() {
+        var o = document.getElementById('tts-diag-overlay'); if (o) o.remove();
+        var m = document.getElementById('tts-diag-modal'); if (m) m.remove();
+    };
+    document.getElementById('tts-diag-refresh').onclick = function() {
+        var o = document.getElementById('tts-diag-overlay'); if (o) o.remove();
+        var m = document.getElementById('tts-diag-modal'); if (m) m.remove();
+        setTimeout(openTtsDiagnosticPanel, 150);
+    };
+    document.getElementById('tts-diag-test').onclick = function() {
+        var resBox = document.getElementById('tts-diag-result');
+        resBox.textContent = '⏳ در حال پخش...';
+        resBox.style.color = '#4f46e5';
+        var voice = aiFindBestPersianVoice();
+        if (!voice) {
+            resBox.textContent = '❌ هیچ صدایی پیدا نشد. eSpeak را باز کن و زبان فارسی را دانلود کن.';
+            resBox.style.color = '#dc2626';
+            return;
+        }
+        window.speechSynthesis.cancel();
+        var u = new SpeechSynthesisUtterance('سلام. این یک تست صدای فارسی است. اگر این جمله را می‌شنوی، همه چیز درست کار می‌کند.');
+        u.lang = voice.lang;
+        u.voice = voice;
+        u.rate = Number(AI_TTS.rate) || 1;
+        u.onstart = function() { resBox.textContent = '▶️ پخش شروع شد…'; resBox.style.color = '#059669'; };
+        u.onend = function() { resBox.textContent = '✅ پخش با موفقیت تمام شد — صدا کار می‌کند'; resBox.style.color = '#065f46'; };
+        u.onerror = function(e) { resBox.textContent = '❌ خطا: ' + (e.error || 'نامشخص') + ' — صدا پخش نشد'; resBox.style.color = '#dc2626'; };
+        try { window.speechSynthesis.speak(u); }
+        catch (err) { resBox.textContent = '❌ خطای غیرمنتظره: ' + err.message; resBox.style.color = '#dc2626'; }
+    };
+}
+window.openTtsDiagnosticPanel = openTtsDiagnosticPanel;
+
+// بارگذاری صداها
 if (window.speechSynthesis) {
-    window.speechSynthesis.onvoiceschanged = function() { AI_TTS.voice = aiPickPersianVoice(); };
-    setTimeout(function() { AI_TTS.voice = aiPickPersianVoice(); }, 500);
+    window.speechSynthesis.onvoiceschanged = function() { AI_TTS.voice = aiFindBestPersianVoice(); };
+    var _tryCount = 0;
+    var _tryInt = setInterval(function() {
+        _tryCount++;
+        var v = aiFindBestPersianVoice();
+        if (v && (v.lang || '').toLowerCase().indexOf('fa') === 0) { AI_TTS.voice = v; clearInterval(_tryInt); }
+        else if (_tryCount > 10) clearInterval(_tryInt);
+        else if (v) AI_TTS.voice = v;
+    }, 400);
+    setTimeout(function() { AI_TTS.voice = aiFindBestPersianVoice(); }, 500);
 }
 
 /* ==================== Context builder ==================== */
@@ -1348,7 +1549,10 @@ function aiInit() {
             aiSaveTTS();
         });
     }
-    if (window.speechSynthesis) AI_TTS.voice = aiPickPersianVoice();
+    // اتصال دکمه پنل تشخیصی TTS
+    var ttsDiagBtn = document.getElementById('open-tts-diag');
+    if (ttsDiagBtn) ttsDiagBtn.addEventListener('click', openTtsDiagnosticPanel);
+    if (window.speechSynthesis) AI_TTS.voice = aiFindBestPersianVoice();
 }
 
 /* ==================== AvalAI Credit ==================== */
