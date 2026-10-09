@@ -404,29 +404,20 @@
 </section>
 
 <section id="page-sms" class="page"><h2>📱 پیامک بانکی</h2>
-<div class="card">
-    <div class="list-header">
-        <span class="count-badge" id="pending-sms-count">۰</span>
-        <span style="font-weight:800;color:var(--primary-dark)">🔔 پیامک‌های ثبت‌نشده</span>
-        <button class="export-btn" id="sms-patterns-manage" title="مدیریت الگوهای یادگرفته">🧠 الگوها</button>
-        <button class="export-btn" id="pending-sms-clear" style="margin-right:auto">🧹 خالی کردن</button>
+    <div class="card">
+        <div class="list-header">
+            <span class="count-badge" id="pending-sms-count">۰</span>
+            <span style="font-weight:800;color:var(--primary-dark)">🔔 پیامک‌های ثبت‌نشده</span>
+            <button class="export-btn" id="sms-patterns-manage" title="مدیریت الگوهای یادگرفته">🧠 الگوها</button>
+            <button class="export-btn" id="pending-sms-clear" style="margin-right:auto">🧹 خالی کردن</button>
+        </div>
+        <div id="pending-sms-list"></div>
     </div>
-    <div id="pending-sms-list"></div>
-</div>
     <div class="card">
         <h3 style="margin-bottom:14px;color:var(--primary-dark);font-size:0.95rem">📡 روش‌های دریافت</h3>
         <div class="method-card"><h4><span class="method-num">۱</span> پیست دستی <span class="method-status ok">همیشه</span></h4><p>پیامک را کپی کن و در کادر زیر پیست کن.</p></div>
         <div class="method-card" id="method-clip"><h4><span class="method-num">۲</span> کلیپ‌بورد <span class="method-status no" id="clip-status">—</span></h4><p style="font-size:0.78rem">⚠️ فقط متن‌هایی که شامل <b>شماره حساب یا نام بانک‌های شما</b> باشند خوانده می‌شوند.</p><label class="checkbox-item" style="cursor:pointer;margin-bottom:10px"><input type="checkbox" id="sms-auto-read"> <span>خواندن خودکار از کلیپ‌بورد</span></label><div class="form-buttons"><button id="sms-read-clip" class="btn-primary btn-mini">📋 خواندن</button></div></div>
     </div>
-    <div class="card">
-    <div class="list-header">
-        <span class="count-badge" id="pending-sms-count">۰</span>
-        <span style="font-weight:800;color:var(--primary-dark)">🔔 پیامک‌های ثبت‌نشده</span>
-        <button class="export-btn" id="pending-sms-clear" style="margin-right:auto">🧹 خالی کردن</button>
-        <button class="export-btn" id="sms-patterns-manage" title="مدیریت الگوهای یادگرفته">🧠 الگوها</button>
-    </div>
-    <div id="pending-sms-list"></div>
-</div>
     <div class="card">
         <div class="field"><label>پیامک را پیست کن</label><textarea id="sms-text" rows="3"></textarea></div>
         <div class="form-buttons"><button id="parse-sms" class="btn-primary">🔍 تجزیه</button><button id="clear-sms" class="btn-secondary">پاک کردن</button></div>
@@ -445,12 +436,7 @@
         <div class="kpi-card"><div class="kpi-lbl">📉 هزینه این ماه</div><div class="kpi-val negative" id="dash-expense">—</div><div class="kpi-sub" id="dash-expense-sub"></div></div>
         <div class="kpi-card"><div class="kpi-lbl">🎯 سود خالص این ماه</div><div class="kpi-val" id="dash-profit">—</div><div class="kpi-sub" id="dash-profit-sub"></div></div>
     </div>
-    <div class="dash-grid">
-        <div class="card"><h3 style="margin-bottom:14px;color:var(--primary-dark);font-size:0.95rem">🥧 ترکیب هزینه‌ها (بر اساس گروه)</h3><div id="dash-expense-donut"></div></div>
-        <div class="card"><h3 style="margin-bottom:14px;color:var(--primary-dark);font-size:0.95rem">🏦 ترکیب دارایی‌ها</h3><div id="dash-asset-donut"></div></div>
-    </div>
-    <div class="card"><h3 style="margin-bottom:14px;color:var(--primary-dark);font-size:0.95rem">📊 روند درآمد و هزینه ۶ ماه اخیر</h3><div id="dash-trend"><div class="widget-empty">در حال محاسبه...</div></div></div>
-    <div class="card"><h3 style="margin-bottom:14px;color:var(--primary-dark);font-size:0.95rem">🏆 بیشترین هزینه‌ها (Top 10 معین)</h3><div id="dash-top-exp"><div class="widget-empty">در حال محاسبه...</div></div></div>
+    <div id="dash-grid-container" class="dash-cards-grid"></div>
 </section>
 
 <section id="page-report-cashflow" class="page"><h2>💵 وضعیت نقدینگی</h2>
@@ -639,6 +625,11 @@
             <div id="widget-order-list"></div>
         </div>
 
+        <div class="modal-section"><h3>📊 داشبوردها (نمایش و ترتیب)</h3>
+            <p class="muted" style="font-size:0.72rem;margin-bottom:8px">💡 هر کارت داشبورد را می‌توانید فعال/غیرفعال و مرتب کنید.</p>
+            <div id="dashboard-order-list"></div>
+        </div>
+
         <div class="modal-section"><h3>📱 پیامک</h3><label class="checkbox-item"><input type="checkbox" id="set-sms-auto-read"> <span>خواندن خودکار کلیپ‌بورد</span></label></div>
 
         <div class="modal-section"><h3>👁 گزارش و مبالغ</h3>
@@ -740,16 +731,11 @@
         </div>
         <div class="modal-section">
             <h3>🔊 دستیار صوتی (TTS فارسی)</h3>
-    <div style="margin-bottom:12px">
-    <button type="button" id="open-tts-diag" style="width:100%;padding:11px;background:var(--primary-light);color:var(--primary-dark);border:none;border-radius:11px;font-family:inherit;font-weight:800;font-size:.85rem;cursor:pointer">
-        🔊 تنظیمات و تست صدای دستیار
-    </button>
-</div>
-        <div style="margin-bottom:12px">
-    <button type="button" id="open-tts-diag" style="width:100%;padding:11px;background:var(--primary-light);color:var(--primary-dark);border:none;border-radius:11px;font-family:inherit;font-weight:800;font-size:.85rem;cursor:pointer">
-        🔍 بررسی و تست صدای فارسی
-    </button>
-</div>
+            <div style="margin-bottom:12px">
+                <button type="button" id="open-tts-diag" style="width:100%;padding:11px;background:var(--primary-light);color:var(--primary-dark);border:none;border-radius:11px;font-family:inherit;font-weight:800;font-size:.85rem;cursor:pointer">
+                    🔊 تنظیمات و تست صدای دستیار
+                </button>
+            </div>
             <label class="checkbox-item"><input type="checkbox" id="ai-auto-speak"> <span>خواندن خودکار پاسخ‌ها به صورت صوتی</span></label>
             <label class="checkbox-item" style="margin-top:8px"><input type="checkbox" id="ai-speak-voice-only"> <span>فقط پاسخ‌های متنی (نه ابزارها)</span></label>
             <div class="field" style="margin-top:10px"><label>سرعت گفتار</label><input type="range" id="ai-speak-rate" min="0.5" max="1.5" step="0.1" value="1" style="width:100%"></div>
@@ -803,7 +789,6 @@
 <script src="./07-notes,images,checklist,share,view.js"></script>
 <script src="./08-ai,assistant,tts,tools,vision,voice.js"></script>
 <script src="./09-settings,backup,restore,reset,init.js"></script>
-</body>
-</html>
+<script src="./10-enhancements.js"></script>
 </body>
 </html>
