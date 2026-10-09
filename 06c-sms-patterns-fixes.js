@@ -1,18 +1,60 @@
 /* =====================================================================
-   پارسیس v27 — 06c-sms-patterns-fixes.js (v2)
-   - اولویت جهت از الگو (نه از متن SMS)
-   - اصلاح تشخیص مبلغ و نوع
+   پارسیس v27 — 06c-sms-patterns-fixes.js (v3)
+   اصلاح:
+   - تشخیص جهت با اولویت عبارت‌های صریح (واریز به / برداشت از)
+     تا اسم سرویس‌ها مثل «سرویس پرداخت لحظه‌ای» گمراه نکنن
+   - اولویت جهت الگو روی تشخیص متن
    - مدیریت الگوها با Modal
    ===================================================================== */
 'use strict';
 
-/* ==================== ۱) اصلاح parseBankSms ==================== */
+/* ==================== هسته تشخیص جهت ==================== */
+function detectSmsDirection(text) {
+    var t = normalizeDigits(String(text || ''));
+
+    // مرحله ۱: عبارت‌های صریح با حرف اضافه
+    if (/واریز\s*به/.test(t))       return 'in';
+    if (/برداشت\s*از/.test(t))      return 'out';
+    if (/پرداخت\s*از/.test(t))      return 'out';
+    if (/انتقال\s*از/.test(t))      return 'out';
+    if (/انتقال\s*به/.test(t))      return 'in';
+    if (/افزایش\s*موجودی/.test(t))  return 'in';
+    if (/کسر\s*از/.test(t))         return 'out';
+    if (/واریز\s*از/.test(t))       return 'out';
+    if (/برداشت\s*به/.test(t))      return 'in';
+    if (/دریافت\s*از/.test(t))      return 'in';
+
+    // مرحله ۲: کلمه‌های خالی (بدون حرف اضافه)
+    if (/واریز/.test(t))            return 'in';
+    if (/برداشت/.test(t))           return 'out';
+    if (/دریافت/.test(t))           return 'in';
+    if (/افزایش/.test(t))           return 'in';
+    if (/کسر/.test(t))              return 'out';
+    if (/خرید/.test(t))             return 'out';
+    if (/حقوق/.test(t))             return 'in';
+    if (/قسط/.test(t))              return 'out';
+
+    // مرحله ۳: کلمه‌های مبهم
+    // "پرداخت" تنها → بستگی به حرف اضافه‌ش داره (که مرحله ۱ گرفت).
+    // اینجا اگه موند، یه سیگنال ضعیف برای برداشت
+    if (/پرداخت/.test(t))           return 'out';
+
+    // مرحله ۴: علامت
+    if (/-\s*[\d]/.test(t))         return 'out';
+    if (/\+\s*[\d]/.test(t))        return 'in';
+
+    return '';
+}
+
+/* ==================== Override parseBankSms ==================== */
 (function () {
     var _orig = window.parseBankSms;
     if (typeof _orig !== 'function') return;
     window.parseBankSms = function (text) {
         var r = _orig(text) || {};
         var t = normalizeDigits(String(text || ''));
+
+        // مبلغ: اولویت عدد بعد از «مبلغ»
         var mamt = t.match(/مبلغ\s*[:ـ]?\s*([\d][\d,]*)/);
         if (mamt) {
             var vamt = Number(mamt[1].replace(/,/g, ''));
@@ -24,15 +66,46 @@
                 if (vc > 1000) r.amount = vc;
             }
         }
-        if (!r.direction) {
-            if (/برداشت|پرداخت|خرید|کسر|بدهکار|انتقال\s*از|کاهش|قسط/.test(t)) r.direction = 'out';
-            else if (/واریز|دریافت|افزایش|بستانکار|انتقال\s*به|حقوق|افزودن/.test(t)) r.direction = 'in';
-        }
+
+        // جهت: همیشه از تابع جدید
+        r.direction = detectSmsDirection(t);
         return r;
     };
 })();
 
-/* ==================== ۲) convertSmsToVoucher با اولویت الگو ==================== */
+/* ==================== Override suggestDirection (06b) ==================== */
+window.suggestDirection = function (text) {
+    return detectSmsDirection(text);
+};
+
+/* ==================== Override handleIncomingSms ==================== */
+(function () {
+    var _orig = window.handleIncomingSms;
+    if (typeof _orig !== 'function') return;
+    window.handleIncomingSms = function (text, source, force) {
+        // اگه الگویی match بشه، جهت از الگو بیاد
+        var m = findMatchingSmsPattern(text);
+        if (m && m.pattern && m.pattern.direction) {
+            // پیامک رو با جهت الگو توی صندوق بذار
+            var fakeDirection = m.pattern.direction;
+            // از تابع اصلی استفاده کن، ولی قبلش parse رو موقت override کن
+            var _prevParse = window.parseBankSms;
+            window.parseBankSms = function (t) {
+                var r = _prevParse(t) || {};
+                r.direction = fakeDirection;
+                return r;
+            };
+            try {
+                return _orig(text, source, force);
+            } finally {
+                window.parseBankSms = _prevParse;
+            }
+        }
+        return _orig(text, source, force);
+    };
+})();
+
+/* ==================== convertSmsToVoucher (اولویت الگو) ==================== */
 window.convertSmsToVoucher = function (smsId) {
     var list = getSmsInbox();
     var item = list.find(function (s) { return s.id === smsId; });
@@ -45,17 +118,17 @@ window.convertSmsToVoucher = function (smsId) {
     var bankAccountId = p.matchedAccountId || '';
     var patternLabel = '';
 
-    // ⭐️ مهم: اول الگوی یادگرفته‌شده رو نگاه کن
+    // اولویت مطلق: الگوی یادگرفته
     var matched = (typeof findMatchingSmsPattern === 'function')
         ? findMatchingSmsPattern(item.rawText) : null;
     if (matched && matched.pattern) {
         var pat = matched.pattern;
-        if (pat.direction) direction = pat.direction;   // ← اولویت مطلق الگو
+        if (pat.direction) direction = pat.direction;
         if (!bankAccountId && pat.linkedAccountId) bankAccountId = pat.linkedAccountId;
         patternLabel = pat.label || '';
     }
 
-    // اگر مبلغ مشکوک یا صفره، از متن خام استخراج کن
+    // مبلغ مجدد
     if (!amount || amount > 1e12) {
         var mamt = raw.match(/مبلغ\s*[:ـ]?\s*([\d][\d,]*)/);
         if (mamt) amount = Number(mamt[1].replace(/,/g, ''));
@@ -69,12 +142,9 @@ window.convertSmsToVoucher = function (smsId) {
         return;
     }
 
-    // اگر بازهم جهت نداریم، از متن استخراج کن
-    if (!direction) {
-        if (/برداشت|پرداخت|خرید|کسر|بدهکار|قسط/.test(raw)) direction = 'out';
-        else if (/واریز|دریافت|افزایش|بستانکار|حقوق/.test(raw)) direction = 'in';
-    }
-    // در نهایت اگه بازم نبود، از کاربر بپرس
+    // اگه الگو جهت نداشت، از متن بگیر
+    if (!direction) direction = detectSmsDirection(raw);
+
     if (!direction) {
         var d = prompt('نوع تراکنش این پیامک:\n1 = برداشت\n2 = واریز', '1');
         if (d === '1') direction = 'out';
@@ -100,22 +170,17 @@ window.convertSmsToVoucher = function (smsId) {
     }
 
     var bankMoein = getBankMoeinId();
-    if (!bankMoein) {
-        alert('⚠️ معین بانک تعریف نشده.');
-        return;
-    }
+    if (!bankMoein) { alert('⚠️ معین بانک تعریف نشده.'); return; }
 
-    // ⭐️ منطق حسابداری درست:
-    //   واریز (in)  → بانک بدهکار (money enters bank)
-    //   برداشت (out) → بانک بستانکار (money leaves bank)
+    // منطق حسابداری:
+    //   واریز (in)   → بانک بدهکار  (money enters)
+    //   برداشت (out) → بانک بستانکار (money leaves)
     var bankDetail = { bank: bankAccountId };
     var lines = [];
     if (direction === 'out') {
-        // برداشت: بانک بستانکار + طرف مقابل بدهکار
         lines.push({ id: uid(), account: '', details: {}, debit: amount, credit: 0, description: '' });
         lines.push({ id: uid(), account: bankMoein, details: bankDetail, debit: 0, credit: amount, description: '', locked: true });
     } else {
-        // واریز: بانک بدهکار + طرف مقابل بستانکار
         lines.push({ id: uid(), account: bankMoein, details: bankDetail, debit: amount, credit: 0, description: '', locked: true });
         lines.push({ id: uid(), account: '', details: {}, debit: 0, credit: amount, description: '' });
     }
@@ -151,17 +216,10 @@ window.convertSmsToVoucher = function (smsId) {
     if (typeof loadVoucherForEdit === 'function') loadVoucherForEdit(v);
 
     var dirLabel = direction === 'out' ? '🔴 برداشت' : '🟢 واریز';
-    showToast('✅ پیش‌نویس ساخته شد — ' + dirLabel + (patternLabel ? ' | الگو: ' + patternLabel : ''));
+    showToast('✅ پیش‌نویس — ' + dirLabel + (patternLabel ? ' | الگو: ' + patternLabel : ''));
 };
 
-/* ==================== ۳) همگام‌سازی: اولویت الگو در handleIncomingSms ==================== */
-(function () {
-    var _orig = window.handleIncomingSms;
-    if (typeof _orig !== 'function') return;
-    // (این override ضروری نیست، فقط برای سازگاری بیشتر)
-})();
-
-/* ==================== ۴) مدیریت الگوها با Modal ==================== */
+/* ==================== مدیریت الگوها با Modal ==================== */
 function ensureSmsPatternsModal() {
     if (document.getElementById('sms-patterns-modal')) return;
     var html = ''
@@ -209,9 +267,7 @@ function renderSmsPatternsManagerBody() {
         box.innerHTML = '<div class="widget-empty">هنوز الگویی ثبت نشده.</div>';
         return;
     }
-    var sorted = patterns.slice().sort(function (a, b) {
-        return (b.lastUsed || 0) - (a.lastUsed || 0);
-    });
+    var sorted = patterns.slice().sort(function (a, b) { return (b.lastUsed || 0) - (a.lastUsed || 0); });
     var accounts = DB.load('bankAccounts', []);
     var accMap = {};
     accounts.forEach(function (a) { accMap[a.id] = a; });
@@ -220,22 +276,16 @@ function renderSmsPatternsManagerBody() {
     for (var i = 0; i < sorted.length; i++) {
         var p = sorted[i];
         var linkedAcc = accMap[p.linkedAccountId];
-        var accLabel = linkedAcc
-            ? ((linkedAcc.bank || '') + ' — ' + (linkedAcc.account || ''))
-            : '— (تعیین نشده)';
-        var dirLabel = p.direction === 'out' ? '🔴 برداشت'
-                      : p.direction === 'in' ? '🟢 واریز'
-                      : '❔ نامشخص';
-        var dirCls = p.direction === 'out' ? 'badge-draft'
-                    : p.direction === 'in' ? 'badge-approved' : '';
+        var accLabel = linkedAcc ? ((linkedAcc.bank || '') + ' — ' + (linkedAcc.account || '')) : '— (تعیین نشده)';
+        var dirLabel = p.direction === 'out' ? '🔴 برداشت' : p.direction === 'in' ? '🟢 واریز' : '❔ نامشخص';
+        var dirCls = p.direction === 'out' ? 'badge-draft' : p.direction === 'in' ? 'badge-approved' : '';
         var preview = (p.tokens || []).join(' ');
         if (preview.length > 140) preview = preview.slice(0, 140) + '…';
 
         html += '<div class="card" style="margin:0;padding:14px">'
             +   '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px">'
             +     '<div style="flex:1;min-width:0">'
-            +       '<div style="font-weight:800;color:var(--primary-dark);font-size:.95rem">'
-            +         esc(p.label || 'بدون نام') + '</div>'
+            +       '<div style="font-weight:800;color:var(--primary-dark);font-size:.95rem">' + esc(p.label || 'بدون نام') + '</div>'
             +       '<div style="font-size:.74rem;color:var(--text-muted);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap">'
             +         '<span>🏦 ' + esc(accLabel) + '</span>'
             +         '<span class="badge ' + dirCls + '">' + dirLabel + '</span>'
@@ -246,14 +296,11 @@ function renderSmsPatternsManagerBody() {
             +   '</div>'
             +   '<div style="background:var(--card-alt);border:1px solid var(--border);border-radius:10px;padding:10px;font-size:.76rem;direction:rtl;line-height:1.8">'
             +     '<div style="color:var(--text-muted);margin-bottom:4px;font-weight:700">نمونهٔ الگو:</div>'
-            +     '<div style="font-family:monospace;direction:rtl;white-space:pre-wrap;word-break:break-word;color:var(--primary-dark)">'
-            +       esc(preview) + '</div>'
+            +     '<div style="font-family:monospace;direction:rtl;white-space:pre-wrap;word-break:break-word;color:var(--primary-dark)">' + esc(preview) + '</div>'
             +   '</div>'
             +   '<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:.72rem;color:var(--text-muted);margin-top:8px">'
             +     '<span>📊 ' + toFa(p.uses || 0) + ' بار استفاده</span>'
-            +     '<span>📅 آخرین: '
-            +       (p.lastUsed ? toFa(tsToJalaliDate(p.lastUsed)) + ' ' + toFa(tsToJalaliTime(p.lastUsed)) : '—')
-            +     '</span>'
+            +     '<span>📅 آخرین: ' + (p.lastUsed ? toFa(tsToJalaliDate(p.lastUsed)) + ' ' + toFa(tsToJalaliTime(p.lastUsed)) : '—') + '</span>'
             +   '</div>'
             + '</div>';
     }
@@ -292,5 +339,5 @@ window.showSmsPatternsManager = openSmsPatternsManager;
     } else {
         setTimeout(bind, 400);
     }
-    console.log('🔧 06c v2 loaded — pattern direction wins');
+    console.log('🔧 06c v3 loaded — smart direction detection');
 })();
