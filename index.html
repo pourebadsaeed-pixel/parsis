@@ -410,6 +410,15 @@
         <div class="method-card" id="method-clip"><h4><span class="method-num">۲</span> کلیپ‌بورد <span class="method-status no" id="clip-status">—</span></h4><p style="font-size:0.78rem">⚠️ فقط متن‌هایی که شامل <b>شماره حساب یا نام بانک‌های شما</b> باشند خوانده می‌شوند.</p><label class="checkbox-item" style="cursor:pointer;margin-bottom:10px"><input type="checkbox" id="sms-auto-read"> <span>خواندن خودکار از کلیپ‌بورد</span></label><div class="form-buttons"><button id="sms-read-clip" class="btn-primary btn-mini">📋 خواندن</button></div></div>
     </div>
     <div class="card">
+    <div class="list-header">
+        <span class="count-badge" id="pending-sms-count">۰</span>
+        <span style="font-weight:800;color:var(--primary-dark)">🔔 پیامک‌های ثبت‌نشده</span>
+        <button class="export-btn" id="pending-sms-clear" style="margin-right:auto">🧹 خالی کردن</button>
+        <button class="export-btn" id="sms-patterns-manage" title="مدیریت الگوهای یادگرفته">🧠 الگوها</button>
+    </div>
+    <div id="pending-sms-list"></div>
+</div>
+    <div class="card">
         <div class="field"><label>پیامک را پیست کن</label><textarea id="sms-text" rows="3"></textarea></div>
         <div class="form-buttons"><button id="parse-sms" class="btn-primary">🔍 تجزیه</button><button id="clear-sms" class="btn-secondary">پاک کردن</button></div>
         <div id="sms-result" style="margin-top:16px"></div>
@@ -770,6 +779,7 @@
 <script src="./04-vouchers,estimates,sources,facilities,installments.js"></script>
 <script src="./05-reports,cashflow,account,trial,incomplete,facility.js"></script>
 <script src="./06-widgets,dashboard,rates,close,sms.js"></script>
+<script src="./06b-sms-patterns.js"></script>
 <script src="./07-notes,images,checklist,share,view.js"></script>
 <script src="./08-ai,assistant,tts,tools,vision,voice.js"></script>
 <script src="./09-settings,backup,restore,reset,init.js"></script>
