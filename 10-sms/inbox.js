@@ -1,4 +1,4 @@
-const Native = () => window.Capacitor?.Plugins?.SmsReader;
+const Native  = () => window.Capacitor?.Plugins?.SmsReader;
 const Cordova = () => window.cordova?.plugins?.sms;
 
 export const canReadSms = () => !!(Native() || Cordova());
@@ -28,7 +28,7 @@ export async function readInbox({ since = 0, max = 100 } = {}) {
   return [];
 }
 
-/** گوش دادن به پیامک‌های تازه در پس‌زمینه */
+/** گوش دادن به پیامکهای تازه در پسزمینه (Capacitor/Cordova) */
 export function watchIncoming(cb) {
   if (Native()) {
     const handle = Native().addListener('smsReceived', m => cb({ body: m.body, date: m.date, address: m.address }));
@@ -46,8 +46,52 @@ export function watchIncoming(cb) {
   return () => {};
 }
 
-/** Fallback: خواندن از کلیپ‌بورد */
+/** Fallback: خواندن از کلیپبورد */
 export async function readClipboard() {
   try { return await navigator.clipboard.readText(); }
   catch { return ''; }
+}
+
+/**
+ * گوش دادن به کلیپبورد (فقط وب / PWA).
+ * - اگر Clipboard API رویدادمحور داشت (Chrome 104+) → onclipboardchange
+ * - وگرنه polling فقط زمانی که پنجره focus داره (الزام امنیتی مرورگر)
+ * cb(text) با هر متن جدید یکبار صدا زده میشه.
+ */
+export function watchClipboard(cb, { interval = 1500 } = {}) {
+  let last = '';
+
+  const emit = async () => {
+    const text = await readClipboard();
+    const t = (text || '').trim();
+    if (!t || t === last) return;
+    last = t;
+    cb(t);
+  };
+
+  // 1) Native Clipboard API
+  if (navigator.clipboard && 'onclipboardchange' in navigator.clipboard) {
+    navigator.clipboard.onclipboardchange = emit;
+    return () => { try { navigator.clipboard.onclipboardchange = null; } catch {} };
+  }
+
+  // 2) Fallback
+  let timer = null;
+  const start = () => { if (!timer) timer = setInterval(() => { if (document.hasFocus()) emit(); }, interval); };
+  const stop  = () => { if (timer) { clearInterval(timer); timer = null; } };
+  const onVis   = () => (document.hidden ? stop() : start());
+  const onFocus = () => { emit(); start(); };
+  const onBlur  = () => stop();
+
+  document.addEventListener('visibilitychange', onVis);
+  window.addEventListener('focus', onFocus);
+  window.addEventListener('blur', onBlur);
+  start();
+
+  return () => {
+    stop();
+    document.removeEventListener('visibilitychange', onVis);
+    window.removeEventListener('focus', onFocus);
+    window.removeEventListener('blur', onBlur);
+  };
 }
