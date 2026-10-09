@@ -1,18 +1,51 @@
-const KEY = 'parsis.sms.patterns.v1';
+const KEY = 'parsis.sms.patterns.v2';
+const LEGACY = 'parsis.sms.patterns.v1';
 
-export const loadPatterns = () => {
-  try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
-  catch { return []; }
-};
+export function loadPatterns() {
+  const raw = localStorage.getItem(KEY);
+  if (raw) {
+    try { return JSON.parse(raw); } catch { return []; }
+  }
+  // مهاجرت خودکار از v1 به v2
+  const legacy = localStorage.getItem(LEGACY);
+  if (!legacy) return [];
+  try {
+    const old = JSON.parse(legacy);
+    const migrated = old.map(p => ({
+      ...p,
+      key: (p.tokens || []).join(' '),
+      fields: p.fields || {},
+    }));
+    savePatterns(migrated);
+    return migrated;
+  } catch { return []; }
+}
 
-export const savePatterns = (p) => localStorage.setItem(KEY, JSON.stringify(p));
+export function savePatterns(list) {
+  localStorage.setItem(KEY, JSON.stringify(list));
+}
 
-export function addPattern({ raw, tokens, mapping, label = '' }) {
+export function addPattern({ raw, tokens, mapping, label = '', key, fields = {} }) {
   const list = loadPatterns();
-  const id = 'p_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+  const k = key || (tokens || []).join(' ');
+
+  // dedupe بر اساس key
+  const existing = list.find(p => p.key === k);
+  if (existing) {
+    existing.uses = (existing.uses || 0) + 1;
+    existing.lastUsed = Date.now();
+    existing.raw = raw;
+    existing.mapping = mapping;
+    existing.fields = { ...existing.fields, ...fields };
+    if (label) existing.label = label;
+    savePatterns(list);
+    return existing;
+  }
+
+  const id = 'p_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const rec = {
-    id, raw, tokens, mapping, label,
-    createdAt: Date.now(), uses: 0, lastUsed: null,
+    id, key: k, raw, tokens, mapping, label, fields,
+    createdAt: Date.now(), uses: 1, lastUsed: Date.now(),
   };
   list.push(rec);
   savePatterns(list);
