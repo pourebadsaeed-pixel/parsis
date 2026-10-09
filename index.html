@@ -404,6 +404,15 @@
 </section>
 
 <section id="page-sms" class="page"><h2>📱 پیامک بانکی</h2>
+<div class="card">
+    <div class="list-header">
+        <span class="count-badge" id="pending-sms-count">۰</span>
+        <span style="font-weight:800;color:var(--primary-dark)">🔔 پیامک‌های ثبت‌نشده</span>
+        <button class="export-btn" id="sms-patterns-manage" title="مدیریت الگوهای یادگرفته">🧠 الگوها</button>
+        <button class="export-btn" id="pending-sms-clear" style="margin-right:auto">🧹 خالی کردن</button>
+    </div>
+    <div id="pending-sms-list"></div>
+</div>
     <div class="card">
         <h3 style="margin-bottom:14px;color:var(--primary-dark);font-size:0.95rem">📡 روش‌های دریافت</h3>
         <div class="method-card"><h4><span class="method-num">۱</span> پیست دستی <span class="method-status ok">همیشه</span></h4><p>پیامک را کپی کن و در کادر زیر پیست کن.</p></div>
@@ -779,6 +788,7 @@
 <script src="./04-vouchers,estimates,sources,facilities,installments.js"></script>
 <script src="./05-reports,cashflow,account,trial,incomplete,facility.js"></script>
 <script src="./06-widgets,dashboard,rates,close,sms.js"></script>
+<script src="./06b-sms-patterns.js"></script>
 <script src="./06b-sms-patterns.js"></script>
 <script src="./07-notes,images,checklist,share,view.js"></script>
 <script src="./08-ai,assistant,tts,tools,vision,voice.js"></script>
