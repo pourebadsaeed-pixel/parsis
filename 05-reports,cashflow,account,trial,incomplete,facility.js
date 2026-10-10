@@ -2,23 +2,13 @@
    پارسیس v27 — 05-reports,cashflow,account,trial,incomplete,facility.js
    گزارش‌ها: وضعیت نقدینگی، گردش وجه نقد، مرور حساب‌ها، تراز آزمایشی،
    تراکنش‌های ناقص، خلاصه تسهیلات، جامع تسهیلات، نرخ ارز، قیمت پایانی
-
-   [ادغام‌شده با]:
-     • 10-enhancements.js — نمایش منفی در پرانتز قرمز (moneyHtml / fmtFor / fmtRep)
-     • 10-enhancements.js — runCashFlowByDescReport با اسکرول افقی + کلیک برای ویرایش سند
+   + گزارش مقایسه‌ای جدید
    ===================================================================== */
 'use strict';
 
 /* =====================================================================
    ============ ۰) نمایش مبالغ منفی در پرانتز قرمز ============
-   ============ [ادغام از 10-enhancements.js]          ============
    ===================================================================== */
-
-/**
- * نمایش عدد به‌صورت HTML — منفی‌ها در پرانتز قرمز
- * - اگر hide فعال باشد → "—"
- * - واحد نمایش از state.currencyDisplay خوانده می‌شود (rial/toman/million)
- */
 function moneyHtml(n, key) {
     if (key && typeof getHideState === 'function' && getHideState(key)) return '—';
     n = Number(n) || 0;
@@ -34,17 +24,12 @@ function moneyHtml(n, key) {
 }
 window.moneyHtml = moneyHtml;
 
-/* Override نسخه‌های اصلی که در فایل 01 تعریف شده‌اند */
 window.fmtFor = function(n, key) {
     if (getHideState(key)) return '—';
     return moneyHtml(n);
 };
 window.fmtRep = function(n, key) { return fmtFor(n, key); };
-
-/* نام مستعار برای بافت‌هایی که می‌خواهند صریحاً HTML بگیرند */
 window.formatMoneyHTML = function(n) { return moneyHtml(n); };
-
-/* متن ساده بدون HTML — برای بافت‌هایی مثل textContent یا title */
 window.moneyText = function(n) {
     n = Number(n) || 0;
     var mode = state.currencyDisplay || 'rial';
@@ -269,35 +254,50 @@ function runCashFlowReport() {
 }
 
 /* =====================================================================
-   ============ گردش وجه نقد — با اسکرول افقی + ویرایش سند ============
-   ============ [بازنویسی‌شده از 10-enhancements.js]            ============
+   ============ گردش وجه نقد — بازنویسی کامل ============
    ===================================================================== */
 function runCashFlowByDescReport() {
     var fromD = normalizeDigits((document.getElementById('cfd-from').value || '').trim());
-    var toD = normalizeDigits((document.getElementById('cfd-to').value || '').trim());
+    var toD   = normalizeDigits((document.getElementById('cfd-to').value || '').trim());
     if (!fromD) fromD = todayJalaliStr();
     if (!toD) toD = fromD;
     if (fromD > toD) { alert('تاریخ شروع باید قبل از پایان باشد.'); return; }
     document.getElementById('cfd-from').value = fromD;
     document.getElementById('cfd-to').value = toD;
-    var hide = getHideState('cfd');
+
+    var vtype    = document.getElementById('cfd-vtype').value;
+    var viewMode = document.getElementById('cfd-view').value;
+    var stripB   = document.getElementById('cfd-strip-babet').checked;
+    var hide     = getHideState('cfd');
+
     var accounts = DB.load('accounts', []);
     var effectiveAccs = {};
     accounts.forEach(function(a) { if (a.cfEffect) effectiveAccs[a.id] = true; });
+
     if (Object.keys(effectiveAccs).length === 0) {
         document.getElementById('cfd-result').innerHTML =
             '<div class="card"><p class="muted" style="text-align:center;padding:16px">⚠️ هیچ معینی با گزینه «موثر در گزارش گردش وجه نقد» تعریف نشده است.</p></div>';
         document.getElementById('cfd-count').textContent = '۰';
         return;
     }
+
     var vouchers = DB.load('vouchers', []).filter(function(v) {
-        return v.status === 'approved' && v.date >= fromD && v.date <= toD;
+        if (v.status !== 'approved') return false;
+        if (v.date < fromD || v.date > toD) return false;
+        if (vtype && v.type !== vtype) return false;
+        return true;
     });
+
+    function stripBabet(t) {
+        if (!stripB) return t;
+        return String(t || '').replace(/^\s*بابت\s*[:\-–]?\s*/, '').trim();
+    }
+
     var buckets = {};
     vouchers.forEach(function(v) {
         (v.lines || []).forEach(function(l) {
             if (!l.account || !effectiveAccs[l.account]) return;
-            var desc = (l.description || '').trim() || '(بدون شرح)';
+            var desc = stripBabet((l.description || '').trim()) || '(بدون شرح)';
             if (!buckets[desc]) buckets[desc] = { in: 0, out: 0, details: [] };
             var d = Number(l.debit) || 0;
             var c = Number(l.credit) || 0;
@@ -307,81 +307,100 @@ function runCashFlowByDescReport() {
                 voucherId: v.id,
                 date: v.date, number: v.number, desc: v.desc,
                 accLabel: getAccountLabel(l.account, accounts),
-                lineDesc: l.description || '',
+                lineDesc: stripBabet(l.description || ''),
                 debit: d, credit: c
             });
         });
     });
+
     var keys = Object.keys(buckets);
     keys.sort(function(a, b) { return compareVals(a, b); });
+
     if (keys.length === 0) {
         document.getElementById('cfd-result').innerHTML =
             '<div class="card"><p class="muted" style="text-align:center;padding:16px">در این بازه گردشی ثبت نشده است.</p></div>';
         document.getElementById('cfd-count').textContent = '۰';
         return;
     }
-    var html = '<div class="cfd-scroll-wrap">';
-    html += '<div class="table-wrap"><table class="report-table" id="cfd-table"><thead><tr>'
-        + '<th>#</th><th>بابت / شرح</th><th>ورود (بدهکار)</th><th>خروج (بستانکار)</th><th>مانده</th><th>تعداد</th>'
-        + '</tr></thead><tbody>';
-    var tIn = 0, tOut = 0;
-    for (var i = 0; i < keys.length; i++) {
-        var k = keys[i]; var b = buckets[k];
-        var bal = b.in - b.out;
-        tIn += b.in; tOut += b.out;
-        html += '<tr><td class="num">' + toFa(i + 1) + '</td>'
-            + '<td><strong>' + esc(k) + '</strong></td>'
-            + '<td class="num" style="color:#1e9e6a">' + (hide ? '—' : (b.in ? moneyHtml(b.in) : '—')) + '</td>'
-            + '<td class="num" style="color:#c0392b">' + (hide ? '—' : (b.out ? moneyHtml(b.out) : '—')) + '</td>'
-            + '<td class="num" style="font-weight:bold">' + (hide ? '—' : moneyHtml(bal)) + '</td>'
-            + '<td class="num">' + toFa(b.details.length) + '</td></tr>';
-    }
-    html += '</tbody><tfoot><tr><td colspan="2" style="text-align:left">جمع</td>'
-        + '<td class="num" style="color:#1e9e6a">' + (hide ? '—' : moneyHtml(tIn)) + '</td>'
-        + '<td class="num" style="color:#c0392b">' + (hide ? '—' : moneyHtml(tOut)) + '</td>'
-        + '<td class="num">' + (hide ? '—' : moneyHtml(tIn - tOut)) + '</td><td></td></tr></tfoot></table></div>';
 
-    /* جزئیات هر گروه — با اسکرول افقی و کلیک روی ردیف برای ویرایش سند */
-    for (var j = 0; j < keys.length; j++) {
-        var k2 = keys[j];
-        var b2 = buckets[k2];
-        html += '<div class="cfd-group" style="margin-top:14px">'
-            +   '<div class="cfd-head" onclick="this.nextElementSibling.classList.toggle(\'show\')">'
-            +     '<div class="cfd-title">' + esc(k2) + '</div>'
-            +     '<div class="cfd-nums">'
-            +       '<span class="n in">ورود: ' + (hide ? '—' : moneyHtml(b2.in)) + '</span>'
-            +       '<span class="n out">خروج: ' + (hide ? '—' : moneyHtml(b2.out)) + '</span>'
-            +       '<span class="n bal">مانده: ' + (hide ? '—' : moneyHtml(b2.in - b2.out)) + '</span>'
-            +     '</div>'
-            +   '</div>'
-            +   '<div class="cfd-details">'
-            +     '<div class="cfd-hscroll">'
-            +       '<table class="data-table cfd-detail-table">'
-            +         '<thead><tr><th>#</th><th>تاریخ</th><th>شماره</th><th>شرح سند</th><th>حساب</th><th>شرح قلم</th><th>بدهکار</th><th>بستانکار</th><th>عملیات</th></tr></thead>'
-            +         '<tbody>';
-        for (var di = 0; di < b2.details.length; di++) {
-            var d2 = b2.details[di];
-            html += '<tr class="cfd-row" data-vid="' + d2.voucherId + '" style="cursor:pointer">'
-                +   '<td>' + toFa(di + 1) + '</td>'
-                +   '<td dir="ltr">' + toFa(d2.date) + '</td>'
-                +   '<td dir="ltr">' + toFa(d2.number) + '</td>'
-                +   '<td>' + esc(d2.desc || '') + '</td>'
-                +   '<td>' + esc(d2.accLabel) + '</td>'
-                +   '<td>' + esc(d2.lineDesc) + '</td>'
-                +   '<td class="num dr">' + (hide ? '—' : (d2.debit ? moneyHtml(d2.debit) : '—')) + '</td>'
-                +   '<td class="num cr">' + (hide ? '—' : (d2.credit ? moneyHtml(d2.credit) : '—')) + '</td>'
-                +   '<td><button class="row-btn edit" data-vid="' + d2.voucherId + '" title="ویرایش سند">✎</button></td>'
-                + '</tr>';
+    var grandIn = 0, grandOut = 0;
+    keys.forEach(function(k) { grandIn += buckets[k].in; grandOut += buckets[k].out; });
+    var grandBalance = grandIn - grandOut;
+    var grandAbs = Math.abs(grandBalance) || 1;
+
+    var html = '';
+
+    /* -------- بخش ۱: گزارش اصلی -------- */
+    if (viewMode === 'main' || viewMode === 'full') {
+        html += '<div class="cfd-section-title">📋 گزارش اصلی</div>';
+        html += '<div class="cfd-scroll-wrap"><div class="table-wrap"><table class="report-table" id="cfd-table"><thead><tr>'
+            + '<th>#</th><th>بابت / شرح</th><th>ورود (بدهکار)</th><th>خروج (بستانکار)</th><th>مانده</th><th>تعداد</th><th>درصد</th>'
+            + '</tr></thead><tbody>';
+        var tIn = 0, tOut = 0;
+        for (var i = 0; i < keys.length; i++) {
+            var k = keys[i]; var b = buckets[k];
+            var bal = b.in - b.out;
+            tIn += b.in; tOut += b.out;
+            var pct = (bal / grandAbs) * 100;
+            var pctCls = pct >= 0 ? 'cr' : 'dr';
+            var pctSign = pct > 0 ? '+' : '';
+            html += '<tr><td class="num">' + toFa(i + 1) + '</td>'
+                + '<td><strong>' + esc(k) + '</strong></td>'
+                + '<td class="num" style="color:#1e9e6a">' + (hide ? '—' : (b.in ? moneyHtml(b.in) : '—')) + '</td>'
+                + '<td class="num" style="color:#c0392b">' + (hide ? '—' : (b.out ? moneyHtml(b.out) : '—')) + '</td>'
+                + '<td class="num" style="font-weight:bold">' + (hide ? '—' : moneyHtml(bal)) + '</td>'
+                + '<td class="num">' + toFa(b.details.length) + '</td>'
+                + '<td class="num ' + pctCls + '">' + (hide ? '—' : pctSign + toFa(Math.abs(pct).toFixed(2)) + '٪') + '</td></tr>';
         }
-        html += '</tbody></table></div></div></div>';
+        html += '</tbody><tfoot><tr><td colspan="2" style="text-align:left">جمع کل</td>'
+            + '<td class="num" style="color:#1e9e6a">' + (hide ? '—' : moneyHtml(tIn)) + '</td>'
+            + '<td class="num" style="color:#c0392b">' + (hide ? '—' : moneyHtml(tOut)) + '</td>'
+            + '<td class="num">' + (hide ? '—' : moneyHtml(tIn - tOut)) + '</td><td></td>'
+            + '<td class="num">' + (hide ? '—' : toFa('100.00') + '٪') + '</td></tr></tfoot></table></div></div>';
     }
-    html += '</div>';
+
+    /* -------- بخش ۲: جزئیات -------- */
+    if (viewMode === 'details' || viewMode === 'full') {
+        if (viewMode === 'full') html += '<div class="cfd-section-title" style="margin-top:22px">📖 جزئیات اسناد</div>';
+        for (var j = 0; j < keys.length; j++) {
+            var k2 = keys[j];
+            var b2 = buckets[k2];
+            html += '<div class="cfd-group" style="margin-top:14px">'
+                +   '<div class="cfd-head" onclick="this.nextElementSibling.classList.toggle(\'show\')">'
+                +     '<div class="cfd-title">' + esc(k2) + '</div>'
+                +     '<div class="cfd-nums">'
+                +       '<span class="n in">ورود: ' + (hide ? '—' : moneyHtml(b2.in)) + '</span>'
+                +       '<span class="n out">خروج: ' + (hide ? '—' : moneyHtml(b2.out)) + '</span>'
+                +       '<span class="n bal">مانده: ' + (hide ? '—' : moneyHtml(b2.in - b2.out)) + '</span>'
+                +     '</div>'
+                +   '</div>'
+                +   '<div class="cfd-details">'
+                +     '<div class="cfd-hscroll">'
+                +       '<table class="data-table cfd-detail-table">'
+                +         '<thead><tr><th>#</th><th>تاریخ</th><th>شماره</th><th>شرح سند</th><th>حساب</th><th>شرح قلم</th><th>بدهکار</th><th>بستانکار</th><th>عملیات</th></tr></thead><tbody>';
+            for (var di = 0; di < b2.details.length; di++) {
+                var d2 = b2.details[di];
+                html += '<tr class="cfd-row" data-vid="' + d2.voucherId + '" style="cursor:pointer">'
+                    +   '<td>' + toFa(di + 1) + '</td>'
+                    +   '<td dir="ltr">' + toFa(d2.date) + '</td>'
+                    +   '<td dir="ltr">' + toFa(d2.number) + '</td>'
+                    +   '<td>' + esc(d2.desc || '') + '</td>'
+                    +   '<td>' + esc(d2.accLabel) + '</td>'
+                    +   '<td>' + esc(d2.lineDesc) + '</td>'
+                    +   '<td class="num dr">' + (hide ? '—' : (d2.debit ? moneyHtml(d2.debit) : '—')) + '</td>'
+                    +   '<td class="num cr">' + (hide ? '—' : (d2.credit ? moneyHtml(d2.credit) : '—')) + '</td>'
+                    +   '<td><button class="row-btn edit" data-vid="' + d2.voucherId + '" title="ویرایش سند">✎</button></td>'
+                    + '</tr>';
+            }
+            html += '</tbody></table></div></div></div>';
+        }
+    }
+
     document.getElementById('cfd-result').innerHTML = html;
     document.getElementById('cfd-count').textContent = toFa(keys.length) + ' دسته';
     var unitEl = document.getElementById('cfd-unit');
     if (unitEl) unitEl.textContent = 'واحد: ' + currencyLabel();
 
-    /* اتصال کلیک برای ویرایش سند (تابع در فایل ۰۴ تعریف شده) */
     document.querySelectorAll('#cfd-result .cfd-row').forEach(function(row) {
         row.addEventListener('click', function(e) {
             if (e.target.closest('button')) return;
@@ -397,6 +416,118 @@ function runCashFlowByDescReport() {
         });
     });
 
+    autoAttachReportHelpers();
+}
+
+/* =====================================================================
+   ============ خلاصه عوامل گردش وجه نقد برای داشبورد ============
+   ===================================================================== */
+function buildCashFlowDescSummaryForDash() {
+    var d = new Date();
+    var j = toJalali(d.getFullYear(), d.getMonth() + 1, d.getDate());
+    var fromD = j[0] + '/01/01';
+    var today = j[0] + '/' + pad2(j[1]) + '/' + pad2(j[2]);
+    var accounts = DB.load('accounts', []);
+    var effectiveAccs = {};
+    accounts.forEach(function(a) { if (a.cfEffect) effectiveAccs[a.id] = true; });
+    var vouchers = DB.load('vouchers', []).filter(function(v) {
+        return v.status === 'approved' && v.date >= fromD && v.date <= today;
+    });
+    var buckets = {};
+    vouchers.forEach(function(v) {
+        (v.lines || []).forEach(function(l) {
+            if (!l.account || !effectiveAccs[l.account]) return;
+            var desc = String(l.description || '').trim().replace(/^\s*بابت\s*[:\-–]?\s*/, '').trim() || '(بدون شرح)';
+            if (!buckets[desc]) buckets[desc] = { in: 0, out: 0 };
+            buckets[desc].in  += Number(l.debit) || 0;
+            buckets[desc].out += Number(l.credit) || 0;
+        });
+    });
+    return Object.keys(buckets).map(function(k) {
+        return { label: k, bal: buckets[k].in - buckets[k].out };
+    }).sort(function(a, b) { return Math.abs(b.bal) - Math.abs(a.bal); }).slice(0, 8);
+}
+
+/* =====================================================================
+   ============ گزارش مقایسه‌ای (جدید) ============
+   ===================================================================== */
+function runComparisonReport() {
+    var p1 = { from: normalizeDigits(document.getElementById('rc-from1').value.trim()),
+               to:   normalizeDigits(document.getElementById('rc-to1').value.trim()) };
+    var p2 = { from: normalizeDigits(document.getElementById('rc-from2').value.trim()),
+               to:   normalizeDigits(document.getElementById('rc-to2').value.trim()) };
+    var vtype  = document.getElementById('rc-vtype').value;
+    var cat    = document.getElementById('rc-cat').value;
+    var nature = document.getElementById('rc-nature').value;
+    var level  = Number(document.getElementById('rc-level').value) || 3;
+    var hide   = getHideState('rc');
+
+    if (!p1.from || !p1.to || !p2.from || !p2.to) { alert('هر چهار تاریخ اجباری است.'); return; }
+    if (p1.from > p1.to || p2.from > p2.to) { alert('بازه نامعتبر.'); return; }
+
+    var accounts = DB.load('accounts', []);
+    function computeBalances(f, t) {
+        var opts = { from:f, to:t, vtype:vtype, cat:cat, nature:nature, level:level };
+        var result = computeAccountBalances(opts);
+        return rollupBalances(accounts, result.balances);
+    }
+    var bal1 = computeBalances(p1.from, p1.to);
+    var bal2 = computeBalances(p2.from, p2.to);
+
+    function getCh(pid) { return accounts.filter(function(a) { return a.parent === pid; }); }
+    var rows = [];
+    function walk(node, lvl) {
+        var b1 = bal1[node.id] || { debit:0, credit:0 };
+        var b2 = bal2[node.id] || { debit:0, credit:0 };
+        var net1 = b1.debit - b1.credit;
+        var net2 = b2.debit - b2.credit;
+        if (lvl === level) {
+            if (b1.debit || b1.credit || b2.debit || b2.credit) {
+                rows.push({ name: node.name, level: lvl, net1: net1, net2: net2 });
+            }
+            return;
+        }
+        if (lvl < level) {
+            var chs = getCh(node.id);
+            for (var i = 0; i < chs.length; i++) walk(chs[i], lvl + 1);
+        }
+    }
+    var roots = accounts.filter(function(a) { return !a.parent; });
+    for (var i = 0; i < roots.length; i++) walk(roots[i], 1);
+
+    var html = '<div class="table-wrap"><table class="report-table" id="rc-table"><thead><tr>'
+        + '<th>عنوان</th><th>سطح</th>'
+        + '<th>مانده دوره ۱<br><span style="font-size:0.72rem;font-weight:normal">' + toFa(p1.from) + ' تا ' + toFa(p1.to) + '</span></th>'
+        + '<th>مانده دوره ۲<br><span style="font-size:0.72rem;font-weight:normal">' + toFa(p2.from) + ' تا ' + toFa(p2.to) + '</span></th>'
+        + '<th>درصد افت/رشد</th></tr></thead><tbody>';
+
+    var t1 = 0, t2 = 0;
+    for (var r = 0; r < rows.length; r++) {
+        var row = rows[r];
+        t1 += row.net1; t2 += row.net2;
+        var diff = row.net2 - row.net1;
+        var pct = row.net1 !== 0 ? (diff / Math.abs(row.net1) * 100) : (row.net2 !== 0 ? 100 : 0);
+        var pctCls = pct > 0 ? 'cr' : (pct < 0 ? 'dr' : '');
+        var pctSign = pct > 0 ? '▲ +' : (pct < 0 ? '▼ ' : '');
+        var lN = row.level === 1 ? 'گروه' : (row.level === 2 ? 'کل' : (row.level === 3 ? 'معین' : 'تفصیلی'));
+        html += '<tr><td>' + esc(row.name) + '</td><td>' + lN + '</td>'
+            + '<td class="num">' + (hide ? '—' : moneyHtml(row.net1)) + '</td>'
+            + '<td class="num">' + (hide ? '—' : moneyHtml(row.net2)) + '</td>'
+            + '<td class="num ' + pctCls + '" style="font-weight:800">' + (hide ? '—' : pctSign + toFa(Math.abs(pct).toFixed(2)) + '٪') + '</td></tr>';
+    }
+    // ردیف جمع کل
+    var tDiff = t2 - t1;
+    var tPct = t1 !== 0 ? (tDiff / Math.abs(t1) * 100) : (t2 !== 0 ? 100 : 0);
+    var tPctCls = tPct > 0 ? 'cr' : (tPct < 0 ? 'dr' : '');
+    var tPctSign = tPct > 0 ? '▲ +' : (tPct < 0 ? '▼ ' : '');
+    html += '</tbody><tfoot><tr><td colspan="2" style="text-align:left">جمع کل</td>'
+        + '<td class="num">' + (hide ? '—' : moneyHtml(t1)) + '</td>'
+        + '<td class="num">' + (hide ? '—' : moneyHtml(t2)) + '</td>'
+        + '<td class="num ' + tPctCls + '" style="font-weight:800">' + (hide ? '—' : tPctSign + toFa(Math.abs(tPct).toFixed(2)) + '٪') + '</td></tr></tfoot></table></div>';
+
+    document.getElementById('rc-result').innerHTML = html;
+    document.getElementById('rc-count').textContent = toFa(rows.length);
+    var u = document.getElementById('rc-unit'); if (u) u.textContent = 'واحد: ' + currencyLabel();
     autoAttachReportHelpers();
 }
 
