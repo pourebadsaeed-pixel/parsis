@@ -33,6 +33,7 @@ var AI_NAVIGABLE_PAGES = {
     'report-account': 'مرور حساب‌ها', 'report-trial': 'تراز آزمایشی',
     'report-incomplete': 'تراکنش‌های تکمیل نشده', 'report-facility': 'خلاصه تسهیلات',
     'report-facility-full': 'گزارش جامع تسهیلات', 'report-rates': 'گزارش نرخ ارز و طلا',
+    'report-compare': 'گزارش مقایسه‌ای دوره‌ها',
     'daily-close': 'قیمت پایانی روز'
 };
 
@@ -160,7 +161,7 @@ function aiStopVoice() {
 
 /* ==================== TTS چند-موتوره ==================== */
 var AI_TTS = {
-    engine: DB.load('ai.ttsEngine', 'avalai'),         // avalai | google | browser
+    engine: DB.load('ai.ttsEngine', 'avalai'),
     avalaiVoice: DB.load('ai.ttsVoice', 'nova'),
     avalaiModel: DB.load('ai.ttsModel', 'tts-1'),
     autoSpeak: DB.load('ai.autoSpeak', false),
@@ -227,40 +228,31 @@ function faNumToWords(num) {
     return parts.join(' و ');
 }
 
-/**
- * اعداد، مبالغ، تاریخ‌ها و شماره‌حساب‌ها را برای TTS آماده می‌کند.
- */
 function prepareNumbersForTTS(text) {
     var t = String(text || '');
 
-    // ۱) تاریخ شمسی YYYY/MM/DD یا YYYY-MM-DD
     t = t.replace(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/g, function(m, y, mo, d) {
         return 'سال ' + faNumToWords(Number(y)) + ' ماه ' + faNumToWords(Number(mo)) + ' روز ' + faNumToWords(Number(d));
     });
 
-    // ۲) زمان HH:MM یا HH:MM:SS
     t = t.replace(/(\d{1,2}):(\d{2})(?::(\d{2}))?/g, function(m, h, mn, s) {
         var out = 'ساعت ' + faNumToWords(Number(h)) + ' و ' + faNumToWords(Number(mn)) + ' دقیقه';
         if (s) out += ' و ' + faNumToWords(Number(s)) + ' ثانیه';
         return out;
     });
 
-    // ۳) مبالغ با کاما: 116,664,000
     t = t.replace(/\d{1,3}(?:,\d{3})+/g, function(m) {
         return faNumToWords(Number(m.replace(/,/g, '')));
     });
 
-    // ۴) اعداد ۶ رقمی و بیشتر (شماره حساب/کارت) → رقم‌به‌رقم
     t = t.replace(/\b\d{6,}\b/g, function(m) {
         return m.split('').map(function(d) { return faNumToWords(Number(d)); }).join('، ');
     });
 
-    // ۵) اعداد ۴-۵ رقمی باقی‌مانده (سال‌ها)
     t = t.replace(/\b\d{4,5}\b/g, function(m) {
         return faNumToWords(Number(m));
     });
 
-    // ۶) اعداد ۱-۳ رقمی باقی‌مانده
     t = t.replace(/\b\d+\b/g, function(m) {
         return faNumToWords(Number(m));
     });
@@ -268,7 +260,6 @@ function prepareNumbersForTTS(text) {
     return t;
 }
 
-/* ==================== پاکسازی متن ==================== */
 function aiStripMarkdownForSpeech(text) {
     var out = String(text || '')
         .replace(/```[\s\S]*?```/g, ' ')
@@ -286,11 +277,9 @@ function aiStripMarkdownForSpeech(text) {
         .replace(/^\s*\d+\.\s+/gm, '')
         .replace(/^\s*>\s*/gm, '')
         .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F02F}]/gu, '')
-        // اعداد فارسی و عربی → لاتین
         .replace(/[۰-۹]/g, function(c) { return String(c.charCodeAt(0) - 0x06F0); })
         .replace(/[٠-٩]/g, function(c) { return String(c.charCodeAt(0) - 0x0660); });
 
-    // تبدیل اعداد لاتین به کلمات فارسی
     out = prepareNumbersForTTS(out);
 
     return out
@@ -675,7 +664,6 @@ function openTtsDiagnosticPanel() {
 }
 window.openTtsDiagnosticPanel = openTtsDiagnosticPanel;
 
-// بارگذاری صداهای مرورگر
 if (window.speechSynthesis) {
     window.speechSynthesis.onvoiceschanged = function() { AI_TTS.voice = aiFindBestPersianVoice(); };
     setTimeout(function() { AI_TTS.voice = aiFindBestPersianVoice(); }, 500);
@@ -1787,7 +1775,6 @@ function aiInit() {
             aiSaveTTS();
         });
     }
-    // دکمه پنل تنظیمات TTS
     var ttsDiagBtn = document.getElementById('open-tts-diag');
     if (ttsDiagBtn) ttsDiagBtn.addEventListener('click', openTtsDiagnosticPanel);
     if (window.speechSynthesis) AI_TTS.voice = aiFindBestPersianVoice();
