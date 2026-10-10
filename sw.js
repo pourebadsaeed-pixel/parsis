@@ -1,7 +1,7 @@
 // Service Worker پارسیس — v28
 // Network-First برای HTML، Cache-First برای منابع ثابت
 
-var CACHE_NAME = 'parsis-v28';
+var CACHE_NAME = 'parsis-v30';
 var ASSETS = [
   './index.html',
   './manifest.json',
@@ -20,7 +20,8 @@ var ASSETS = [
   './10-enhancements.js',
   './11-sms-direction-fix.js',
   './12-advanced-features.js',
-  './13-filter-toggle.js'
+  './13-filter-toggle.js',
+  './14-close-all.js'  
 ];
 
 self.addEventListener('install', function(event) {
