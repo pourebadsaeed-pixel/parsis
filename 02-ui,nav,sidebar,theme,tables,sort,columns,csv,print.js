@@ -306,16 +306,13 @@ function applyColWidths(tableId) {
         } else {
             ths[i].style.width = '';
         }
-        // ★ حذف minWidth (عامل اصلی پهن شدن بی‌نهایت)
         ths[i].style.minWidth = '';
         ths[i].style.maxWidth = '';
     }
-    // ★ حذف minWidth از جدول
     table.style.minWidth = '';
 }
 
 function updateTableMinWidth(table) {
-    // ★ دیگر minWidth روی جدول نمی‌گذاریم
     if (!table) return;
     table.style.minWidth = '';
 }
@@ -327,7 +324,7 @@ function makeTableResizable(table) {
     if (!tableId) return;
 
     var MIN_W = 50;
-    var MAX_W = 600;   // ★ سقف عرض هر ستون
+    var MAX_W = 600;
     var ths = table.querySelectorAll('thead th');
 
     for (var i = 0; i < ths.length; i++) {
@@ -367,7 +364,6 @@ function makeTableResizable(table) {
                 saveColWidths();
             }
 
-            /* ★ دابل‌کلیک: بازنشانی همین ستون */
             res.addEventListener('dblclick', function(e) {
                 e.preventDefault(); e.stopPropagation();
                 th.style.width = '';
@@ -446,7 +442,9 @@ function makeAllTablesResizable() {
     });
 }
 
-/* ==================== Column menu popup ==================== */
+/* =====================================================================
+   ============ Column menu popup (اصلاح‌شده) ============
+   ===================================================================== */
 function showColMenu(tableId, btn) {
     var menu = document.getElementById('col-menu');
     if (!menu) return;
@@ -454,7 +452,12 @@ function showColMenu(tableId, btn) {
     if (!table) return;
     var thead = table.querySelector('thead');
     if (!thead) return;
-    var ths = thead.querySelectorAll('th');
+
+    /* ★ فقط ردیف اصلی هدر، نه ردیف فیلترها */
+    var headerRow = thead.querySelector('tr:not(.column-filter-row)');
+    if (!headerRow) return;
+    var ths = headerRow.querySelectorAll('th');
+
     var hidden = getHiddenCols(tableId);
     var html = '<div class="col-menu-head">👁 نمایش ستون‌ها</div><div class="col-menu-body">';
     for (var i = 0; i < ths.length; i++) {
@@ -763,7 +766,7 @@ function buildFilterRow(table) {
     var thead = table.querySelector('thead');
     if (!thead) return;
     if (thead.querySelector('tr.column-filter-row')) return;
-    var headerRow = thead.querySelector('tr');
+    var headerRow = thead.querySelector('tr:not(.column-filter-row)');
     if (!headerRow) return;
     var ths = headerRow.querySelectorAll('th');
     if (ths.length === 0) return;
@@ -927,7 +930,7 @@ function attachFilterRowsToAllTables() {
         var tables = document.querySelectorAll('table.data-table, table.report-table');
         tables.forEach(function (t) {
             if (t.dataset.globalSort === '1') return;
-            var headerRow = t.querySelector('thead tr');
+            var headerRow = t.querySelector('thead tr:not(.column-filter-row)');
             if (!headerRow) return;
             t.dataset.globalSort = '1';
             var ths = headerRow.querySelectorAll('th');
@@ -1543,7 +1546,6 @@ async function shareAsImage(el, title, filename) {
         return;
     }
 
-    /* مخفی کردن موقت دکمه‌های کنترلی که نباید در تصویر باشند */
     var hidden = [];
     var selectors = '.share-btn, .widget-share-btn, .col-resizer, .col-reset-btn, .col-toggle-btn, .eye-toggle-btn, .filters-toggle-btn, .card-collapse-btn, .column-filter-row, .col-filter-menu, #col-filter-menu';
     el.querySelectorAll(selectors).forEach(function (node) {
@@ -1578,14 +1580,12 @@ async function shareAsImage(el, title, filename) {
         hidden.forEach(function (x) { x.el.style.display = x.old; });
     }
 
-    /* تبدیل canvas به Blob و اشتراک */
     canvas.toBlob(async function (blob) {
         if (!blob) { showToast('❌ ساخت تصویر ناموفق بود'); return; }
         var safeName = (filename || 'parsis-report') + '-' + todayJalaliStr().replace(/\//g, '-') + '.png';
         var file = new File([blob], safeName, { type: 'image/png' });
         var shareTitle = title || 'گزارش پارسیس';
 
-        /* تلاش برای Web Share API با فایل تصویری */
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
             try {
                 await navigator.share({
@@ -1601,7 +1601,6 @@ async function shareAsImage(el, title, filename) {
             }
         }
 
-        /* fallback: دانلود تصویر */
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
         a.href = url;
@@ -1738,10 +1737,8 @@ window.shareAsText = shareAsText;
         }
     }
 
-    /* capture phase → قبل از هندلرهای دیگر اجرا می‌شود */
     document.addEventListener('click', handleHeaderButtonClick, true);
 
-    /* اطمینان: اگر یکی از توابع لازم نبود، هشدار در کنسول */
     setTimeout(function() {
         var missing = [];
         if (typeof showColMenu !== 'function') missing.push('showColMenu');
