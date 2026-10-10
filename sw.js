@@ -1,7 +1,7 @@
 // Service Worker پارسیس — v28
 // Network-First برای HTML، Cache-First برای منابع ثابت
 
-var CACHE_NAME = 'parsis-v30';
+var CACHE_NAME = 'parsis-v31';
 var ASSETS = [
   './index.html',
   './manifest.json',
