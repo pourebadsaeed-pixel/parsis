@@ -1,6 +1,11 @@
 /* =====================================================================
    پارسیس v27 — 02-ui,nav,sidebar,theme,tables,sort,columns,csv,print.js
    رابط کاربری: ناوبری، سایدبار، تب‌ها، تم، جدول‌ها، مرتب‌سازی، ستون‌ها
+
+   [ادغام‌شده با]:
+     • 13-filter-toggle.js            (بخش ۱۵)
+     • 14-close-all.js                (بخش ۱۶)
+     • 12-advanced-features.js        (بخش‌های ۱۳ و ۱۴ — فیلتر پیشرفته و مرتب‌سازی سراسری)
    ===================================================================== */
 'use strict';
 
@@ -140,6 +145,9 @@ function goToPage(name) {
     makeAllTablesResizable();
     buildHeaderButtons();
     updateEyeButtons();
+    // فیلترهای جدید را هم روی جداول تازه اعمال کن
+    if (typeof attachFilterRowsToAllTables === 'function') attachFilterRowsToAllTables();
+    if (typeof window._enhanceGlobalSorting === 'function') window._enhanceGlobalSorting();
 }
 
 function updateUnitChips() {
@@ -531,6 +539,8 @@ function autoAttachReportHelpers() {
         });
         buildHeaderButtons();
         attachDatePickers();
+        if (typeof attachFilterRowsToAllTables === 'function') attachFilterRowsToAllTables();
+        if (typeof window._enhanceGlobalSorting === 'function') window._enhanceGlobalSorting();
     }, 60);
 }
 
@@ -566,3 +576,802 @@ function rerenderCurrentPage() {
     var fnName = map[id];
     if (fnName && typeof window[fnName] === 'function') window[fnName]();
 }
+
+/* =====================================================================
+   ============ ۱۳) جستجو/فیلتر پیشرفته در ستون‌ها ============
+   ============ [ادغام از 12-advanced-features.js]            ============
+   ===================================================================== */
+var COLUMN_FILTERS = {};
+var FILTER_OPS = [
+    { key: 'contains',    label: 'شامل' },
+    { key: 'notContains', label: 'شامل نباشد' },
+    { key: 'eq',          label: 'مساوی' },
+    { key: 'neq',         label: 'نامساوی' },
+    { key: 'startsWith',  label: 'شروع با' },
+    { key: 'endsWith',    label: 'پایان با' },
+    { key: 'gt',          label: 'بزرگتر از' },
+    { key: 'gte',         label: 'بزرگتر یا مساوی' },
+    { key: 'lt',          label: 'کوچکتر از' },
+    { key: 'lte',         label: 'کوچکتر یا مساوی' },
+    { key: 'empty',       label: 'خالی' },
+    { key: 'notEmpty',    label: 'غیرخالی' }
+];
+
+function normalizeCellText(s) {
+    return String(s || '')
+        .replace(/[\u200c\u200e\u200f]/g, ' ')
+        .replace(/[يى]/g, 'ی').replace(/[ك]/g, 'ک')
+        .replace(/\u066C/g, ',')
+        .replace(/\s+/g, ' ')
+        .trim().toLowerCase();
+}
+function cellToNumber(s) {
+    var t = normalizeDigits(String(s || '')).replace(/[^\d\-\.]/g, '');
+    if (!t || t === '-') return null;
+    var n = Number(t);
+    return isFinite(n) ? n : null;
+}
+function testFilter(cellText, filter) {
+    if (!filter || !filter.op) return true;
+    var txt = normalizeCellText(cellText);
+    var val = normalizeCellText(filter.val || '');
+    switch (filter.op) {
+        case 'contains':    return txt.indexOf(val) !== -1;
+        case 'notContains': return txt.indexOf(val) === -1;
+        case 'eq':          return txt === val;
+        case 'neq':         return txt !== val;
+        case 'startsWith':  return txt.indexOf(val) === 0;
+        case 'endsWith':    return val.length > 0 && txt.slice(-val.length) === val;
+        case 'empty':       return txt === '' || txt === '—';
+        case 'notEmpty':    return txt !== '' && txt !== '—';
+        case 'gt': case 'gte': case 'lt': case 'lte': {
+            var a = cellToNumber(cellText);
+            var b = cellToNumber(filter.val);
+            if (a === null || b === null) return false;
+            if (filter.op === 'gt')  return a >  b;
+            if (filter.op === 'gte') return a >= b;
+            if (filter.op === 'lt')  return a <  b;
+            if (filter.op === 'lte') return a <= b;
+        }
+    }
+    return true;
+}
+function applyColumnFiltersToTable(tableId) {
+    var table = document.getElementById(tableId);
+    if (!table) return;
+    var filters = COLUMN_FILTERS[tableId] || {};
+    var hasAny = Object.keys(filters).some(function (k) { return filters[k] && filters[k].op; });
+    var tbody = table.querySelector('tbody');
+    if (!tbody) return;
+    var rows = tbody.querySelectorAll('tr');
+    if (!hasAny) {
+        rows.forEach(function (tr) { tr.style.display = ''; });
+        return;
+    }
+    rows.forEach(function (tr) {
+        var tds = tr.children;
+        if (tds.length === 1 && tds[0].hasAttribute('colspan')) { tr.style.display = 'none'; return; }
+        var show = true;
+        for (var key in filters) {
+            var idx = Number(key);
+            var f = filters[key];
+            if (!f || !f.op) continue;
+            var cellTxt = tds[idx] ? tds[idx].textContent : '';
+            if (!testFilter(cellTxt, f)) { show = false; break; }
+        }
+        tr.style.display = show ? '' : 'none';
+    });
+}
+function buildFilterRow(table) {
+    if (!table || !table.id) return;
+    var thead = table.querySelector('thead');
+    if (!thead) return;
+    if (thead.querySelector('tr.column-filter-row')) return;
+    var headerRow = thead.querySelector('tr');
+    if (!headerRow) return;
+    var ths = headerRow.querySelectorAll('th');
+    if (ths.length === 0) return;
+
+    var filterTr = document.createElement('tr');
+    filterTr.className = 'column-filter-row';
+    for (var i = 0; i < ths.length; i++) {
+        (function (idx) {
+            var td = document.createElement('th');
+            td.className = 'column-filter-cell';
+            td.style.cssText = 'padding:4px 6px;background:var(--card-alt);border-bottom:1px solid var(--border);font-weight:normal';
+            var wrap = document.createElement('div');
+            wrap.style.cssText = 'display:flex;gap:2px;align-items:center';
+            var inp = document.createElement('input');
+            inp.type = 'text';
+            inp.placeholder = '🔍';
+            inp.style.cssText = 'width:100%;padding:4px 6px;font-size:.72rem;border:1px solid var(--border);border-radius:6px;background:var(--card-solid);font-family:inherit;outline:none;min-width:0';
+            var funnel = document.createElement('button');
+            funnel.type = 'button';
+            funnel.textContent = '▼';
+            funnel.title = 'عملگر فیلتر';
+            funnel.style.cssText = 'background:var(--primary-soft);color:var(--primary-dark);border:1px solid var(--border);border-radius:6px;padding:3px 5px;font-size:.6rem;cursor:pointer;flex-shrink:0';
+            funnel.addEventListener('click', function (e) {
+                e.stopPropagation();
+                openFilterMenu(table.id, idx, inp, funnel);
+            });
+            wrap.appendChild(inp);
+            wrap.appendChild(funnel);
+            td.appendChild(wrap);
+            filterTr.appendChild(td);
+
+            var existing = (COLUMN_FILTERS[table.id] || {})[idx];
+            if (existing) {
+                if (existing.op !== 'empty' && existing.op !== 'notEmpty') inp.value = existing.val || '';
+                if (existing.op && existing.op !== 'contains') {
+                    funnel.style.background = 'var(--primary)';
+                    funnel.style.color = '#fff';
+                    funnel.textContent = '▼*';
+                }
+            }
+            inp.addEventListener('input', function () {
+                var v = this.value.trim();
+                if (!COLUMN_FILTERS[table.id]) COLUMN_FILTERS[table.id] = {};
+                if (!v) {
+                    var cur = COLUMN_FILTERS[table.id][idx];
+                    if (!cur || (cur.op !== 'empty' && cur.op !== 'notEmpty')) {
+                        delete COLUMN_FILTERS[table.id][idx];
+                    }
+                } else {
+                    var cur2 = COLUMN_FILTERS[table.id][idx] || {};
+                    COLUMN_FILTERS[table.id][idx] = { op: cur2.op || 'contains', val: v };
+                }
+                applyColumnFiltersToTable(table.id);
+            });
+        })(i);
+    }
+    thead.appendChild(filterTr);
+}
+function openFilterMenu(tableId, colIdx, inp, anchor) {
+    var old = document.getElementById('col-filter-menu');
+    if (old) old.remove();
+    var menu = document.createElement('div');
+    menu.id = 'col-filter-menu';
+    menu.style.cssText = 'position:fixed;z-index:2000;background:var(--card-solid);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow-lg);padding:6px;min-width:170px;direction:rtl';
+    var cur = (COLUMN_FILTERS[tableId] || {})[colIdx];
+    var curOp = cur ? cur.op : 'contains';
+
+    FILTER_OPS.forEach(function (o) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.style.cssText = 'display:block;width:100%;padding:7px 12px;text-align:right;background:none;border:none;font-family:inherit;font-size:.8rem;cursor:pointer;border-radius:6px;color:' + (o.key === curOp ? 'var(--primary-dark)' : 'var(--text)') + ';font-weight:' + (o.key === curOp ? '900' : 'normal');
+        btn.textContent = (o.key === curOp ? '✓ ' : '   ') + o.label;
+        btn.addEventListener('mouseenter', function () { btn.style.background = 'var(--primary-soft)'; });
+        btn.addEventListener('mouseleave', function () { btn.style.background = ''; });
+        btn.addEventListener('click', function () {
+            if (!COLUMN_FILTERS[tableId]) COLUMN_FILTERS[tableId] = {};
+            var v = inp.value.trim();
+            COLUMN_FILTERS[tableId][colIdx] = { op: o.key, val: v };
+            applyColumnFiltersToTable(tableId);
+            if (o.key !== 'contains' && o.key !== 'empty' && o.key !== 'notEmpty') {
+                anchor.style.background = 'var(--primary)';
+                anchor.style.color = '#fff';
+                anchor.textContent = '▼*';
+            } else {
+                anchor.style.background = 'var(--primary-soft)';
+                anchor.style.color = 'var(--primary-dark)';
+                anchor.textContent = '▼';
+            }
+            menu.remove();
+        });
+        menu.appendChild(btn);
+    });
+
+    var clr = document.createElement('button');
+    clr.type = 'button';
+    clr.style.cssText = 'display:block;width:100%;padding:7px 12px;text-align:right;background:#fee2e2;color:#dc2626;border:none;font-family:inherit;font-size:.8rem;cursor:pointer;border-radius:6px;margin-top:4px;font-weight:800';
+    clr.textContent = '🗑 پاک کردن';
+    clr.addEventListener('click', function () {
+        if (COLUMN_FILTERS[tableId]) delete COLUMN_FILTERS[tableId][colIdx];
+        inp.value = '';
+        anchor.textContent = '▼';
+        anchor.style.background = 'var(--primary-soft)';
+        anchor.style.color = 'var(--primary-dark)';
+        applyColumnFiltersToTable(tableId);
+        menu.remove();
+    });
+    menu.appendChild(clr);
+
+    document.body.appendChild(menu);
+    var rect = anchor.getBoundingClientRect();
+    var top = rect.bottom + 4;
+    var left = rect.left - 100;
+    if (left < 8) left = 8;
+    if (left + 180 > window.innerWidth - 8) left = window.innerWidth - 188;
+    if (top + 320 > window.innerHeight - 8) top = Math.max(8, rect.top - 320);
+    menu.style.top = top + 'px';
+    menu.style.left = left + 'px';
+    setTimeout(function () {
+        function closer(e) {
+            if (!menu.contains(e.target) && e.target !== anchor) {
+                menu.remove();
+                document.removeEventListener('click', closer, true);
+            }
+        }
+        document.addEventListener('click', closer, true);
+    }, 50);
+}
+function attachFilterRowsToAllTables() {
+    var tables = document.querySelectorAll('table.data-table, table.report-table, table.cf-table');
+    tables.forEach(function (t) {
+        if (!t.id || !t.querySelector('thead')) return;
+        buildFilterRow(t);
+        if (COLUMN_FILTERS[t.id]) applyColumnFiltersToTable(t.id);
+    });
+}
+
+/* =====================================================================
+   ============ ۱۴) مرتب‌سازی سراسری ============
+   ============ [ادغام از 12-advanced-features.js]            ============
+   ===================================================================== */
+(function () {
+    function getCellValue(tr, idx) {
+        var tds = tr.children;
+        if (!tds[idx]) return '';
+        var txt = (tds[idx].textContent || '').trim();
+        var num = Number(normalizeDigits(txt).replace(/[^\d\-\.]/g, ''));
+        if (isFinite(num) && txt && /^[\d\-\.,۰-۹٬\s]+$/.test(txt)) return num;
+        return txt;
+    }
+    function sortTableByColumn(table, idx, dir) {
+        var tbody = table.querySelector('tbody');
+        if (!tbody) return;
+        var rows = Array.from(tbody.querySelectorAll('tr'));
+        rows.sort(function (a, b) {
+            var av = getCellValue(a, idx), bv = getCellValue(b, idx);
+            if (typeof av === 'number' && typeof bv === 'number') return dir * (av - bv);
+            return dir * String(av).localeCompare(String(bv), 'fa');
+        });
+        rows.forEach(function (r) { tbody.appendChild(r); });
+    }
+    function enhanceGlobalSorting() {
+        var tables = document.querySelectorAll('table.data-table, table.report-table');
+        tables.forEach(function (t) {
+            if (t.dataset.globalSort === '1') return;
+            var headerRow = t.querySelector('thead tr');
+            if (!headerRow) return;
+            t.dataset.globalSort = '1';
+            var ths = headerRow.querySelectorAll('th');
+            ths.forEach(function (th, idx) {
+                if (th.hasAttribute('data-sortable') || th.hasAttribute('data-sort')) return;
+                if (th.classList.contains('column-filter-cell')) return;
+                th.style.cursor = 'pointer';
+                th.addEventListener('click', function (e) {
+                    if (e.target.classList.contains('col-resizer')) return;
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+                    var cur = th.dataset.globalSortDir || '';
+                    var newDir = cur === 'asc' ? 'desc' : 'asc';
+                    ths.forEach(function (o) {
+                        delete o.dataset.globalSortDir;
+                        var ind = o.querySelector('.global-sort-ind');
+                        if (ind) ind.remove();
+                    });
+                    th.dataset.globalSortDir = newDir;
+                    var arrow = document.createElement('span');
+                    arrow.className = 'global-sort-ind';
+                    arrow.style.cssText = 'font-size:.6rem;margin-right:4px;opacity:.9';
+                    arrow.textContent = newDir === 'asc' ? ' ▲' : ' ▼';
+                    th.appendChild(arrow);
+                    sortTableByColumn(t, idx, newDir === 'asc' ? 1 : -1);
+                });
+            });
+        });
+    }
+    window._enhanceGlobalSorting = enhanceGlobalSorting;
+})();
+
+/* =====================================================================
+   ============ ۱۵) مخفی‌سازی ردیف فیلتر (به‌صورت پیش‌فرض مخفی) ============
+   ============ [ادغام از 13-filter-toggle.js]                  ============
+   ===================================================================== */
+(function () {
+    var STORAGE_KEY = 'parsis.tableFiltersVisible';
+
+    /* CSS */
+    var css = ''
+        + 'tr.column-filter-row { display: none; }'
+        + 'body.show-table-filters tr.column-filter-row { display: table-row; }'
+        + '.filters-toggle-btn {'
+        +   'background: var(--card-solid); color: var(--primary-dark);'
+        +   'border: 1.5px solid var(--border); width: 36px; height: 34px;'
+        +   'border-radius: 10px; font-size: 1rem; cursor: pointer; padding: 0;'
+        +   'display: inline-flex; align-items: center; justify-content: center;'
+        +   'transition: all 0.25s;'
+        + '}'
+        + '.filters-toggle-btn:hover { border-color: var(--primary); background: var(--primary-soft); }'
+        + '.filters-toggle-btn.active { background: var(--gradient-accent); color: #fff; border-color: transparent; }'
+        + 'body.show-table-filters .filters-toggle-btn {'
+        +   'background: var(--gradient-accent); color: #fff; border-color: transparent;'
+        + '}';
+    var styleEl = document.createElement('style');
+    styleEl.textContent = css;
+    document.head.appendChild(styleEl);
+
+    /* پاکسازی ستون عملیات */
+    function isActionsHeader(th) {
+        if (!th) return true;
+        var txt = (th.textContent || '').trim().toLowerCase();
+        if (!txt) return true;
+        if (/^عملیات|^actions?$|^action$/.test(txt)) return true;
+        return false;
+    }
+    function cleanActionsColumn() {
+        var rows = document.querySelectorAll('tr.column-filter-row');
+        rows.forEach(function (row) {
+            var thead = row.parentNode;
+            if (!thead) return;
+            var headerRow = null;
+            var allTrs = thead.querySelectorAll('tr');
+            for (var i = 0; i < allTrs.length; i++) {
+                if (!allTrs[i].classList.contains('column-filter-row')) {
+                    headerRow = allTrs[i]; break;
+                }
+            }
+            if (!headerRow) return;
+            var headerThs = headerRow.children;
+            var cells = row.children;
+            for (var j = 0; j < cells.length; j++) {
+                if (isActionsHeader(headerThs[j])) {
+                    cells[j].innerHTML = '';
+                    cells[j].style.background = 'transparent';
+                    cells[j].style.borderBottom = '1px solid var(--border)';
+                    cells[j].style.padding = '0';
+                    cells[j].style.minWidth = '0';
+                }
+            }
+        });
+    }
+
+    /* دکمه toggle در هدرها */
+    function addToggleButtons() {
+        var headers = document.querySelectorAll('.list-header');
+        headers.forEach(function (h) {
+            if (h.querySelector('.filters-toggle-btn')) return;
+            var card = h.closest('.card');
+            if (card && !card.querySelector('table.data-table, table.report-table, table.cf-table')) return;
+
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'filters-toggle-btn';
+            btn.textContent = '🔍';
+            btn.title = 'نمایش/مخفی کردن ردیف فیلترها';
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var visible = document.body.classList.toggle('show-table-filters');
+                try { localStorage.setItem(STORAGE_KEY, visible ? '1' : '0'); } catch (err) {}
+                updateButtons();
+            });
+            h.appendChild(btn);
+        });
+        updateButtons();
+    }
+    function updateButtons() {
+        var visible = document.body.classList.contains('show-table-filters');
+        document.querySelectorAll('.filters-toggle-btn').forEach(function (b) {
+            b.classList.toggle('active', visible);
+        });
+    }
+
+    /* بازیابی وضعیت */
+    function restoreState() {
+        try {
+            if (localStorage.getItem(STORAGE_KEY) === '1') {
+                document.body.classList.add('show-table-filters');
+            }
+        } catch (err) {}
+        updateButtons();
+    }
+
+    /* Observer برای جداول جدید */
+    var observer = null;
+    function startObserver() {
+        if (observer) return;
+        observer = new MutationObserver(function (mutations) {
+            var needsClean = false;
+            var needsBtn = false;
+            for (var i = 0; i < mutations.length; i++) {
+                var m = mutations[i];
+                if (m.type !== 'childList') continue;
+                var t = m.target;
+                if (!t || !t.querySelector) continue;
+                if (t.tagName === 'THEAD' || t.querySelector('tr.column-filter-row')) {
+                    needsClean = true;
+                }
+                if (t.classList && t.classList.contains('list-header')) {
+                    needsBtn = true;
+                }
+                if (t.querySelector && t.querySelector('.list-header')) {
+                    needsBtn = true;
+                }
+            }
+            if (needsClean) setTimeout(cleanActionsColumn, 50);
+            if (needsBtn) setTimeout(addToggleButtons, 50);
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    /* Init */
+    function init13() {
+        restoreState();
+        cleanActionsColumn();
+        addToggleButtons();
+        startObserver();
+        setInterval(function () {
+            cleanActionsColumn();
+            addToggleButtons();
+        }, 1500);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () { setTimeout(init13, 1200); });
+    } else {
+        setTimeout(init13, 1200);
+    }
+})();
+
+/* =====================================================================
+   ============ ۱۶) تب‌های فرم و دکمه «بستن همه فرم‌ها» ============
+   ============ [ادغام از 14-close-all.js]                        ============
+   ===================================================================== */
+(function () {
+    /* CSS */
+    var css = ''
+        + '.form-tabs-bar{display:flex;gap:4px;padding:6px 10px;background:var(--card-solid);'
+        + 'border-bottom:1px solid var(--border);overflow-x:auto;overflow-y:hidden;'
+        + 'position:sticky;z-index:49;scrollbar-width:thin;-webkit-overflow-scrolling:touch;'
+        + 'box-shadow:0 2px 6px rgba(15,23,42,.04)}'
+        + '.form-tabs-bar::-webkit-scrollbar{height:4px}'
+        + '.form-tabs-bar::-webkit-scrollbar-thumb{background:var(--primary-light);border-radius:2px}'
+        + '.form-tab{display:flex;align-items:center;gap:6px;padding:6px 10px;'
+        + 'background:var(--card-alt);border:1px solid var(--border);border-radius:8px;'
+        + 'font-family:inherit;font-size:.78rem;font-weight:700;color:var(--text-muted);'
+        + 'cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .2s;'
+        + 'user-select:none;max-width:220px}'
+        + '.form-tab:hover{background:var(--primary-soft);border-color:var(--primary);color:var(--primary-dark);transform:translateY(-1px)}'
+        + '.form-tab.active{background:var(--gradient-accent);color:#fff;border-color:transparent;'
+        + 'box-shadow:0 2px 8px rgba(99,102,241,.25)}'
+        + '.form-tab .ft-icon{font-size:.9rem;line-height:1}'
+        + '.form-tab .ft-title{overflow:hidden;text-overflow:ellipsis;max-width:130px}'
+        + '.form-tab .ft-close{background:rgba(0,0,0,.08);color:inherit;border:none;'
+        + 'width:18px;height:18px;border-radius:4px;font-size:.9rem;line-height:1;'
+        + 'cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;'
+        + 'margin-right:-4px;transition:background .15s}'
+        + '.form-tab.active .ft-close{background:rgba(255,255,255,.25)}'
+        + '.form-tab .ft-close:hover{background:rgba(220,38,38,.85);color:#fff}'
+        + '@media (max-width:480px){'
+        + '.form-tab .ft-title{max-width:80px}'
+        + '.form-tab{padding:5px 8px;font-size:.72rem}'
+        + '}';
+    var styleEl = document.createElement('style');
+    styleEl.textContent = css;
+    document.head.appendChild(styleEl);
+
+    /* State */
+    var TAB_STATE = {
+        tabs: [{ id: 'home', title: 'صفحه اصلی', icon: '🏠' }],
+        active: 'home',
+        max: 12
+    };
+
+    /* Helpers */
+    function getPageMeta(pageId) {
+        if (pageId === 'home') return { title: 'صفحه اصلی', icon: '🏠' };
+        var btn = document.querySelector('.nav-group-items button[data-page="' + pageId + '"]');
+        if (!btn) return { title: pageId, icon: '📄' };
+        var clone = btn.cloneNode(true);
+        var badge = clone.querySelector('.nav-badge');
+        if (badge) badge.remove();
+        var txt = (clone.textContent || '').trim().replace(/\s+/g, ' ');
+        if (!txt) return { title: pageId, icon: '📄' };
+        var parts = txt.split(' ');
+        var icon = parts[0];
+        var title = parts.slice(1).join(' ') || txt;
+        var cc = icon && icon.charCodeAt(0);
+        if (!cc || cc < 0x2000) { icon = '📄'; title = txt; }
+        return { title: title, icon: icon };
+    }
+    function hasUnsavedData(pageId) {
+        if (pageId === 'voucher-new') {
+            try {
+                var desc = document.getElementById('v-desc');
+                if (desc && desc.value && desc.value.trim()) return true;
+                if (typeof voucherLines !== 'undefined' && Array.isArray(voucherLines)) {
+                    var meaningful = voucherLines.filter(function (l) {
+                        if (!l) return false;
+                        if (l.account) return true;
+                        if (Number(l.debit) > 0) return true;
+                        if (Number(l.credit) > 0) return true;
+                        if (l.description && String(l.description).trim()) return true;
+                        return false;
+                    });
+                    return meaningful.length > 0;
+                }
+            } catch (e) {}
+        }
+        return false;
+    }
+    function clearFormData(pageId) {
+        if (pageId === 'voucher-new') {
+            try {
+                if (typeof newVoucherForm === 'function') newVoucherForm();
+            } catch (e) { console.warn('clearFormData error:', e); }
+        }
+    }
+
+    /* Tab Bar */
+    function ensureTabBar() {
+        var bar = document.getElementById('form-tabs-bar');
+        if (bar) return bar;
+        var topbar = document.querySelector('.topbar');
+        if (!topbar) return null;
+        bar = document.createElement('div');
+        bar.id = 'form-tabs-bar';
+        bar.className = 'form-tabs-bar';
+        bar.style.display = 'none';
+        topbar.parentNode.insertBefore(bar, topbar.nextSibling);
+        function setStickyTop() {
+            try { bar.style.top = topbar.offsetHeight + 'px'; } catch (e) {}
+        }
+        setStickyTop();
+        window.addEventListener('resize', setStickyTop);
+        return bar;
+    }
+    function renderTabs() {
+        var bar = ensureTabBar();
+        if (!bar) return;
+        if (TAB_STATE.tabs.length <= 1) {
+            bar.style.display = 'none';
+            return;
+        }
+        bar.style.display = '';
+        bar.innerHTML = '';
+
+        TAB_STATE.tabs.forEach(function (t) {
+            var tab = document.createElement('div');
+            tab.className = 'form-tab' + (t.id === TAB_STATE.active ? ' active' : '');
+            tab.dataset.page = t.id;
+            tab.title = t.title;
+
+            var icon = document.createElement('span');
+            icon.className = 'ft-icon';
+            icon.textContent = t.icon || '📄';
+
+            var title = document.createElement('span');
+            title.className = 'ft-title';
+            title.textContent = t.title || t.id;
+
+            tab.appendChild(icon);
+            tab.appendChild(title);
+
+            if (t.id !== 'home') {
+                var closeBtn = document.createElement('button');
+                closeBtn.type = 'button';
+                closeBtn.className = 'ft-close';
+                closeBtn.textContent = '×';
+                closeBtn.title = 'بستن این تب';
+                closeBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    closeTab(t.id);
+                });
+                tab.appendChild(closeBtn);
+            }
+
+            tab.addEventListener('click', function () {
+                if (TAB_STATE.active === t.id) return;
+                switchToTab(t.id);
+            });
+
+            bar.appendChild(tab);
+        });
+
+        setTimeout(function () {
+            var activeEl = bar.querySelector('.form-tab.active');
+            if (activeEl && activeEl.scrollIntoView) {
+                try { activeEl.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) {}
+            }
+        }, 30);
+    }
+    function switchToTab(pageId) {
+        var orig = window._origGoToPage;
+        if (typeof orig === 'function') orig(pageId);
+        TAB_STATE.active = pageId;
+        renderTabs();
+    }
+    function closeTab(pageId) {
+        if (pageId === 'home') return;
+        var idx = -1;
+        for (var i = 0; i < TAB_STATE.tabs.length; i++) {
+            if (TAB_STATE.tabs[i].id === pageId) { idx = i; break; }
+        }
+        if (idx === -1) return;
+
+        if (hasUnsavedData(pageId)) {
+            if (!confirm('این فرم داده‌های ذخیره‌نشده دارد.\n\nOK = بستن و از دست دادن داده‌ها\nCancel = انصراف')) return;
+            clearFormData(pageId);
+        }
+
+        var wasActive = TAB_STATE.active === pageId;
+        TAB_STATE.tabs.splice(idx, 1);
+
+        if (wasActive) {
+            var prevIdx = Math.min(idx - 1, TAB_STATE.tabs.length - 1);
+            if (prevIdx < 0) prevIdx = 0;
+            var prev = TAB_STATE.tabs[prevIdx];
+            if (prev) { switchToTab(prev.id); return; }
+        }
+        renderTabs();
+    }
+    function closeAllTabs() {
+        var nonHome = TAB_STATE.tabs.filter(function (t) { return t.id !== 'home'; });
+        if (nonHome.length === 0) {
+            if (typeof showToast === 'function') showToast('فرم بازی وجود ندارد');
+            return;
+        }
+        var anyDirty = false;
+        nonHome.forEach(function (t) { if (hasUnsavedData(t.id)) anyDirty = true; });
+
+        if (anyDirty) {
+            if (!confirm('بعضی فرم‌ها داده‌های ذخیره‌نشده دارند.\n\nOK = بستن همه و از دست دادن داده‌ها\nCancel = انصراف')) return;
+        }
+        nonHome.forEach(function (t) { clearFormData(t.id); });
+
+        TAB_STATE.tabs = [{ id: 'home', title: 'صفحه اصلی', icon: '🏠' }];
+        TAB_STATE.active = 'home';
+        switchToTab('home');
+        if (typeof showToast === 'function') showToast('🧹 همه فرم‌ها بسته شد');
+    }
+
+    /* Close-All Button */
+    function injectCloseAllButton() {
+        if (document.getElementById('close-all-forms-btn')) return true;
+        var searchBox = document.querySelector('.sidebar-search');
+        if (!searchBox) return false;
+
+        var wrap = document.createElement('div');
+        wrap.className = 'sidebar-close-all-wrap';
+        wrap.style.cssText = 'padding:8px 12px;border-bottom:1px solid var(--border)';
+
+        var btn = document.createElement('button');
+        btn.id = 'close-all-forms-btn';
+        btn.type = 'button';
+        btn.innerHTML = '🧹 بستن همه فرم‌ها';
+        btn.title = 'بستن همه تب‌های فرم بدون رفرش';
+        btn.style.cssText = [
+            'width:100%',
+            'padding:10px 14px',
+            'background:linear-gradient(135deg,#fee2e2,#fecaca)',
+            'color:#991b1b',
+            'border:1px solid #fca5a5',
+            'border-radius:10px',
+            'font-family:inherit',
+            'font-size:.82rem',
+            'font-weight:800',
+            'cursor:pointer',
+            'transition:transform .2s,box-shadow .2s'
+        ].join(';');
+
+        btn.addEventListener('mouseenter', function () {
+            btn.style.transform = 'translateY(-1px)';
+            btn.style.boxShadow = '0 6px 16px rgba(220,38,38,.2)';
+        });
+        btn.addEventListener('mouseleave', function () {
+            btn.style.transform = '';
+            btn.style.boxShadow = '';
+        });
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeAllTabs();
+        });
+
+        wrap.appendChild(btn);
+        searchBox.parentNode.insertBefore(wrap, searchBox.nextSibling);
+        return true;
+    }
+
+    /* Override goToPage */
+    function installGoToPageOverride() {
+        if (typeof window.goToPage !== 'function') return false;
+        if (window._origGoToPage) return true;
+        var orig = window.goToPage;
+        window._origGoToPage = orig;
+        window.goToPage = function (name) {
+            if (!name) return;
+            var exists = false;
+            for (var i = 0; i < TAB_STATE.tabs.length; i++) {
+                if (TAB_STATE.tabs[i].id === name) { exists = true; break; }
+            }
+            if (!exists) {
+                while (TAB_STATE.tabs.length >= TAB_STATE.max) {
+                    var toRemove = -1;
+                    for (var j = 1; j < TAB_STATE.tabs.length; j++) {
+                        if (TAB_STATE.tabs[j].id !== name && TAB_STATE.tabs[j].id !== TAB_STATE.active) {
+                            toRemove = j; break;
+                        }
+                    }
+                    if (toRemove === -1) break;
+                    TAB_STATE.tabs.splice(toRemove, 1);
+                }
+                var meta = getPageMeta(name);
+                TAB_STATE.tabs.push({ id: name, title: meta.title, icon: meta.icon });
+            }
+            TAB_STATE.active = name;
+            renderTabs();
+            return orig.apply(this, arguments);
+        };
+        return true;
+    }
+
+    /* Init */
+    function init14() {
+        var tries = 0;
+        var interval = setInterval(function () {
+            tries++;
+            var ok1 = installGoToPageOverride();
+            var ok2 = injectCloseAllButton();
+            var ok3 = !!ensureTabBar();
+            if ((ok1 && ok2 && ok3) || tries > 20) {
+                clearInterval(interval);
+                renderTabs();
+            }
+        }, 300);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () { setTimeout(init14, 500); });
+    } else {
+        setTimeout(init14, 500);
+    }
+
+    window.closeAllTabs = closeAllTabs;
+})();
+
+/* =====================================================================
+   ============ ۱۷) Observer مشترک برای جداول جدید ============
+   (فیلترها + مرتب‌سازی سراسری)
+   ===================================================================== */
+(function () {
+    function init() {
+        attachFilterRowsToAllTables();
+        if (window._enhanceGlobalSorting) window._enhanceGlobalSorting();
+
+        var observer = new MutationObserver(function (mutations) {
+            var needsRefresh = false;
+            for (var i = 0; i < mutations.length; i++) {
+                var m = mutations[i];
+                if (m.type !== 'childList') continue;
+                var t = m.target;
+                if (t && t.tagName === 'TBODY') { needsRefresh = true; break; }
+                if (t && t.querySelector) {
+                    if (t.querySelector('table.data-table, table.report-table, table.cf-table')) {
+                        needsRefresh = true; break;
+                    }
+                }
+            }
+            if (needsRefresh) setTimeout(function () {
+                attachFilterRowsToAllTables();
+                if (window._enhanceGlobalSorting) window._enhanceGlobalSorting();
+            }, 80);
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+
+        setInterval(function () {
+            var tables = document.querySelectorAll('table.data-table, table.report-table, table.cf-table');
+            tables.forEach(function (t) {
+                if (!t.id) return;
+                var hasRow = t.querySelector('thead tr.column-filter-row');
+                if (!hasRow) buildFilterRow(t);
+                if (COLUMN_FILTERS[t.id]) applyColumnFiltersToTable(t.id);
+            });
+        }, 900);
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 900); });
+    } else {
+        setTimeout(init, 900);
+    }
+})();
