@@ -63,6 +63,7 @@ function bindSettingsButtons() {
         document.getElementById('settings-modal').classList.add('show');
         document.getElementById('settings-overlay').classList.add('show');
         renderWidgetOrderUI();
+        renderDashboardOrderUI();
         var aboutEl = document.getElementById('about-version');
         if (aboutEl) aboutEl.textContent = APP_NAME + ' — نسخه ' + toFa(APP_VERSION) + ' (PWA)';
     });
@@ -515,8 +516,11 @@ function bindVoucherForm() {
     });
     document.getElementById('save-as-template').addEventListener('click', saveVoucherAsTemplate);
     document.getElementById('goto-templates').addEventListener('click', function() { goToPage('templates'); });
-    document.getElementById('vl-period-filter').addEventListener('change', renderVoucherList);
-    document.getElementById('vlist-search').addEventListener('input', renderVoucherList);
+    // ★ دیگر نیازی به vl-period-filter و vlist-search نیست چون حذف شده‌اند
+    var vpf = document.getElementById('vl-period-filter');
+    if (vpf) vpf.addEventListener('change', renderVoucherList);
+    var vsrch = document.getElementById('vlist-search');
+    if (vsrch) vsrch.addEventListener('input', renderVoucherList);
 }
 
 /* ==================== Template form ==================== */
@@ -616,6 +620,14 @@ function bindReportButtons() {
     document.getElementById('cfd-print').addEventListener('click', function() { printHtmlReport('#cfd-result', 'گردش وجه نقد'); });
     document.getElementById('cfd-export').addEventListener('click', function() { exportReportTable('#cfd-result', 'cash-flow-by-desc'); });
 
+    /* ★ گزارش مقایسه‌ای (جدید) */
+    var rcRunBtn = document.getElementById('rc-run');
+    if (rcRunBtn) rcRunBtn.addEventListener('click', runComparisonReport);
+    var rcPrintBtn = document.getElementById('rc-print');
+    if (rcPrintBtn) rcPrintBtn.addEventListener('click', function() { printHtmlReport('#rc-result', 'گزارش مقایسه‌ای دوره‌ها'); });
+    var rcExportBtn = document.getElementById('rc-export');
+    if (rcExportBtn) rcExportBtn.addEventListener('click', function() { exportReportTable('#rc-result', 'comparison-report'); });
+
     /* Rates */
     document.getElementById('rr-run').addEventListener('click', runRatesReport);
     document.getElementById('rr-print').addEventListener('click', function() { printHtmlReport('#rr-result', 'گزارش نرخ ارز و طلا'); });
@@ -674,7 +686,6 @@ function bindReportButtons() {
         state.reportExpandedNodes = nodes;
         if (window._renderAccountReportTree) window._renderAccountReportTree();
     });
-    document.getElementById('cfd-export').addEventListener('click', function() { exportReportTable('#cfd-result', 'cash-flow-by-desc'); });
 }
 
 /* ==================== Modals close ==================== */
@@ -866,6 +877,18 @@ function init() {
         updateTopbarPeriod();
     }, 60000);
 
+    /* ★ بازه‌های پیش‌فرض گزارش مقایسه‌ای */
+    (function initCompareDefaults() {
+        var f1 = document.getElementById('rc-from1');
+        if (!f1) return;
+        var t = todayJalaliStr();
+        var y = t.split('/')[0];
+        f1.value = y + '/01/01';
+        document.getElementById('rc-to1').value   = y + '/06/31';
+        document.getElementById('rc-from2').value = y + '/07/01';
+        document.getElementById('rc-to2').value   = t;
+    })();
+
     /* فرم سند جدید */
     newVoucherForm();
     attachDatePickers();
@@ -903,7 +926,10 @@ function init() {
     renderEstimateItems();
     autoAttachReportHelpers();
 
-    console.log('🎉 ' + APP_NAME + ' v' + APP_VERSION + ' — آماده است. (۹ ماژول بارگذاری شد)');
+    /* ★ ساخت دکمه‌های اشتراک‌گذاری */
+    if (typeof buildShareButtons === 'function') setTimeout(buildShareButtons, 300);
+
+    console.log('🎉 ' + APP_NAME + ' v' + APP_VERSION + ' — آماده است. (۹ ماژول بارگذاری شد + پچ‌ها)');
 }
 
 /* ==================== Start ==================== */
