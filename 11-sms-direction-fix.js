@@ -1,7 +1,7 @@
 /* =====================================================================
-   پارسیس v27 — 11-sms-direction-fix.js
+   پارسیس v27 — 11-sms-direction-fix.js (v2)
    رفع باگ جهت تراکنش در پیامک‌ها:
-   - علامت + و - کنار مبلغ، اولویت مطلق دارد
+   - علامت + و - کنار مبلغ (قبل یا بعد) اولویت مطلق دارد
    - الگوها با علامت ذخیره می‌شوند (برداشت و واریز جدا)
    - جهت هر پیامک لحظه‌ای از متن استخراج می‌شود
    - فرم پیامک‌های ثبت‌نشده بازطراحی شد
@@ -11,13 +11,11 @@
 /* ==================== CSS درون‌خطی ==================== */
 (function () {
     var css = ''
-    /* کارت */
     + '.pending-sms-card{border:1px solid var(--border);border-radius:16px;padding:0;'
     + 'margin-bottom:14px;background:var(--card);overflow:hidden;'
     + 'box-shadow:0 4px 16px rgba(15,23,42,0.06)}'
     + '.pending-sms-card.psm-new{border-right:5px solid #c47c00}'
     + '.pending-sms-card.psm-forced{border-right:5px solid #f59e0b}'
-    /* هدر */
     + '.psm-head{padding:12px 16px;background:var(--card-alt);'
     + 'border-bottom:1px solid var(--border);display:flex;justify-content:space-between;'
     + 'align-items:center;gap:10px;flex-wrap:wrap}'
@@ -25,7 +23,6 @@
     + '.psm-head .meta{font-size:.72rem;color:var(--text-muted)}'
     + '.psm-head .badge{background:#fef3c7;color:#92400e;padding:2px 9px;'
     + 'border-radius:9px;font-size:.66rem;font-weight:800;margin-right:6px}'
-    /* متن پیامک - collapsible */
     + '.psm-text-wrap{border-bottom:1px solid var(--border)}'
     + '.psm-text-toggle{padding:10px 16px;background:var(--card-alt);'
     + 'font-size:.78rem;font-weight:700;color:var(--primary-dark);cursor:pointer;'
@@ -38,9 +35,7 @@
     + 'line-height:1.9;color:var(--text);max-height:200px;overflow-y:auto;display:none;'
     + 'border-top:1px dashed var(--border)}'
     + '.psm-text-body.show{display:block}'
-    /* بدنه فرم */
     + '.psm-body{padding:16px}'
-    /* دکمه‌های بزرگ جهت */
     + '.psm-dir-box{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}'
     + '.psm-dir-btn{padding:16px 10px;border:2px solid var(--border);border-radius:14px;'
     + 'background:var(--card-solid);cursor:pointer;font-family:inherit;font-size:1rem;'
@@ -53,7 +48,6 @@
     + 'border-color:#059669;color:#065f46;box-shadow:0 6px 20px rgba(5,150,105,.25)}'
     + '.psm-dir-btn.active-out{background:linear-gradient(135deg,#fee2e2,#fecaca);'
     + 'border-color:#dc2626;color:#991b1b;box-shadow:0 6px 20px rgba(220,38,38,.25)}'
-    /* فیلدها */
     + '.psm-field{margin-bottom:12px}'
     + '.psm-field label{display:block;font-size:.76rem;font-weight:800;'
     + 'color:var(--text-muted);margin-bottom:5px}'
@@ -65,7 +59,6 @@
     + '.psm-field input.amount-input{text-align:center;direction:ltr;'
     + 'font-variant-numeric:tabular-nums;font-weight:800;font-size:1.05rem;letter-spacing:.5px}'
     + '.psm-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}'
-    /* اکشن‌ها */
     + '.psm-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;'
     + 'padding:12px 16px;background:var(--card-alt);border-top:1px solid var(--border)}'
     + '.psm-actions button{padding:11px 18px;border:none;border-radius:11px;'
@@ -85,44 +78,50 @@
 })();
 
 /* ==================== هسته تشخیص علامت ==================== */
+
+/**
+ * تجزیه یک رشته شامل عدد و علامت اختیاری (قبل یا بعد)
+ * "12,868,300+"  → { amount: 12868300, sign: '+' }
+ * "+500,000"      → { amount: 500000, sign: '+' }
+ * "-300,000"      → { amount: 300000, sign: '-' }
+ * "1,200,000"     → { amount: 1200000, sign: '' }
+ */
+function parseSignNumber(str) {
+    var s = String(str).replace(/\s+/g, '').trim();
+    var sign = '';
+    if (s.charAt(0) === '+') { sign = '+'; s = s.slice(1); }
+    else if (s.charAt(0) === '-') { sign = '-'; s = s.slice(1); }
+    if (!sign && s.charAt(s.length - 1) === '+') { sign = '+'; s = s.slice(0, -1); }
+    else if (!sign && s.charAt(s.length - 1) === '-') { sign = '-'; s = s.slice(0, -1); }
+    var num = Number(s.replace(/,/g, ''));
+    return { amount: (isFinite(num) && num > 0) ? num : 0, sign: sign };
+}
+
 /**
  * استخراج مبلغ با علامتش از متن پیامک
- * اولویت: علامت چسبیده به عدد مهم‌ترین است
+ * علامت می‌تواند قبل یا بعد از عدد باشد
  */
 function extractAmountWithSign(text) {
-    var t = normalizeDigits(String(text || ''));
+    var t = normalizeDigits(String(text || ''))
+        .replace(/[−–—]/g, '-')
+        .replace(/[＋]/g, '+');
 
-    // اول: الگوهای صریح با کلمه‌ی راهنما
-    var patterns = [
-        /مبلغ\s*[:ـ]?\s*([+\-−]?\s*[\d][\d,]*)/,
-        /(?:انتقالي|انتقالی)\s*[:ـ]?\s*([+\-−]?\s*[\d][\d,]*)/,
-        /(?:واریز|برداشت|خرید|پرداخت|افزایش|کسر)\s*[:ـ]?\s*([+\-−]?\s*[\d][\d,]*)/,
-        /([+\-−])\s*([\d]{1,3}(?:,[\d]{3})+)/
-    ];
-
-    for (var i = 0; i < patterns.length; i++) {
-        var m = t.match(patterns[i]);
-        if (!m) continue;
-        var raw, sign = '';
-        if (m.length >= 3 && (m[1] === '+' || m[1] === '-' || m[1] === '−')) {
-            // گروه ۱ علامت، گروه ۲ عدد
-            sign = m[1] === '−' ? '-' : m[1];
-            raw = m[2];
-        } else {
-            raw = String(m[1]).replace(/\s+/g, '');
-            if (raw.charAt(0) === '+') { sign = '+'; raw = raw.slice(1); }
-            else if (raw.charAt(0) === '-' || raw.charAt(0) === '−') { sign = '-'; raw = raw.slice(1); }
-        }
-        var num = Number(String(raw).replace(/,/g, ''));
-        if (num > 0) return { amount: num, sign: sign };
+    // ۱) الگوی «کلمه راهنما + عدد با علامت اختیاری در هر طرف»
+    var labeled = t.match(/(?:انتقالي|انتقالی|مبلغ|برداشت|واریز|خرید|پرداخت|افزایش|کسر|موجودي|موجودی|حقوق|قسط)\s*[:ـ]?\s*([+\-]?\s*[\d][\d,]*(?:\s*[+\-])?)/);
+    if (labeled) {
+        var res = parseSignNumber(labeled[1]);
+        if (res.amount > 0) return res;
     }
 
-    // Fallback: هر عدد بزرگ با علامتش
-    var m2 = t.match(/([+\-−])\s*([\d]{1,3}(?:,[\d]{3})+)/);
-    if (m2) {
-        var sign2 = m2[1] === '−' ? '-' : m2[1];
-        return { amount: Number(m2[2].replace(/,/g, '')), sign: sign2 };
-    }
+    // ۲) عدد با علامت در ابتدا
+    var m1 = t.match(/([+\-])\s*([\d]{1,3}(?:,[\d]{3})+)/);
+    if (m1) return { amount: Number(m1[2].replace(/,/g, '')), sign: m1[1] };
+
+    // ۳) عدد با علامت در انتها (حالت پیامک بانک ملی)
+    var m2 = t.match(/([\d]{1,3}(?:,[\d]{3})+)\s*([+\-])/);
+    if (m2) return { amount: Number(m2[1].replace(/,/g, '')), sign: m2[2] };
+
+    // ۴) عدد بدون علامت (fallback)
     var m3 = t.match(/([\d]{1,3}(?:,[\d]{3})+)/);
     if (m3) return { amount: Number(m3[1].replace(/,/g, '')), sign: '' };
 
@@ -130,10 +129,10 @@ function extractAmountWithSign(text) {
 }
 
 /**
- * تشخیص جهت از متن — با اولویت مطلق علامت
+ * تشخیص جهت از متن — با اولویت مطلق علامت (قبل یا بعد)
  */
 function detectSmsDirection(text, amount) {
-    var t = normalizeDigits(String(text || ''));
+    var t = normalizeDigits(String(text || '')).replace(/[−–—]/g, '-');
 
     // مرحله ۰ (اولویت مطلق): علامت کنار مبلغ
     var amtRes = extractAmountWithSign(t);
@@ -141,34 +140,37 @@ function detectSmsDirection(text, amount) {
     if (amtRes.sign === '-') return 'out';
 
     // مرحله ۱: عبارت‌های صریح با حرف اضافه
-    if (/واریز\s*به/.test(t))         return 'in';
-    if (/برداشت\s*از/.test(t))        return 'out';
-    if (/پرداخت\s*از/.test(t))        return 'out';
-    if (/انتقال\s*به\s*حساب/.test(t)) return 'in';
-    if (/انتقال\s*از\s*حساب/.test(t)) return 'out';
-    if (/انتقال\s*به/.test(t))        return 'in';
-    if (/انتقال\s*از/.test(t))        return 'out';
-    if (/افزایش\s*موجودی/.test(t))    return 'in';
-    if (/کسر\s*از/.test(t))           return 'out';
-    if (/دریافت\s*از/.test(t))        return 'in';
+    if (/واریز\s*به/.test(t))          return 'in';
+    if (/برداشت\s*از/.test(t))         return 'out';
+    if (/پرداخت\s*از/.test(t))         return 'out';
+    if (/انتقال\s*به\s*حساب/.test(t))  return 'in';
+    if (/انتقال\s*از\s*حساب/.test(t))  return 'out';
+    if (/انتقال\s*به/.test(t))         return 'in';
+    if (/انتقال\s*از/.test(t))         return 'out';
+    if (/افزایش\s*موجودی/.test(t))     return 'in';
+    if (/کسر\s*از/.test(t))            return 'out';
+    if (/دریافت\s*از/.test(t))         return 'in';
+    if (/بستانکار/.test(t) && !/بدهکار/.test(t)) return 'in';
+    if (/بدهکار/.test(t) && !/بستانکار/.test(t)) return 'out';
 
     // مرحله ۲: کلمه‌های خالی
-    if (/واریز/.test(t))              return 'in';
-    if (/برداشت/.test(t))             return 'out';
-    if (/دریافت/.test(t))             return 'in';
-    if (/افزایش/.test(t))             return 'in';
-    if (/کسر/.test(t))                return 'out';
-    if (/خرید/.test(t))               return 'out';
-    if (/حقوق/.test(t))               return 'in';
-    if (/قسط/.test(t))                return 'out';
+    if (/واریز/.test(t))               return 'in';
+    if (/برداشت/.test(t))              return 'out';
+    if (/دریافت/.test(t))              return 'in';
+    if (/افزایش/.test(t))              return 'in';
+    if (/کسر/.test(t))                 return 'out';
+    if (/خرید/.test(t))                return 'out';
+    if (/حقوق/.test(t))                return 'in';
+    if (/قسط/.test(t))                 return 'out';
 
     // مرحله ۳: پرداخت مبهم
-    if (/پرداخت/.test(t))             return 'out';
+    if (/پرداخت/.test(t))              return 'out';
 
-    // نکته: "انتقالی" و "انتقال" تنها مبهم هستند — به علامت اعتماد می‌کنیم که در مرحله ۰ چک شد
     return '';
 }
 window.detectSmsDirection = detectSmsDirection;
+window.extractAmountWithSign = extractAmountWithSign;
+window.parseSignNumber = parseSignNumber;
 
 /* ==================== ساخت الگو با علامت ==================== */
 function buildSmsPattern(raw) {
@@ -291,7 +293,7 @@ window.convertSmsToVoucher = function (smsId) {
     var bankAccountId = p.matchedAccountId || '';
     var patternLabel = '';
 
-    // ⚠️ اولویت ۱: علامت کنار مبلغ در متن
+    // ⚠️ اولویت ۱: علامت کنار مبلغ (قبل یا بعد)
     var amtRes = extractAmountWithSign(raw);
     if (amtRes.amount > 0 && amtRes.sign) {
         amount = amtRes.amount;
@@ -349,6 +351,9 @@ window.convertSmsToVoucher = function (smsId) {
     var bankMoein = getBankMoeinId();
     if (!bankMoein) { alert('⚠️ معین بانک تعریف نشده.'); return; }
 
+    // ⚠️ منطق حسابداری:
+    //   واریز (in)   → بانک بدهکار (money enters bank)
+    //   برداشت (out) → بانک بستانکار (money leaves bank)
     var bankDetail = { bank: bankAccountId };
     var lines = [];
     if (direction === 'out') {
@@ -420,9 +425,8 @@ function renderPendingSmsBox() {
         var s = p.suggestion || {};
         var pid = p.id;
 
-        // تشخیص لحظه‌ای جهت از متن خام — این مهم‌ترین قسمت است
+        // تشخیص لحظه‌ای جهت از متن خام
         var liveDir = detectSmsDirection(p.raw, s.amount);
-        // اگه از متن تشخیص داده شد، به پیشنهاد اولویت بده
         var effectiveDir = liveDir || s.direction || '';
         var liveAmt = extractAmountWithSign(p.raw);
 
@@ -430,7 +434,7 @@ function renderPendingSmsBox() {
         var accountOpts = '<option value="">— انتخاب حساب —</option>';
         for (var a = 0; a < accounts.length; a++) {
             var acc = accounts[a];
-            var sel = (s.linkedAccountId === acc.id || liveAmt.accountId === acc.id) ? ' selected' : '';
+            var sel = (s.linkedAccountId === acc.id) ? ' selected' : '';
             accountOpts += '<option value="' + acc.id + '"' + sel + '>' +
                 esc((acc.bank || '') + ' — ' + (acc.account || '')) + '</option>';
         }
@@ -440,7 +444,6 @@ function renderPendingSmsBox() {
         var forcedBadge = p.forced ? '<span class="badge">دستی</span>' : '';
         var meta = '📅 ' + toFa(tsToJalaliDate(p.createdAt)) + ' — ' + toFa(tsToJalaliTime(p.createdAt));
 
-        // اگه جهت خودکار تشخیص داده شد، یه راهنما نشون بده
         var autoHint = '';
         if (liveDir && (!s.direction || s.direction !== liveDir)) {
             autoHint = liveDir === 'in'
@@ -449,19 +452,15 @@ function renderPendingSmsBox() {
         }
 
         html += '<div class="pending-sms-card psm-new" data-pid="' + pid + '">'
-            // هدر
             +   '<div class="psm-head">'
             +     '<div><div class="title">🔔 پیامک جدید' + forcedBadge + autoHint + '</div>'
             +     '<div class="meta">' + esc(meta) + '</div></div>'
             +   '</div>'
-            // متن پیامک (collapsible)
             +   '<div class="psm-text-wrap">'
             +     '<div class="psm-text-toggle" data-toggle="text"><span>📄 متن پیامک</span><span class="arrow">◀</span></div>'
             +     '<div class="psm-text-body">' + esc(p.raw) + '</div>'
             +   '</div>'
-            // فرم
             +   '<div class="psm-body">'
-            // دو دکمه بزرگ
             +     '<div class="psm-dir-box">'
             +       '<button type="button" class="psm-dir-btn' + clsIn + '" data-dir="in" data-pid="' + pid + '">'
             +         '<span class="icon">📥</span><span class="lbl">واریز</span></button>'
@@ -469,30 +468,25 @@ function renderPendingSmsBox() {
             +         '<span class="icon">📤</span><span class="lbl">برداشت</span></button>'
             +     '</div>'
             +     '<input type="hidden" data-field="direction" value="' + effectiveDir + '">'
-            // مبلغ
             +     '<div class="psm-field">'
             +       '<label>💰 مبلغ (ریال)</label>'
             +       '<input type="text" class="amount-input" inputmode="numeric" dir="ltr" data-field="amount" value="' + (liveAmt.amount || s.amount ? formatRaw(liveAmt.amount || s.amount) : '') + '">'
             +     '</div>'
-            // حساب
             +     '<div class="psm-field">'
             +       '<label>🏦 حساب بانکی</label>'
             +       '<select data-field="account">' + accountOpts + '</select>'
             +     '</div>'
-            // تاریخ و شرح
             +     '<div class="psm-row-2">'
             +       '<div class="psm-field"><label>📅 تاریخ</label>'
             +         '<input type="text" dir="ltr" class="date-picker" data-field="date" value="' + esc(s.date || todayJalaliStr()) + '"></div>'
             +       '<div class="psm-field"><label>📝 شرح</label>'
             +         '<input type="text" data-field="desc" value="' + esc(s.description || '') + '"></div>'
             +     '</div>'
-            // نام الگو
             +     '<div class="psm-field">'
             +       '<label>🏷 نام الگو (برای شناسایی خودکار)</label>'
             +       '<input type="text" data-field="label" value="' + esc(suggestLabel(p.raw, s.bankName, effectiveDir)) + '">'
             +     '</div>'
             +   '</div>'
-            // اکشن‌ها
             +   '<div class="psm-actions">'
             +     '<button class="psm-btn-primary" data-action="save-with-voucher" data-id="' + pid + '">✅ ثبت + ساخت سند</button>'
             +     '<button class="psm-btn-secondary" data-action="save-pattern-only" data-id="' + pid + '">🧠 فقط ثبت الگو</button>'
@@ -510,7 +504,6 @@ window.renderPendingSmsBox = renderPendingSmsBox;
 
 /* ==================== رویدادهای فرم جدید ==================== */
 function bindPendingEventsNew(box) {
-    // toggle متن پیامک
     box.querySelectorAll('.psm-text-toggle').forEach(function (t) {
         t.addEventListener('click', function () {
             var body = this.nextElementSibling;
@@ -520,24 +513,20 @@ function bindPendingEventsNew(box) {
         });
     });
 
-    // دکمه‌های جهت
     box.querySelectorAll('.psm-dir-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
             var card = this.closest('.pending-sms-card');
             if (!card) return;
             var dir = this.getAttribute('data-dir');
-            // حذف کلاس‌های قبلی
             card.querySelectorAll('.psm-dir-btn').forEach(function (b) {
                 b.classList.remove('active-in', 'active-out');
             });
             this.classList.add(dir === 'in' ? 'active-in' : 'active-out');
-            // ذخیره در hidden input
             var hidden = card.querySelector('[data-field="direction"]');
             if (hidden) hidden.value = dir;
         });
     });
 
-    // مبلغ فقط رقم
     box.querySelectorAll('[data-field="amount"]').forEach(function (inp) {
         inp.addEventListener('input', function () {
             this.value = normalizeDigits(this.value).replace(/[^\d]/g, '');
@@ -548,7 +537,6 @@ function bindPendingEventsNew(box) {
         });
     });
 
-    // اکشن‌ها
     box.querySelectorAll('[data-action]').forEach(function (btn) {
         btn.addEventListener('click', function () {
             var action = this.getAttribute('data-action');
@@ -587,7 +575,6 @@ function savePendingAsPatternNew(pid, withVoucher) {
     if (!labelStr.trim()) { alert('⚠️ نام الگو اجباری است.'); return; }
     if (withVoucher && !accountId) { alert('⚠️ برای ساخت سند، حساب بانکی را انتخاب کنید.'); return; }
 
-    // ساخت الگو با فرمت جدید (شامل علامت)
     var built = buildSmsPattern(pending.raw);
     var amountSlot = null;
     for (var slot in built.mapping) {
@@ -606,7 +593,6 @@ function savePendingAsPatternNew(pid, withVoucher) {
         linkedAccountId: accountId
     });
 
-    // اضافه به صندوق
     if (typeof addSmsToInbox === 'function') {
         var res = addSmsToInbox(pending.raw, 'learned');
         if (res.ok && typeof getSmsInbox === 'function' && typeof saveSmsInbox === 'function') {
@@ -623,7 +609,6 @@ function savePendingAsPatternNew(pid, withVoucher) {
         }
     }
 
-    // ساخت سند
     if (withVoucher) {
         createVoucherFromPending({
             bankAccountId: accountId,
@@ -660,21 +645,15 @@ window.migrateSmsPatternsToV2 = function () {
 /* ==================== Init ==================== */
 (function () {
     function init() {
-        // بررسی نیاز به migration
         var patterns = loadSmsPatterns();
-        var needsMigrate = patterns.some(function (p) {
-            return p.tokens && p.tokens.some(function (t) { return typeof t === 'string' && t.charAt(0) === '#' && !p.migratedToV2; });
-        });
-        // نمایش راهنما در کنسول
         if (patterns.length > 0 && !localStorage.getItem('parsis.sms.v2Migrated')) {
             console.log('⚠️ توجه: الگوهای SMS قدیمی با فرمت جدید سازگار نیستند.');
             console.log('   برای پاک کردن: window.migrateSmsPatternsToV2()');
         }
 
-        // رندر مجدد باکس با فرم جدید
         if (typeof renderPendingSmsBox === 'function') renderPendingSmsBox();
 
-        console.log('✨ 11-sms-direction-fix.js loaded — sign-priority direction detection');
+        console.log('✨ 11-sms-direction-fix.js v2 loaded — sign-before-AND-after detection');
     }
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 700); });
