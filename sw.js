@@ -1,7 +1,7 @@
-// Service Worker پارسیس — v28
+// Service Worker پارسیس — v32 (نسخه ادغام‌شده)
 // Network-First برای HTML، Cache-First برای منابع ثابت
 
-var CACHE_NAME = 'parsis-v31';
+var CACHE_NAME = 'parsis-v32-merged';
 var ASSETS = [
   './index.html',
   './manifest.json',
@@ -12,16 +12,9 @@ var ASSETS = [
   './04-vouchers,estimates,sources,facilities,installments.js',
   './05-reports,cashflow,account,trial,incomplete,facility.js',
   './06-widgets,dashboard,rates,close,sms.js',
-  './06b-sms-patterns.js',
-  './06c-sms-patterns-fixes.js',
   './07-notes,images,checklist,share,view.js',
   './08-ai,assistant,tts,tools,vision,voice.js',
-  './09-settings,backup,restore,reset,init.js',
-  './10-enhancements.js',
-  './11-sms-direction-fix.js',
-  './12-advanced-features.js',
-  './13-filter-toggle.js',
-  './14-close-all.js'  
+  './09-settings,backup,restore,reset,init.js'
 ];
 
 self.addEventListener('install', function(event) {
