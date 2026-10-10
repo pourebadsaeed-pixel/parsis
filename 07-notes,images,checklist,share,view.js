@@ -436,19 +436,24 @@ async function openNoteView(noteId) {
         closeNoteView();
         showToast(l.find(function(x) { return x.id === n.id; }).archived ? '📦 به آرشیو رفت' : '↩ از آرشیو خارج شد');
     };
+    /* ★ اصلاح‌شده طبق درخواست ۶: ویرایش از ویجت چک‌لیست به فرم می‌رود */
     document.getElementById('noteview-edit').onclick = function() {
         closeNoteView();
+        goToPage('notes');
         var note = DB.load('notes', []).find(function(x) { return x.id === n.id; });
         if (!note) return;
-        document.getElementById('nt-id').value = note.id;
-        document.getElementById('nt-title').value = note.title || '';
-        document.getElementById('nt-date').value = note.date || '';
-        document.getElementById('nt-content').value = note.content || '';
-        noteChecklist = JSON.parse(JSON.stringify(note.checklist || []));
-        noteImageRefs = (note.imageRefs || []).slice();
-        renderNoteChecklist();
-        renderNoteImages();
-        document.querySelector('[data-tab="notes-add"]').click();
+        setTimeout(function() {
+            document.getElementById('nt-id').value = note.id;
+            document.getElementById('nt-title').value = note.title || '';
+            document.getElementById('nt-date').value = note.date || '';
+            document.getElementById('nt-content').value = note.content || '';
+            noteChecklist = JSON.parse(JSON.stringify(note.checklist || []));
+            noteImageRefs = (note.imageRefs || []).slice();
+            renderNoteChecklist();
+            renderNoteImages();
+            var addTab = document.querySelector('[data-tab="notes-add"]');
+            if (addTab) addTab.click();
+        }, 150);
     };
     document.getElementById('noteview-share').onclick = function() {
         var list = (n.checklist || []).filter(function(c) { return c.text && c.text.trim(); });
