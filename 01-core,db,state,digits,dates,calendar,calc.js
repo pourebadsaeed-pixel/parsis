@@ -197,12 +197,19 @@ function tsToJalaliDate(ts) { var d = new Date(ts); var j = toJalali(d.getFullYe
 function tsToJalaliTime(ts) { var d = new Date(ts); return pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
 function getJalaliMonthName(m) { return JALALI_MONTHS[m - 1] || ''; }
 
+/* ★ اصلاح‌شده طبق درخواست ۱: نمایش ترکیبی شمسی/میلادی در یک خط */
 function updateDateDisplay() {
     var d = new Date();
     var j = toJalali(d.getFullYear(), d.getMonth() + 1, d.getDate());
-    var el1 = document.getElementById('date-jalali'), el2 = document.getElementById('date-gregorian');
-    if (el1) el1.textContent = WEEKDAYS_FA[d.getDay()] + ' ' + toFa(j[2]) + ' ' + JALALI_MONTHS[j[1] - 1] + ' ' + toFa(j[0]);
-    if (el2) el2.textContent = GREG_MONTHS[d.getMonth()] + ' ' + toFa(d.getDate()) + '، ' + toFa(d.getFullYear());
+    var el1 = document.getElementById('date-jalali');
+    if (el1) {
+        el1.textContent = WEEKDAYS_FA[d.getDay()] + ' ' +
+            toFa(j[2]) + ' ' + JALALI_MONTHS[j[1] - 1] + ' ' + toFa(j[0]) +
+            ' مصادف با ' +
+            d.getDate() + ' ' + GREG_MONTHS[d.getMonth()] + ' ' + d.getFullYear();
+    }
+    var el2 = document.getElementById('date-gregorian');
+    if (el2) el2.textContent = '';
 }
 
 /* ==================== تقویم شمسی ==================== */
