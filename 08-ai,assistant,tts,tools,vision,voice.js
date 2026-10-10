@@ -11,6 +11,8 @@
      • System prompt تقویت‌شده با هشدار context
      • دکمه 🔄 بروزرسانی Context در هدر AI
      • Cache کردن context در هر پیام (سرعت بهتر)
+     • ★ TTS: Gemini 3.8 Flash TTS برای تلفظ فارسی طبیعی‌تر
+     • ★ دیکشنری تلفظ آوایی برای اسامی لاتین
    ===================================================================== */
 'use strict';
 
@@ -31,6 +33,65 @@ var AVALAI_MODELS = [
 ];
 var VISION_MODEL_IDS = ['gpt-4o-mini','gpt-4o','gpt-4.1-mini','gpt-4.1','gemini-2.0-flash','gemini-1.5-flash','gemini-1.5-pro','claude-3-5-sonnet-20241022'];
 
+/* ★ مدل‌های TTS — Gemini برای تلفظ فارسی طبیعی‌تر */
+var TTS_MODELS = [
+    { id: 'gemini-3.8-flash-tts',      label: 'Gemini 3.8 Flash TTS (طبیعی‌ترین صدا)' },
+    { id: 'gemini-3.8-flash-lite-tts', label: 'Gemini 3.8 Flash Lite TTS (سریع‌تر)' },
+    { id: 'gemini-2.5-pro-tts',        label: 'Gemini 2.5 Pro TTS (کیفیت بالا)' },
+    { id: 'gpt-audio-1.5',             label: 'GPT-Audio 1.5 (جایگزین)' },
+    { id: 'tts-1',                     label: 'OpenAI tts-1 (قدیمی)' },
+    { id: 'tts-1-hd',                  label: 'OpenAI tts-1-hd (قدیمی، کیفیت بالاتر)' }
+];
+/* ★ صداهای Gemini (برای TTS جدید) */
+var TTS_VOICES_GEMINI = [
+    { id: 'Kore',    label: 'Kore — زن، طبیعی (پیشنهاد برای فارسی)' },
+    { id: 'Aoede',   label: 'Aoede — زن، آرام' },
+    { id: 'Puck',    label: 'Puck — مرد، پرانرژی' },
+    { id: 'Charon',  label: 'Charon — مرد، عمیق' },
+    { id: 'Fenrir',  label: 'Fenrir — مرد، جدی' },
+    { id: 'Leda',    label: 'Leda — زن، گرم' },
+    { id: 'Orus',    label: 'Orus — مرد، خنثی' },
+    { id: 'Zephyr',  label: 'Zephyr — زن، روشن' }
+];
+/* ★ صداهای OpenAI (برای مدل‌های قدیمی) */
+var TTS_VOICES_OPENAI = [
+    { id: 'nova',    label: 'Nova — زن، گرم و طبیعی' },
+    { id: 'shimmer', label: 'Shimmer — زن، نرم و آرام' },
+    { id: 'alloy',   label: 'Alloy — خنثی' },
+    { id: 'echo',    label: 'Echo — مرد، جدی' },
+    { id: 'onyx',    label: 'Onyx — مرد، عمیق' },
+    { id: 'fable',   label: 'Fable — بریتانیایی' }
+];
+
+/* ★ دیکشنری تلفظ آوایی — برای جایگزینی نام‌های لاتین با معادل فارسی */
+var AI_PRONUNCIATION_DICT = {
+    'amini': 'اَمینی',
+    'reza': 'رِضا',
+    'mohammad': 'مُحَمَّد',
+    'mohammed': 'مُحَمَّد',
+    'hossein': 'حُسِین',
+    'hosein': 'حُسِین',
+    'hasan': 'حَسَن',
+    'ali': 'عَلی',
+    'omid': 'اُمید',
+    'saeed': 'سَعید',
+    'saeid': 'سَعید',
+    'maryam': 'مَریَم',
+    'zahra': 'زَهرا',
+    'fatemeh': 'فاطِمِه',
+    'fatima': 'فاطِمِه',
+    'karimi': 'کَریمی',
+    'rahimi': 'رَحیمی',
+    'moradi': 'مُرادی',
+    'jafari': 'جَعفَری',
+    'sadeghi': 'صادِقی',
+    'ahmadi': 'اَحمَدی',
+    'hosseini': 'حُسِینی',
+    'najafi': 'نَجَفی',
+    'shirazi': 'شیرازی',
+    'tehrani': 'تِهرانی'
+};
+
 var AI_NAVIGABLE_PAGES = {
     'home': 'صفحه اصلی', 'dashboard': 'داشبورد مالی', 'voucher-list': 'فهرست اسناد',
     'voucher-new': 'صدور سند جدید', 'persons': 'اشخاص', 'companies': 'شرکت‌ها',
@@ -40,7 +101,7 @@ var AI_NAVIGABLE_PAGES = {
     'templates': 'الگوهای سند', 'notes': 'دفترچه یادداشت', 'sms': 'پیامک بانکی',
     'report-cashflow': 'وضعیت نقدینگی', 'report-cashflow-desc': 'گردش وجه نقد',
     'report-account': 'مرور حساب‌ها', 'report-trial': 'تراز آزمایشی',
-    'report-incomplete': 'تراکنش‌های ناقص', 'report-facility': 'خلاصه تسهیلات',
+    'report-incomplete': 'تراکنش‌های تکمیل نشده', 'report-facility': 'خلاصه تسهیلات',
     'report-facility-full': 'گزارش جامع تسهیلات', 'report-rates': 'گزارش نرخ ارز و طلا',
     'report-compare': 'گزارش مقایسه‌ای دوره‌ها',
     'daily-close': 'قیمت پایانی روز'
@@ -103,7 +164,7 @@ function aiSaveSettings() {
 }
 /* ★ تاریخچه دیگر ذخیره نمی‌شود (فقط در حافظه) */
 function aiSaveHistory() {
-    // intentionally left empty — history is in-memory only
+    // intentionally empty — history is in-memory only
 }
 
 /* ==================== Image preview ==================== */
@@ -194,8 +255,8 @@ function aiStopVoice() {
 /* ==================== TTS چند-موتوره ==================== */
 var AI_TTS = {
     engine: DB.load('ai.ttsEngine', 'avalai'),
-    avalaiVoice: DB.load('ai.ttsVoice', 'nova'),
-    avalaiModel: DB.load('ai.ttsModel', 'tts-1'),
+    avalaiVoice: DB.load('ai.ttsVoice', 'Kore'),                    // ★ Kore برای فارسی
+    avalaiModel: DB.load('ai.ttsModel', 'gemini-3.8-flash-tts'),    // ★ Gemini TTS
     autoSpeak: DB.load('ai.autoSpeak', false),
     rate: DB.load('ai.speakRate', 1.0),
     voice: null,
@@ -211,6 +272,24 @@ function aiSaveTTS() {
     DB.save('ai.ttsModel', AI_TTS.avaliaiModel);
     DB.save('ai.autoSpeak', AI_TTS.autoSpeak);
     DB.save('ai.speakRate', AI_TTS.rate);
+}
+
+/* ★ تعیین می‌کند که کدام صداها بر اساس مدل فعلی نمایش داده شوند */
+function getVoicesForModel(modelId) {
+    if (!modelId) return TTS_VOICES_OPENAI;
+    if (modelId.indexOf('gemini') === 0) return TTS_VOICES_GEMINI;
+    return TTS_VOICES_OPENAI;
+}
+
+/* ==================== ★ اعمال دیکشنری تلفظ ==================== */
+function applyPhoneticReplacements(text) {
+    var result = String(text || '');
+    for (var key in AI_PRONUNCIATION_DICT) {
+        if (!Object.prototype.hasOwnProperty.call(AI_PRONUNCIATION_DICT, key)) continue;
+        var regex = new RegExp('\\b' + key + '\\b', 'gi');
+        result = result.replace(regex, AI_PRONUNCIATION_DICT[key]);
+    }
+    return result;
 }
 
 /* ==================== تبدیل عدد به کلمات فارسی ==================== */
@@ -313,6 +392,7 @@ function aiStripMarkdownForSpeech(text) {
         .replace(/[٠-٩]/g, function(c) { return String(c.charCodeAt(0) - 0x0660); });
 
     out = prepareNumbersForTTS(out);
+    out = applyPhoneticReplacements(out);
 
     return out
         .replace(/[ \t]+/g, ' ')
@@ -342,13 +422,13 @@ function aiChunkTextForSpeech(text, maxLen) {
     return chunks.filter(function(c) { return c.length > 0; });
 }
 
-/* ==================== موتور ۱: AvalAI / OpenAI TTS ==================== */
+/* ==================== موتور ۱: AvalAI / Gemini TTS ==================== */
 async function aiAvalaiTTSFetch(text) {
     var url = 'https://api.avalai.ir/v1/audio/speech';
     var body = {
-        model: AI_TTS.avaliaiModel || 'tts-1',
+        model: AI_TTS.avaliaiModel || 'gemini-3.8-flash-tts',
         input: text,
-        voice: AI_TTS.avaliaiVoice || 'nova',
+        voice: AI_TTS.avaliaiVoice || 'Kore',
         response_format: 'mp3',
         speed: Math.max(0.5, Math.min(1.5, Number(AI_TTS.rate) || 1))
     };
@@ -567,8 +647,8 @@ function openTtsDiagnosticPanel() {
         +       '<label style="display:flex;gap:10px;padding:12px;background:var(--card-alt);border-radius:12px;cursor:pointer;align-items:flex-start">'
         +         '<input type="radio" name="tts-engine" value="avalai" style="margin-top:3px;accent-color:var(--primary)">'
         +         '<div style="flex:1">'
-        +           '<div style="font-weight:800;color:var(--primary-dark)">🌟 AvalAI / OpenAI TTS <span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:8px;font-size:.68rem">پیشنهاد</span></div>'
-        +           '<div style="font-size:.75rem;color:var(--text-muted);margin-top:4px;line-height:1.7">طبیعی‌ترین صدا. از همون API key فعلی استفاده می‌کنه. <b>نیاز به اینترنت</b></div>'
+        +           '<div style="font-weight:800;color:var(--primary-dark)">🌟 AvalAI / Gemini TTS <span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:8px;font-size:.68rem">پیشنهاد برای فارسی</span></div>'
+        +           '<div style="font-size:.75rem;color:var(--text-muted);margin-top:4px;line-height:1.7">تلفظ طبیعی فارسی. از همون API key فعلی استفاده می‌کنه. <b>نیاز به اینترنت</b></div>'
         +         '</div>'
         +       '</label>'
         +       '<label style="display:flex;gap:10px;padding:12px;background:var(--card-alt);border-radius:12px;cursor:pointer;align-items:flex-start">'
@@ -588,20 +668,12 @@ function openTtsDiagnosticPanel() {
         +     '</div>'
         +     '<div id="tts-avalai-opts" style="display:none;padding:14px;background:#eef2ff;border-radius:12px;margin-bottom:16px">'
         +       '<h4 style="font-size:.82rem;color:#3730a3;margin:0 0 10px">تنظیمات AvalAI TTS</h4>'
-        +       '<div style="margin-bottom:10px"><label style="font-size:.78rem;font-weight:700;display:block;margin-bottom:6px">صدا</label>'
-        +         '<select id="tts-voice-select" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit">'
-        +           '<option value="nova">Nova — زن، گرم و طبیعی (پیشنهاد)</option>'
-        +           '<option value="shimmer">Shimmer — زن، نرم و آرام</option>'
-        +           '<option value="alloy">Alloy — خنثی</option>'
-        +           '<option value="echo">Echo — مرد، جدی</option>'
-        +           '<option value="onyx">Onyx — مرد، عمیق</option>'
-        +           '<option value="fable">Fable — بریتانیایی</option>'
-        +         '</select></div>'
-        +       '<div><label style="font-size:.78rem;font-weight:700;display:block;margin-bottom:6px">کیفیت</label>'
-        +         '<select id="tts-model-select" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit">'
-        +           '<option value="tts-1">Standard (ارزان‌تر، سریع‌تر)</option>'
-        +           '<option value="tts-1-hd">HD (کیفیت بالاتر، گران‌تر)</option>'
-        +         '</select></div>'
+        +       '<div style="margin-bottom:10px"><label style="font-size:.78rem;font-weight:700;display:block;margin-bottom:6px">مدل (Model)</label>'
+        +         '<select id="tts-model-select" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit"></select>'
+        +       '</div>'
+        +       '<div><label style="font-size:.78rem;font-weight:700;display:block;margin-bottom:6px">صدا (Voice)</label>'
+        +         '<select id="tts-voice-select" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit"></select>'
+        +       '</div>'
         +     '</div>'
         +     '<div style="margin-bottom:14px">'
         +       '<label style="font-size:.78rem;font-weight:700;display:block;margin-bottom:6px">سرعت گفتار: <span id="tts-rate-lbl">1.0</span></label>'
@@ -618,6 +690,41 @@ function openTtsDiagnosticPanel() {
 
     document.body.insertAdjacentHTML('beforeend', html);
 
+    /* ★ پر کردن dropdown مدل‌ها */
+    var modelSel = document.getElementById('tts-model-select');
+    modelSel.innerHTML = '';
+    TTS_MODELS.forEach(function(m) {
+        var opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = m.label;
+        if (AI_TTS.avaliaiModel === m.id) opt.selected = true;
+        modelSel.appendChild(opt);
+    });
+    if (!TTS_MODELS.some(function(m) { return m.id === AI_TTS.avaliaiModel; })) {
+        modelSel.value = 'gemini-3.8-flash-tts';
+    }
+
+    /* ★ پر کردن dropdown صداها بر اساس مدل */
+    function refreshVoiceOptions() {
+        var currentModel = modelSel.value;
+        var voices = getVoicesForModel(currentModel);
+        var voiceSel = document.getElementById('tts-voice-select');
+        voiceSel.innerHTML = '';
+        voices.forEach(function(v) {
+            var opt = document.createElement('option');
+            opt.value = v.id;
+            opt.textContent = v.label;
+            if (AI_TTS.avaliaiVoice === v.id) opt.selected = true;
+            voiceSel.appendChild(opt);
+        });
+        /* اگر صدای فعلی در این لیست نبود، اولین را انتخاب کن */
+        if (!voices.some(function(v) { return v.id === AI_TTS.avaliaiVoice; })) {
+            voiceSel.value = voices[0].id;
+        }
+    }
+    refreshVoiceOptions();
+    modelSel.addEventListener('change', refreshVoiceOptions);
+
     var radios = document.querySelectorAll('input[name="tts-engine"]');
     var avalaiOpts = document.getElementById('tts-avalai-opts');
     radios.forEach(function(r) {
@@ -628,8 +735,6 @@ function openTtsDiagnosticPanel() {
     });
     if (AI_TTS.engine === 'avalai') avalaiOpts.style.display = 'block';
 
-    document.getElementById('tts-voice-select').value = AI_TTS.avaliaiVoice || 'nova';
-    document.getElementById('tts-model-select').value = AI_TTS.avaliaiModel || 'tts-1';
     document.getElementById('tts-rate-slider').value = AI_TTS.rate;
     document.getElementById('tts-rate-lbl').textContent = AI_TTS.rate;
     document.getElementById('tts-rate-slider').addEventListener('input', function() {
@@ -658,7 +763,7 @@ function openTtsDiagnosticPanel() {
     document.getElementById('tts-diag-test').onclick = function() {
         var resBox = document.getElementById('tts-diag-result');
         var engine = document.querySelector('input[name="tts-engine"]:checked').value;
-        var testText = 'سلام. من پارسیس یار هستم. مبلغ یک میلیون و دویست هزار ریال در تاریخ ۱۴۰۵/۰۷/۱۵ پرداخت شد. اگر این جمله را واضح و طبیعی می‌شنوی، صدا به‌درستی تنظیم شده است.';
+        var testText = 'سلام. من پارسیس یار هستم. نام من اَمینی است. مبلغ یک میلیون و دویست هزار ریال در تاریخ ۱۴۰۵/۰۷/۱۵ پرداخت شد. اگر این جمله را واضح و طبیعی می‌شنوی، صدا به‌درستی تنظیم شده است.';
 
         var oldEngine = AI_TTS.engine, oldVoice = AI_TTS.avaliaiVoice, oldModel = AI_TTS.avaliaiModel, oldRate = AI_TTS.rate;
         AI_TTS.engine = engine;
@@ -690,7 +795,7 @@ function openTtsDiagnosticPanel() {
         AI_TTS.avaliaiModel = document.getElementById('tts-model-select').value;
         AI_TTS.rate = Number(document.getElementById('tts-rate-slider').value);
         aiSaveTTS();
-        showToast('✅ تنظیمات ذخیره شد');
+        showToast('✅ تنظیمات ذخیره شد (مدل: ' + AI_TTS.avaliaiModel + ')');
         closePanel();
     };
 }
@@ -938,9 +1043,9 @@ function aiBuildSystemPrompt() {
         '🚨 **هشدار مهم درباره داده‌های کاربر**\n' +
         '═══════════════════════════════════════\n' +
         '1. اگر کاربر از داده‌ای پرسید و آن داده در context نبود، **قبل از هر پاسخی** این را بگو:\n' +
-        '   «در این لحظه داده‌ای درباره X در context من نیست. لطفاً اگر مطمئنید داده وجود دارد، دکمه 🗑 (پاک کردن چت) را بزنید و دوباره بپرسید.»\n' +
+        '   «در این لحظه داده‌ای درباره X در context من نیست. لطفاً اگر مطمئنید داده وجود دارد، دکمه 🗑 (پاک کردن چت) یا 🔄 (بروزرسانی) را بزنید و دوباره بپرسید.»\n' +
         '2. **هرگز** به کاربر نگو «شما داده‌ای ثبت نکرده‌اید» یا «در سیستم شما چیزی وجود ندارد» — چون ممکن است context ناقص به تو رسیده باشد.\n' +
-        '3. اگر context خالی یا ناقص به نظر می‌رسد، از کاربر بخواه دکمه 🗑 (پاک کردن چت) یا 🔄 (بروزرسانی) را بزند و دوباره بپرسد.\n\n' +
+        '3. اگر context خالی یا ناقص به نظر می‌رسد، از کاربر بخواه دکمه 🗑 یا 🔄 را بزند و دوباره بپرسد.\n\n' +
         '═══════════════════════════════════════\n' +
         '📝 **صدور سند (create_voucher_draft)**\n' +
         '═══════════════════════════════════════\n' +
