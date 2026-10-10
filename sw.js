@@ -1,7 +1,7 @@
-// Service Worker پارسیس — v32 (نسخه ادغام‌شده)
+// Service Worker پارسیس — v33 (پچ اصلاحات ۹گانه)
 // Network-First برای HTML، Cache-First برای منابع ثابت
 
-var CACHE_NAME = 'parsis-v32-merged';
+var CACHE_NAME = 'parsis-v33-patches';
 var ASSETS = [
   './index.html',
   './manifest.json',
