@@ -1,11 +1,6 @@
 /* =====================================================================
    پارسیس v27 — 02-ui,nav,sidebar,theme,tables,sort,columns,csv,print.js
    رابط کاربری: ناوبری، سایدبار، تب‌ها، تم، جدول‌ها، مرتب‌سازی، ستون‌ها
-
-   [ادغام‌شده با]:
-     • 13-filter-toggle.js            (بخش ۱۵)
-     • 14-close-all.js                (بخش ۱۶)
-     • 12-advanced-features.js        (بخش‌های ۱۳ و ۱۴ — فیلتر پیشرفته و مرتب‌سازی سراسری)
    ===================================================================== */
 'use strict';
 
@@ -16,6 +11,8 @@ function trackFormUsage(pageName) {
     DB.save('formUsage', state.formUsage);
     renderFrequentNav();
 }
+
+/* ★ اصلاح‌شده طبق درخواست ۳: نگاشت کامل همه صفحات به برچسب فارسی */
 function renderFrequentNav() {
     var container = document.getElementById('nav-frequent-items');
     var group = document.getElementById('nav-frequent-group');
@@ -27,23 +24,39 @@ function renderFrequentNav() {
         .slice(0, 6);
     if (entries.length === 0) { group.style.display = 'none'; return; }
     group.style.display = '';
+
     var meta = {
-        'voucher-new': { label:'✏️ صدور سند جدید' },
-        'voucher-list': { label:'📄 فهرست اسناد' },
-        'persons': { label:'👥 اشخاص' },
-        'bank-accounts': { label:'🏦 حساب‌های بانکی' },
-        'cash-boxes': { label:'💰 صندوق‌ها' },
-        'notes': { label:'📔 یادداشت‌ها' },
-        'dashboard': { label:'🎯 داشبورد مالی' },
-        'report-cashflow': { label:'💵 وضعیت نقدینگی' },
-        'facilities': { label:'🏦 تسهیلات' },
-        'chart-define': { label:'✏️ تعریف حساب‌ها' },
-        'sms': { label:'📱 پیامک بانکی' },
-        'templates': { label:'🧩 الگوها' },
-        'fiscal': { label:'📅 دوره مالی' },
-        'report-trial': { label:'⚖️ تراز آزمایشی' },
-        'report-account': { label:'📒 مرور حساب‌ها' },
-        'report-rates': { label:'📈 نرخ ارز و طلا' }
+        'voucher-new':            { label:'✏️ صدور سند جدید' },
+        'voucher-list':           { label:'📄 فهرست اسناد' },
+        'persons':                { label:'👥 اشخاص' },
+        'companies':              { label:'🏢 شرکت‌ها' },
+        'bank-accounts':          { label:'🏦 حساب‌های بانکی' },
+        'cash-boxes':             { label:'💰 صندوق‌ها' },
+        'projects':               { label:'📁 پروژه‌ها' },
+        'notes':                  { label:'📔 یادداشت‌ها' },
+        'dashboard':              { label:'🎯 داشبورد مالی' },
+        'report-cashflow':        { label:'💵 وضعیت نقدینگی' },
+        'report-cashflow-desc':   { label:'💸 گردش وجه نقد' },
+        'report-account':         { label:'📒 مرور حساب‌ها' },
+        'report-trial':           { label:'⚖️ تراز آزمایشی' },
+        'report-incomplete':      { label:'🔍 تراکنش‌های تکمیل نشده' },
+        'report-facility':        { label:'🏦 خلاصه تسهیلات' },
+        'report-facility-full':   { label:'📊 گزارش جامع تسهیلات' },
+        'report-rates':           { label:'📈 نرخ ارز و طلا' },
+        'report-compare':         { label:'📊 گزارش مقایسه‌ای' },
+        'facilities':             { label:'🏦 تسهیلات' },
+        'chart-define':           { label:'✏️ تعریف حساب‌ها' },
+        'sms':                    { label:'📱 پیامک بانکی' },
+        'templates':              { label:'🧩 الگوها' },
+        'fiscal':                 { label:'📅 دوره مالی' },
+        'estimate-daily':         { label:'📝 برآورد هزینه‌ها' },
+        'cashflow-sources':       { label:'📌 منابع دریافتنی' },
+        'daily-close':            { label:'📅 قیمت پایانی روز' },
+        'language':               { label:'🌐 زبان' },
+        'account-types':          { label:'📑 لیست نوع حساب' },
+        'bank-types':             { label:'🏦 انواع حساب بانکی' },
+        'cash-types':             { label:'💰 انواع صندوق' },
+        'currency':               { label:'💱 ارز و واحد پول' }
     };
     container.innerHTML = '';
     var clearBtn = document.createElement('button');
@@ -59,7 +72,7 @@ function renderFrequentNav() {
     });
     container.appendChild(clearBtn);
     entries.forEach(function(e) {
-        var m = meta[e.page] || { label: e.page };
+        var m = meta[e.page] || { label: '📄 ' + e.page };
         var b = document.createElement('button');
         b.setAttribute('data-page', e.page);
         b.innerHTML = '<span>' + m.label + '</span><span class="count-badge" style="padding:2px 8px;font-size:0.7rem">' + toFa(e.count) + '</span>';
@@ -134,6 +147,17 @@ function goToPage(name) {
         'report-facility': function() { runFacilityReport(); },
         'report-facility-full': function() { refreshRffBankSelect(); runFacilityFullReport(); },
         'report-rates': function() { runRatesReport(); },
+        'report-compare': function() {
+            if (!document.getElementById('rc-from1').value) {
+                var t3 = todayJalaliStr();
+                var y = t3.split('/')[0];
+                document.getElementById('rc-from1').value = y + '/01/01';
+                document.getElementById('rc-to1').value   = y + '/06/31';
+                document.getElementById('rc-from2').value = y + '/07/01';
+                document.getElementById('rc-to2').value   = t3;
+            }
+            runComparisonReport();
+        },
         'daily-close': function() { renderDailyClosePage(); },
         'home': function() { updateHomeWidgets(); }
     };
@@ -145,13 +169,13 @@ function goToPage(name) {
     makeAllTablesResizable();
     buildHeaderButtons();
     updateEyeButtons();
-    // فیلترهای جدید را هم روی جداول تازه اعمال کن
     if (typeof attachFilterRowsToAllTables === 'function') attachFilterRowsToAllTables();
     if (typeof window._enhanceGlobalSorting === 'function') window._enhanceGlobalSorting();
+    if (typeof buildShareButtons === 'function') setTimeout(buildShareButtons, 80);
 }
 
 function updateUnitChips() {
-    ['ra-unit','rt-unit','rf-unit','ri-unit','rff-unit','cf-unit','cfd-unit','rr-unit','dc-unit'].forEach(function(id) {
+    ['ra-unit','rt-unit','rf-unit','ri-unit','rff-unit','cf-unit','cfd-unit','rr-unit','dc-unit','rc-unit'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.textContent = 'واحد: ' + currencyLabel();
     });
@@ -338,6 +362,23 @@ function makeTableResizable(table) {
     applyColWidths(tableId);
 }
 
+/* ★ جدید طبق درخواست ۵: بازنشانی عرض ستون‌ها */
+function resetColumnWidths(tableId) {
+    if (!tableId) return;
+    delete colWidths[tableId];
+    saveColWidths();
+    var table = document.getElementById(tableId);
+    if (!table) return;
+    var ths = table.querySelectorAll('thead th');
+    for (var i = 0; i < ths.length; i++) {
+        ths[i].style.width = '';
+        ths[i].style.minWidth = '';
+    }
+    table.style.minWidth = '';
+    updateTableMinWidth(table);
+    showToast('↔ عرض ستون‌ها فیت شد.');
+}
+
 /* ==================== Column visibility ==================== */
 var colSettings = DB.load('columnSettings', {});
 function getHiddenCols(tableId) { return colSettings[tableId] || []; }
@@ -355,10 +396,10 @@ function applyColVisibility(tableId) {
     updateTableMinWidth(table);
 }
 function applyColVisibilityAll() {
-    ['fiscal-table','persons-table','comp-table','ba-table','cb-table','proj-table','voucher-table-list','rt-table','ri-table','rf-table','rff-table','cfs-table','rr-table','cf-table','cfd-table','dc-table'].forEach(applyColVisibility);
+    ['fiscal-table','persons-table','comp-table','ba-table','cb-table','proj-table','voucher-table-list','rt-table','ri-table','rf-table','rff-table','cfs-table','rr-table','cf-table','cfd-table','dc-table','rc-table'].forEach(applyColVisibility);
 }
 function makeAllTablesResizable() {
-    ['fiscal-table','persons-table','comp-table','ba-table','cb-table','proj-table','voucher-table-list','rt-table','ri-table','rf-table','rff-table','cfs-table','cf-table','cfd-table','rr-table','dc-table','turnover-table'].forEach(function(id) {
+    ['fiscal-table','persons-table','comp-table','ba-table','cb-table','proj-table','voucher-table-list','rt-table','ri-table','rf-table','rff-table','cfs-table','cf-table','cfd-table','rr-table','dc-table','turnover-table','rc-table'].forEach(function(id) {
         var t = document.getElementById(id); if (t) makeTableResizable(t);
     });
 }
@@ -501,6 +542,7 @@ function makeCardCollapsible(cardEl, key, defaultOpen) {
 }
 
 /* ==================== buildHeaderButtons ==================== */
+/* ★ اصلاح‌شده طبق درخواست ۵: افزودن دکمه بازنشانی عرض ستون‌ها */
 function buildHeaderButtons() {
     var headers = document.querySelectorAll('.list-header');
     for (var i = 0; i < headers.length; i++) {
@@ -514,6 +556,18 @@ function buildHeaderButtons() {
                 eye.setAttribute('data-hide-key', hideKey);
                 eye.addEventListener('click', function(ev) { ev.stopPropagation(); toggleHideState(hideKey); rerenderCurrentPage(); });
                 h.appendChild(eye);
+            }
+            if (tableId && !h.querySelector('.col-reset-btn')) {
+                var rBtn = document.createElement('button');
+                rBtn.type = 'button';
+                rBtn.className = 'col-reset-btn';
+                rBtn.title = 'فیت کردن عرض ستون‌ها';
+                rBtn.innerHTML = '↔';
+                rBtn.addEventListener('click', function(ev) {
+                    ev.stopPropagation();
+                    resetColumnWidths(tableId);
+                });
+                h.appendChild(rBtn);
             }
             if (tableId && !h.querySelector('.col-toggle-btn')) {
                 var btn = document.createElement('button');
@@ -533,7 +587,7 @@ function buildHeaderButtons() {
 function autoAttachReportHelpers() {
     setTimeout(function() {
         makeAllTablesResizable();
-        ['cf-table','cfd-table','rt-table','ri-table','rf-table','rff-table','rr-table','dc-table','turnover-table'].forEach(function(id) {
+        ['cf-table','cfd-table','rt-table','ri-table','rf-table','rff-table','rr-table','dc-table','turnover-table','rc-table'].forEach(function(id) {
             var t = document.getElementById(id);
             if (t) applyColVisibility(id);
         });
@@ -541,6 +595,7 @@ function autoAttachReportHelpers() {
         attachDatePickers();
         if (typeof attachFilterRowsToAllTables === 'function') attachFilterRowsToAllTables();
         if (typeof window._enhanceGlobalSorting === 'function') window._enhanceGlobalSorting();
+        if (typeof buildShareButtons === 'function') buildShareButtons();
     }, 60);
 }
 
@@ -568,6 +623,7 @@ function rerenderCurrentPage() {
         'report-facility': 'runFacilityReport',
         'report-facility-full': 'runFacilityFullReport',
         'report-rates': 'runRatesReport',
+        'report-compare': 'runComparisonReport',
         'daily-close': 'renderDailyCloseHistory',
         'notes': 'renderNotesList',
         'dashboard': 'renderDashboard',
@@ -579,7 +635,6 @@ function rerenderCurrentPage() {
 
 /* =====================================================================
    ============ ۱۳) جستجو/فیلتر پیشرفته در ستون‌ها ============
-   ============ [ادغام از 12-advanced-features.js]            ============
    ===================================================================== */
 var COLUMN_FILTERS = {};
 var FILTER_OPS = [
@@ -806,7 +861,6 @@ function attachFilterRowsToAllTables() {
 
 /* =====================================================================
    ============ ۱۴) مرتب‌سازی سراسری ============
-   ============ [ادغام از 12-advanced-features.js]            ============
    ===================================================================== */
 (function () {
     function getCellValue(tr, idx) {
@@ -865,13 +919,11 @@ function attachFilterRowsToAllTables() {
 })();
 
 /* =====================================================================
-   ============ ۱۵) مخفی‌سازی ردیف فیلتر (به‌صورت پیش‌فرض مخفی) ============
-   ============ [ادغام از 13-filter-toggle.js]                  ============
+   ============ ۱۵) مخفی‌سازی ردیف فیلتر + حذف از پرینت ============
    ===================================================================== */
 (function () {
     var STORAGE_KEY = 'parsis.tableFiltersVisible';
 
-    /* CSS */
     var css = ''
         + 'tr.column-filter-row { display: none; }'
         + 'body.show-table-filters tr.column-filter-row { display: table-row; }'
@@ -886,12 +938,12 @@ function attachFilterRowsToAllTables() {
         + '.filters-toggle-btn.active { background: var(--gradient-accent); color: #fff; border-color: transparent; }'
         + 'body.show-table-filters .filters-toggle-btn {'
         +   'background: var(--gradient-accent); color: #fff; border-color: transparent;'
-        + '}';
+        + '}'
+        + '@media print { tr.column-filter-row, .filters-toggle-btn { display: none !important; } }';
     var styleEl = document.createElement('style');
     styleEl.textContent = css;
     document.head.appendChild(styleEl);
 
-    /* پاکسازی ستون عملیات */
     function isActionsHeader(th) {
         if (!th) return true;
         var txt = (th.textContent || '').trim().toLowerCase();
@@ -926,7 +978,6 @@ function attachFilterRowsToAllTables() {
         });
     }
 
-    /* دکمه toggle در هدرها */
     function addToggleButtons() {
         var headers = document.querySelectorAll('.list-header');
         headers.forEach(function (h) {
@@ -956,7 +1007,6 @@ function attachFilterRowsToAllTables() {
         });
     }
 
-    /* بازیابی وضعیت */
     function restoreState() {
         try {
             if (localStorage.getItem(STORAGE_KEY) === '1') {
@@ -966,7 +1016,6 @@ function attachFilterRowsToAllTables() {
         updateButtons();
     }
 
-    /* Observer برای جداول جدید */
     var observer = null;
     function startObserver() {
         if (observer) return;
@@ -994,7 +1043,6 @@ function attachFilterRowsToAllTables() {
         observer.observe(document.body, { childList: true, subtree: true });
     }
 
-    /* Init */
     function init13() {
         restoreState();
         cleanActionsColumn();
@@ -1015,10 +1063,8 @@ function attachFilterRowsToAllTables() {
 
 /* =====================================================================
    ============ ۱۶) تب‌های فرم و دکمه «بستن همه فرم‌ها» ============
-   ============ [ادغام از 14-close-all.js]                        ============
    ===================================================================== */
 (function () {
-    /* CSS */
     var css = ''
         + '.form-tabs-bar{display:flex;gap:4px;padding:6px 10px;background:var(--card-solid);'
         + 'border-bottom:1px solid var(--border);overflow-x:auto;overflow-y:hidden;'
@@ -1050,14 +1096,12 @@ function attachFilterRowsToAllTables() {
     styleEl.textContent = css;
     document.head.appendChild(styleEl);
 
-    /* State */
     var TAB_STATE = {
         tabs: [{ id: 'home', title: 'صفحه اصلی', icon: '🏠' }],
         active: 'home',
         max: 12
     };
 
-    /* Helpers */
     function getPageMeta(pageId) {
         if (pageId === 'home') return { title: 'صفحه اصلی', icon: '🏠' };
         var btn = document.querySelector('.nav-group-items button[data-page="' + pageId + '"]');
@@ -1102,7 +1146,6 @@ function attachFilterRowsToAllTables() {
         }
     }
 
-    /* Tab Bar */
     function ensureTabBar() {
         var bar = document.getElementById('form-tabs-bar');
         if (bar) return bar;
@@ -1225,7 +1268,6 @@ function attachFilterRowsToAllTables() {
         if (typeof showToast === 'function') showToast('🧹 همه فرم‌ها بسته شد');
     }
 
-    /* Close-All Button */
     function injectCloseAllButton() {
         if (document.getElementById('close-all-forms-btn')) return true;
         var searchBox = document.querySelector('.sidebar-search');
@@ -1273,7 +1315,6 @@ function attachFilterRowsToAllTables() {
         return true;
     }
 
-    /* Override goToPage */
     function installGoToPageOverride() {
         if (typeof window.goToPage !== 'function') return false;
         if (window._origGoToPage) return true;
@@ -1306,7 +1347,6 @@ function attachFilterRowsToAllTables() {
         return true;
     }
 
-    /* Init */
     function init14() {
         var tries = 0;
         var interval = setInterval(function () {
@@ -1332,7 +1372,6 @@ function attachFilterRowsToAllTables() {
 
 /* =====================================================================
    ============ ۱۷) Observer مشترک برای جداول جدید ============
-   (فیلترها + مرتب‌سازی سراسری)
    ===================================================================== */
 (function () {
     function init() {
@@ -1375,3 +1414,74 @@ function attachFilterRowsToAllTables() {
         setTimeout(init, 900);
     }
 })();
+
+/* =====================================================================
+   ============ ۱۸) اشتراک‌گذاری گزارش‌ها و ویجت‌ها ============
+   ===================================================================== */
+function shareAsText(title, text) {
+    var fullText = '📊 ' + title + '\n\n' + text;
+    if (navigator.share) {
+        navigator.share({ title: title, text: fullText }).catch(function() {});
+    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(fullText).then(function() {
+            showToast('📋 متن گزارش کپی شد. در تلگرام پیست کن.');
+        }).catch(function() { prompt('متن گزارش:', fullText); });
+    } else {
+        prompt('متن گزارش:', fullText);
+    }
+}
+function reportToText(containerEl) {
+    if (!containerEl) return '';
+    var lines = [];
+    var table = containerEl.querySelector('table');
+    if (table) {
+        var trs = table.querySelectorAll('tr');
+        trs.forEach(function(tr) {
+            var cells = tr.querySelectorAll('th, td');
+            var row = [];
+            cells.forEach(function(c) { row.push((c.textContent || '').trim()); });
+            if (row.length) lines.push(row.join(' | '));
+        });
+    } else {
+        lines.push((containerEl.textContent || '').trim());
+    }
+    return lines.join('\n');
+}
+function buildShareButtons() {
+    document.querySelectorAll('.list-header').forEach(function(h) {
+        if (h.querySelector('.share-btn')) return;
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'share-btn';
+        btn.title = 'اشتراک‌گذاری گزارش';
+        btn.innerHTML = '📤';
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var card = h.closest('.card');
+            var target = null;
+            var tableId = h.getAttribute('data-col-table');
+            if (tableId) target = document.getElementById(tableId);
+            if (!target) target = card ? (card.querySelector('.table-wrap') || card) : h.parentElement;
+            var title = (document.querySelector('.page.active > h2') || {}).textContent || 'گزارش پارسیس';
+            shareAsText(title, reportToText(target));
+        });
+        h.appendChild(btn);
+    });
+    document.querySelectorAll('.widget-card').forEach(function(w) {
+        if (w.querySelector('.widget-share-btn')) return;
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'widget-share-btn';
+        btn.title = 'اشتراک‌گذاری ویجت';
+        btn.innerHTML = '📤';
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var title = (w.querySelector('h3') || {}).textContent || 'ویجت پارسیس';
+            shareAsText(title, reportToText(w));
+        });
+        if (getComputedStyle(w).position === 'static') w.style.position = 'relative';
+        w.appendChild(btn);
+    });
+}
+window.buildShareButtons = buildShareButtons;
+window.shareAsText = shareAsText;
