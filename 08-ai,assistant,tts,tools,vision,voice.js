@@ -11,8 +11,10 @@
      • System prompt تقویت‌شده با هشدار context
      • دکمه 🔄 بروزرسانی Context در هدر AI
      • Cache کردن context در هر پیام (سرعت بهتر)
-     • ★ TTS: Gemini 3.8 Flash TTS برای تلفظ فارسی طبیعی‌تر
-     • ★ دیکشنری تلفظ آوایی برای اسامی لاتین
+     • TTS: Gemini 3.8 Flash TTS برای تلفظ فارسی طبیعی‌تر
+     • دیکشنری تلفظ آوایی برای اسامی لاتین
+     • ★ aiBuildContext کامل — تمام فیلدها: تاریخ تولد، نام پدر، شبا، کارت،
+       شعبه، ریز اسناد، ریز اقساط، لیست صفحات و ابزارها
    ===================================================================== */
 'use strict';
 
@@ -33,7 +35,7 @@ var AVALAI_MODELS = [
 ];
 var VISION_MODEL_IDS = ['gpt-4o-mini','gpt-4o','gpt-4.1-mini','gpt-4.1','gemini-2.0-flash','gemini-1.5-flash','gemini-1.5-pro','claude-3-5-sonnet-20241022'];
 
-/* ★ مدل‌های TTS — Gemini برای تلفظ فارسی طبیعی‌تر */
+/* ★ مدل‌های TTS */
 var TTS_MODELS = [
     { id: 'gemini-3.8-flash-tts',      label: 'Gemini 3.8 Flash TTS (طبیعی‌ترین صدا)' },
     { id: 'gemini-3.8-flash-lite-tts', label: 'Gemini 3.8 Flash Lite TTS (سریع‌تر)' },
@@ -42,7 +44,6 @@ var TTS_MODELS = [
     { id: 'tts-1',                     label: 'OpenAI tts-1 (قدیمی)' },
     { id: 'tts-1-hd',                  label: 'OpenAI tts-1-hd (قدیمی، کیفیت بالاتر)' }
 ];
-/* ★ صداهای Gemini (برای TTS جدید) */
 var TTS_VOICES_GEMINI = [
     { id: 'Kore',    label: 'Kore — زن، طبیعی (پیشنهاد برای فارسی)' },
     { id: 'Aoede',   label: 'Aoede — زن، آرام' },
@@ -53,7 +54,6 @@ var TTS_VOICES_GEMINI = [
     { id: 'Orus',    label: 'Orus — مرد، خنثی' },
     { id: 'Zephyr',  label: 'Zephyr — زن، روشن' }
 ];
-/* ★ صداهای OpenAI (برای مدل‌های قدیمی) */
 var TTS_VOICES_OPENAI = [
     { id: 'nova',    label: 'Nova — زن، گرم و طبیعی' },
     { id: 'shimmer', label: 'Shimmer — زن، نرم و آرام' },
@@ -63,33 +63,15 @@ var TTS_VOICES_OPENAI = [
     { id: 'fable',   label: 'Fable — بریتانیایی' }
 ];
 
-/* ★ دیکشنری تلفظ آوایی — برای جایگزینی نام‌های لاتین با معادل فارسی */
+/* ★ دیکشنری تلفظ آوایی */
 var AI_PRONUNCIATION_DICT = {
-    'amini': 'اَمینی',
-    'reza': 'رِضا',
-    'mohammad': 'مُحَمَّد',
-    'mohammed': 'مُحَمَّد',
-    'hossein': 'حُسِین',
-    'hosein': 'حُسِین',
-    'hasan': 'حَسَن',
-    'ali': 'عَلی',
-    'omid': 'اُمید',
-    'saeed': 'سَعید',
-    'saeid': 'سَعید',
-    'maryam': 'مَریَم',
-    'zahra': 'زَهرا',
-    'fatemeh': 'فاطِمِه',
-    'fatima': 'فاطِمِه',
-    'karimi': 'کَریمی',
-    'rahimi': 'رَحیمی',
-    'moradi': 'مُرادی',
-    'jafari': 'جَعفَری',
-    'sadeghi': 'صادِقی',
-    'ahmadi': 'اَحمَدی',
-    'hosseini': 'حُسِینی',
-    'najafi': 'نَجَفی',
-    'shirazi': 'شیرازی',
-    'tehrani': 'تِهرانی'
+    'amini': 'اَمینی', 'reza': 'رِضا', 'mohammad': 'مُحَمَّد', 'mohammed': 'مُحَمَّد',
+    'hossein': 'حُسِین', 'hosein': 'حُسِین', 'hasan': 'حَسَن', 'ali': 'عَلی',
+    'omid': 'اُمید', 'saeed': 'سَعید', 'saeid': 'سَعید', 'maryam': 'مَریَم',
+    'zahra': 'زَهرا', 'fatemeh': 'فاطِمِه', 'fatima': 'فاطِمِه', 'karimi': 'کَریمی',
+    'rahimi': 'رَحیمی', 'moradi': 'مُرادی', 'jafari': 'جَعفَری', 'sadeghi': 'صادِقی',
+    'ahmadi': 'اَحمَدی', 'hosseini': 'حُسِینی', 'najafi': 'نَجَفی',
+    'shirazi': 'شیرازی', 'tehrani': 'تِهرانی'
 };
 
 var AI_NAVIGABLE_PAGES = {
@@ -146,10 +128,10 @@ var AI = {
     model: DB.load('ai.model', 'gpt-4o-mini'),
     autoFallback: DB.load('ai.autoFallback', true),
     failedModels: DB.load('ai.failedModels', {}),
-    history: [],                       // ★ دیگر در localStorage ذخیره نمی‌شود
-    MAX_HISTORY: 8,                    // ★ کاهش از ۲۰ به ۸
+    history: [],
+    MAX_HISTORY: 8,
     isThinking: false,
-    _contextCache: null                // ★ کش context برای هر پیام
+    _contextCache: null
 };
 var AI_PENDING_IMAGE = null;
 var AI_VOICE_ACTIVE = false;
@@ -162,10 +144,7 @@ function aiSaveSettings() {
     DB.save('ai.autoFallback', AI.autoFallback);
     DB.save('ai.failedModels', AI.failedModels);
 }
-/* ★ تاریخچه دیگر ذخیره نمی‌شود (فقط در حافظه) */
-function aiSaveHistory() {
-    // intentionally empty — history is in-memory only
-}
+function aiSaveHistory() { /* intentionally empty */ }
 
 /* ==================== Image preview ==================== */
 function aiRenderImagePreview() {
@@ -252,11 +231,11 @@ function aiStopVoice() {
     if (mb) { mb.classList.remove('recording'); mb.textContent = '🎤'; mb.title = 'ضبط صدا'; }
 }
 
-/* ==================== TTS چند-موتوره ==================== */
+/* ==================== TTS ==================== */
 var AI_TTS = {
     engine: DB.load('ai.ttsEngine', 'avalai'),
-    avalaiVoice: DB.load('ai.ttsVoice', 'Kore'),                    // ★ Kore برای فارسی
-    avalaiModel: DB.load('ai.ttsModel', 'gemini-3.8-flash-tts'),    // ★ Gemini TTS
+    avalaiVoice: DB.load('ai.ttsVoice', 'Kore'),
+    avalaiModel: DB.load('ai.ttsModel', 'gemini-3.8-flash-tts'),
     autoSpeak: DB.load('ai.autoSpeak', false),
     rate: DB.load('ai.speakRate', 1.0),
     voice: null,
@@ -274,14 +253,12 @@ function aiSaveTTS() {
     DB.save('ai.speakRate', AI_TTS.rate);
 }
 
-/* ★ تعیین می‌کند که کدام صداها بر اساس مدل فعلی نمایش داده شوند */
 function getVoicesForModel(modelId) {
     if (!modelId) return TTS_VOICES_OPENAI;
     if (modelId.indexOf('gemini') === 0) return TTS_VOICES_GEMINI;
     return TTS_VOICES_OPENAI;
 }
 
-/* ==================== ★ اعمال دیکشنری تلفظ ==================== */
 function applyPhoneticReplacements(text) {
     var result = String(text || '');
     for (var key in AI_PRONUNCIATION_DICT) {
@@ -292,26 +269,23 @@ function applyPhoneticReplacements(text) {
     return result;
 }
 
-/* ==================== تبدیل عدد به کلمات فارسی ==================== */
+/* ==================== تبدیل عدد به کلمات ==================== */
 function faNumToWords(num) {
     num = Number(num);
     if (!isFinite(num)) return String(num);
     if (num === 0) return 'صفر';
     if (num < 0) return 'منفی ' + faNumToWords(-num);
-
     var yekan = ['', 'یک', 'دو', 'سه', 'چهار', 'پنج', 'شش', 'هفت', 'هشت', 'نه'];
     var dahgan = ['', '', 'بیست', 'سی', 'چهل', 'پنجاه', 'شصت', 'هفتاد', 'هشتاد', 'نود'];
     var dah = ['ده', 'یازده', 'دوازده', 'سیزده', 'چهارده', 'پانزده', 'شانزده', 'هفده', 'هجده', 'نوزده'];
     var sadgan = ['', 'صد', 'دویست', 'سیصد', 'چهارصد', 'پانصد', 'ششصد', 'هفتصد', 'هشتصد', 'نهصد'];
-
     function threeDigit(n) {
         var parts = [];
         var s = Math.floor(n / 100);
         var rem = n % 100;
         if (s > 0) parts.push(sadgan[s]);
-        if (rem >= 10 && rem < 20) {
-            parts.push(dah[rem - 10]);
-        } else {
+        if (rem >= 10 && rem < 20) parts.push(dah[rem - 10]);
+        else {
             var d = Math.floor(rem / 10);
             var y = rem % 10;
             if (d > 0) parts.push(dahgan[d]);
@@ -319,12 +293,11 @@ function faNumToWords(num) {
         }
         return parts.join(' و ');
     }
-
     var scales = [
         { value: 1000000000000, name: 'تریلیون' },
-        { value: 1000000000,    name: 'میلیارد' },
-        { value: 1000000,       name: 'میلیون' },
-        { value: 1000,          name: 'هزار' }
+        { value: 1000000000, name: 'میلیارد' },
+        { value: 1000000, name: 'میلیون' },
+        { value: 1000, name: 'هزار' }
     ];
     var parts = [];
     for (var i = 0; i < scales.length; i++) {
@@ -341,33 +314,18 @@ function faNumToWords(num) {
 
 function prepareNumbersForTTS(text) {
     var t = String(text || '');
-
     t = t.replace(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/g, function(m, y, mo, d) {
         return 'سال ' + faNumToWords(Number(y)) + ' ماه ' + faNumToWords(Number(mo)) + ' روز ' + faNumToWords(Number(d));
     });
-
     t = t.replace(/(\d{1,2}):(\d{2})(?::(\d{2}))?/g, function(m, h, mn, s) {
         var out = 'ساعت ' + faNumToWords(Number(h)) + ' و ' + faNumToWords(Number(mn)) + ' دقیقه';
         if (s) out += ' و ' + faNumToWords(Number(s)) + ' ثانیه';
         return out;
     });
-
-    t = t.replace(/\d{1,3}(?:,\d{3})+/g, function(m) {
-        return faNumToWords(Number(m.replace(/,/g, '')));
-    });
-
-    t = t.replace(/\b\d{6,}\b/g, function(m) {
-        return m.split('').map(function(d) { return faNumToWords(Number(d)); }).join('، ');
-    });
-
-    t = t.replace(/\b\d{4,5}\b/g, function(m) {
-        return faNumToWords(Number(m));
-    });
-
-    t = t.replace(/\b\d+\b/g, function(m) {
-        return faNumToWords(Number(m));
-    });
-
+    t = t.replace(/\d{1,3}(?:,\d{3})+/g, function(m) { return faNumToWords(Number(m.replace(/,/g, ''))); });
+    t = t.replace(/\b\d{6,}\b/g, function(m) { return m.split('').map(function(d) { return faNumToWords(Number(d)); }).join('، '); });
+    t = t.replace(/\b\d{4,5}\b/g, function(m) { return faNumToWords(Number(m)); });
+    t = t.replace(/\b\d+\b/g, function(m) { return faNumToWords(Number(m)); });
     return t;
 }
 
@@ -390,10 +348,8 @@ function aiStripMarkdownForSpeech(text) {
         .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F02F}]/gu, '')
         .replace(/[۰-۹]/g, function(c) { return String(c.charCodeAt(0) - 0x06F0); })
         .replace(/[٠-٩]/g, function(c) { return String(c.charCodeAt(0) - 0x0660); });
-
     out = prepareNumbersForTTS(out);
     out = applyPhoneticReplacements(out);
-
     return out
         .replace(/[ \t]+/g, ' ')
         .replace(/\n{2,}/g, '. ')
@@ -422,7 +378,6 @@ function aiChunkTextForSpeech(text, maxLen) {
     return chunks.filter(function(c) { return c.length > 0; });
 }
 
-/* ==================== موتور ۱: AvalAI / Gemini TTS ==================== */
 async function aiAvalaiTTSFetch(text) {
     var url = 'https://api.avalai.ir/v1/audio/speech';
     var body = {
@@ -434,10 +389,7 @@ async function aiAvalaiTTSFetch(text) {
     };
     var res = await fetch(url, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + AI.apiKey
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI.apiKey },
         body: JSON.stringify(body)
     });
     if (!res.ok) {
@@ -451,20 +403,9 @@ function aiPlayAudioUrl(url) {
     return new Promise(function(resolve) {
         var audio = new Audio(url);
         AI_TTS.currentAudio = audio;
-        audio.onended = function() {
-            try { URL.revokeObjectURL(url); } catch(e) {}
-            AI_TTS.currentAudio = null;
-            resolve();
-        };
-        audio.onerror = function() {
-            try { URL.revokeObjectURL(url); } catch(e) {}
-            AI_TTS.currentAudio = null;
-            resolve();
-        };
-        audio.play().catch(function(e) {
-            console.warn('audio play error:', e);
-            resolve();
-        });
+        audio.onended = function() { try { URL.revokeObjectURL(url); } catch(e) {} AI_TTS.currentAudio = null; resolve(); };
+        audio.onerror = function() { try { URL.revokeObjectURL(url); } catch(e) {} AI_TTS.currentAudio = null; resolve(); };
+        audio.play().catch(function(e) { console.warn('audio play error:', e); resolve(); });
     });
 }
 async function aiSpeakAvalai(text) {
@@ -489,8 +430,6 @@ async function aiSpeakAvalai(text) {
         }
     }
 }
-
-/* ==================== موتور ۲: Google Translate TTS ==================== */
 function aiSpeakGoogle(text) {
     var clean = aiStripMarkdownForSpeech(text);
     if (!clean) return;
@@ -509,29 +448,16 @@ function aiSpeakGoogle(text) {
         var audio = new Audio(url);
         AI_TTS.currentAudio = audio;
         audio.onended = function() { AI_TTS.currentAudio = null; setTimeout(playNext, 100); };
-        audio.onerror = function() {
-            AI_TTS.currentAudio = null;
-            console.warn('Google TTS error on chunk', idx);
-            setTimeout(playNext, 100);
-        };
-        audio.play().catch(function(e) {
-            console.warn('Google TTS play rejected:', e);
-            AI_TTS.lastError = 'autoplay-blocked';
-            setTimeout(playNext, 100);
-        });
+        audio.onerror = function() { AI_TTS.currentAudio = null; setTimeout(playNext, 100); };
+        audio.play().catch(function(e) { AI_TTS.lastError = 'autoplay-blocked'; setTimeout(playNext, 100); });
     }
     playNext();
 }
-
-/* ==================== موتور ۳: مرورگر (eSpeak) ==================== */
 function aiFindBestPersianVoice() {
     if (!window.speechSynthesis) return null;
     var voices = window.speechSynthesis.getVoices();
     if (!voices || voices.length === 0) return null;
-    var v = voices.find(function(x) {
-        var lang = (x.lang || '').toLowerCase().replace('_', '-');
-        return lang === 'fa-ir' || lang === 'fa';
-    });
+    var v = voices.find(function(x) { var lang = (x.lang || '').toLowerCase().replace('_', '-'); return lang === 'fa-ir' || lang === 'fa'; });
     if (v) return v;
     v = voices.find(function(x) { return (x.lang || '').toLowerCase().indexOf('fa') === 0; });
     if (v) return v;
@@ -571,8 +497,6 @@ function aiSpeakBrowser(text) {
     }
     playNext();
 }
-
-/* ==================== تابع اصلی TTS ==================== */
 function aiSpeak(text) {
     if (!text) { showToast('متنی برای خواندن نیست.'); return; }
     aiStopSpeaking();
@@ -580,7 +504,6 @@ function aiSpeak(text) {
     AI_TTS.lastError = '';
     var btn = document.getElementById('ai-tts-btn');
     if (btn) { btn.textContent = '⏹'; btn.classList.add('speaking'); }
-
     if (AI_TTS.engine === 'avalai') {
         if (!AI.apiKey) {
             showToast('⚠️ کلید API لازم است. یا موتور «مرورگر» را انتخاب کن.');
@@ -599,20 +522,14 @@ function aiSpeak(text) {
     if (AI_TTS.engine === 'google') { aiSpeakGoogle(text); return; }
     aiSpeakBrowser(text);
 }
-
 function aiStopSpeaking() {
     AI_TTS.isSpeaking = false;
     AI_TTS.queue = [];
-    if (AI_TTS.currentAudio) {
-        try { AI_TTS.currentAudio.pause(); AI_TTS.currentAudio = null; } catch(e) {}
-    }
-    if (window.speechSynthesis) {
-        try { window.speechSynthesis.cancel(); } catch(e) {}
-    }
+    if (AI_TTS.currentAudio) { try { AI_TTS.currentAudio.pause(); AI_TTS.currentAudio = null; } catch(e) {} }
+    if (window.speechSynthesis) { try { window.speechSynthesis.cancel(); } catch(e) {} }
     var btn = document.getElementById('ai-tts-btn');
     if (btn) { btn.textContent = '🔊'; btn.classList.remove('speaking'); btn.title = 'پخش صوتی آخرین پاسخ'; }
 }
-
 function aiToggleSpeak() {
     if (AI_TTS.isSpeaking) { aiStopSpeaking(); return; }
     var lastMsg = null;
@@ -622,7 +539,6 @@ function aiToggleSpeak() {
     if (!lastMsg) { showToast('پاسخی برای خواندن نیست.'); return; }
     aiSpeak(lastMsg.content);
 }
-
 function aiAutoSpeakIfNeeded(msg) {
     if (!AI_TTS.autoSpeak) return;
     if (!msg || msg.role !== 'assistant' || !msg.content) return;
@@ -633,47 +549,33 @@ function aiAutoSpeakIfNeeded(msg) {
 function openTtsDiagnosticPanel() {
     var old = document.getElementById('tts-diag-modal'); if (old) old.remove();
     var oldO = document.getElementById('tts-diag-overlay'); if (oldO) oldO.remove();
-
     var html = ''
         + '<div id="tts-diag-overlay" class="overlay show" style="z-index:1200"></div>'
         + '<div id="tts-diag-modal" class="modal show" style="max-width:560px;z-index:1210">'
-        +   '<div class="modal-head">'
-        +     '<h2>🔊 تنظیمات صدای دستیار</h2>'
-        +     '<button id="tts-diag-close" class="close-btn">×</button>'
-        +   '</div>'
+        +   '<div class="modal-head"><h2>🔊 تنظیمات صدای دستیار</h2>'
+        +     '<button id="tts-diag-close" class="close-btn">×</button></div>'
         +   '<div class="modal-body" style="max-height:75vh;overflow-y:auto">'
         +     '<h3 style="font-size:.9rem;color:var(--primary-dark);margin:0 0 10px">🎙 موتور صدا</h3>'
         +     '<div style="display:grid;gap:8px;margin-bottom:16px">'
         +       '<label style="display:flex;gap:10px;padding:12px;background:var(--card-alt);border-radius:12px;cursor:pointer;align-items:flex-start">'
         +         '<input type="radio" name="tts-engine" value="avalai" style="margin-top:3px;accent-color:var(--primary)">'
-        +         '<div style="flex:1">'
-        +           '<div style="font-weight:800;color:var(--primary-dark)">🌟 AvalAI / Gemini TTS <span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:8px;font-size:.68rem">پیشنهاد برای فارسی</span></div>'
-        +           '<div style="font-size:.75rem;color:var(--text-muted);margin-top:4px;line-height:1.7">تلفظ طبیعی فارسی. از همون API key فعلی استفاده می‌کنه. <b>نیاز به اینترنت</b></div>'
-        +         '</div>'
-        +       '</label>'
+        +         '<div style="flex:1"><div style="font-weight:800;color:var(--primary-dark)">🌟 AvalAI / Gemini TTS <span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:8px;font-size:.68rem">پیشنهاد</span></div>'
+        +         '<div style="font-size:.75rem;color:var(--text-muted);margin-top:4px;line-height:1.7">تلفظ طبیعی فارسی. <b>نیاز به اینترنت</b></div></div></label>'
         +       '<label style="display:flex;gap:10px;padding:12px;background:var(--card-alt);border-radius:12px;cursor:pointer;align-items:flex-start">'
         +         '<input type="radio" name="tts-engine" value="google" style="margin-top:3px;accent-color:var(--primary)">'
-        +         '<div style="flex:1">'
-        +           '<div style="font-weight:800;color:var(--primary-dark)">🔵 Google Translate TTS</div>'
-        +           '<div style="font-size:.75rem;color:var(--text-muted);margin-top:4px;line-height:1.7">کیفیت متوسط، رایگان. گاهی کار نمی‌کنه. <b>نیاز به اینترنت</b></div>'
-        +         '</div>'
-        +       '</label>'
+        +         '<div style="flex:1"><div style="font-weight:800;color:var(--primary-dark)">🔵 Google Translate TTS</div>'
+        +         '<div style="font-size:.75rem;color:var(--text-muted);margin-top:4px;line-height:1.7">کیفیت متوسط، رایگان</div></div></label>'
         +       '<label style="display:flex;gap:10px;padding:12px;background:var(--card-alt);border-radius:12px;cursor:pointer;align-items:flex-start">'
         +         '<input type="radio" name="tts-engine" value="browser" style="margin-top:3px;accent-color:var(--primary)">'
-        +         '<div style="flex:1">'
-        +           '<div style="font-weight:800;color:var(--primary-dark)">🤖 مرورگر (eSpeak)</div>'
-        +           '<div style="font-size:.75rem;color:var(--text-muted);margin-top:4px;line-height:1.7">آفلاین، رایگان، ولی صداش رباتیکه</div>'
-        +         '</div>'
-        +       '</label>'
+        +         '<div style="flex:1"><div style="font-weight:800;color:var(--primary-dark)">🤖 مرورگر (eSpeak)</div>'
+        +         '<div style="font-size:.75rem;color:var(--text-muted);margin-top:4px;line-height:1.7">آفلاین، رایگان، صدای رباتیک</div></div></label>'
         +     '</div>'
         +     '<div id="tts-avalai-opts" style="display:none;padding:14px;background:#eef2ff;border-radius:12px;margin-bottom:16px">'
         +       '<h4 style="font-size:.82rem;color:#3730a3;margin:0 0 10px">تنظیمات AvalAI TTS</h4>'
-        +       '<div style="margin-bottom:10px"><label style="font-size:.78rem;font-weight:700;display:block;margin-bottom:6px">مدل (Model)</label>'
-        +         '<select id="tts-model-select" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit"></select>'
-        +       '</div>'
-        +       '<div><label style="font-size:.78rem;font-weight:700;display:block;margin-bottom:6px">صدا (Voice)</label>'
-        +         '<select id="tts-voice-select" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit"></select>'
-        +       '</div>'
+        +       '<div style="margin-bottom:10px"><label style="font-size:.78rem;font-weight:700;display:block;margin-bottom:6px">مدل</label>'
+        +         '<select id="tts-model-select" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit"></select></div>'
+        +       '<div><label style="font-size:.78rem;font-weight:700;display:block;margin-bottom:6px">صدا</label>'
+        +         '<select id="tts-voice-select" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit"></select></div>'
         +     '</div>'
         +     '<div style="margin-bottom:14px">'
         +       '<label style="font-size:.78rem;font-weight:700;display:block;margin-bottom:6px">سرعت گفتار: <span id="tts-rate-lbl">1.0</span></label>'
@@ -683,14 +585,11 @@ function openTtsDiagnosticPanel() {
         +       '<button id="tts-diag-test" style="padding:12px;background:var(--gradient-accent);color:#fff;border:none;border-radius:12px;font-family:inherit;font-weight:800;cursor:pointer">🔊 تست صدا</button>'
         +       '<button id="tts-diag-save" style="padding:12px;background:#d1fae5;color:#065f46;border:none;border-radius:12px;font-family:inherit;font-weight:800;cursor:pointer">💾 ذخیره تنظیمات</button>'
         +     '</div>'
-        +     '<div id="tts-diag-result" style="margin-top:12px;padding:10px;background:var(--card-alt);border-radius:10px;font-size:.8rem;min-height:40px;text-align:center;color:var(--text-muted)">نتیجه تست اینجا نمایش داده می‌شود…</div>'
+        +     '<div id="tts-diag-result" style="margin-top:12px;padding:10px;background:var(--card-alt);border-radius:10px;font-size:.8rem;min-height:40px;text-align:center;color:var(--text-muted)">نتیجه تست اینجا…</div>'
         +     '<div id="tts-voices-info" style="margin-top:14px;font-size:.75rem;color:var(--text-muted);line-height:1.8"></div>'
         +   '</div>'
         + '</div>';
-
     document.body.insertAdjacentHTML('beforeend', html);
-
-    /* ★ پر کردن dropdown مدل‌ها */
     var modelSel = document.getElementById('tts-model-select');
     modelSel.innerHTML = '';
     TTS_MODELS.forEach(function(m) {
@@ -700,11 +599,7 @@ function openTtsDiagnosticPanel() {
         if (AI_TTS.avaliaiModel === m.id) opt.selected = true;
         modelSel.appendChild(opt);
     });
-    if (!TTS_MODELS.some(function(m) { return m.id === AI_TTS.avaliaiModel; })) {
-        modelSel.value = 'gemini-3.8-flash-tts';
-    }
-
-    /* ★ پر کردن dropdown صداها بر اساس مدل */
+    if (!TTS_MODELS.some(function(m) { return m.id === AI_TTS.avaliaiModel; })) modelSel.value = 'gemini-3.8-flash-tts';
     function refreshVoiceOptions() {
         var currentModel = modelSel.value;
         var voices = getVoicesForModel(currentModel);
@@ -717,60 +612,45 @@ function openTtsDiagnosticPanel() {
             if (AI_TTS.avaliaiVoice === v.id) opt.selected = true;
             voiceSel.appendChild(opt);
         });
-        /* اگر صدای فعلی در این لیست نبود، اولین را انتخاب کن */
-        if (!voices.some(function(v) { return v.id === AI_TTS.avaliaiVoice; })) {
-            voiceSel.value = voices[0].id;
-        }
+        if (!voices.some(function(v) { return v.id === AI_TTS.avaliaiVoice; })) voiceSel.value = voices[0].id;
     }
     refreshVoiceOptions();
     modelSel.addEventListener('change', refreshVoiceOptions);
-
     var radios = document.querySelectorAll('input[name="tts-engine"]');
     var avalaiOpts = document.getElementById('tts-avalai-opts');
     radios.forEach(function(r) {
         if (r.value === AI_TTS.engine) r.checked = true;
-        r.addEventListener('change', function() {
-            avalaiOpts.style.display = (this.value === 'avalai') ? 'block' : 'none';
-        });
+        r.addEventListener('change', function() { avalaiOpts.style.display = (this.value === 'avalai') ? 'block' : 'none'; });
     });
     if (AI_TTS.engine === 'avalai') avalaiOpts.style.display = 'block';
-
     document.getElementById('tts-rate-slider').value = AI_TTS.rate;
     document.getElementById('tts-rate-lbl').textContent = AI_TTS.rate;
     document.getElementById('tts-rate-slider').addEventListener('input', function() {
         document.getElementById('tts-rate-lbl').textContent = this.value;
     });
-
     if (window.speechSynthesis) {
         var voices = window.speechSynthesis.getVoices();
         var faVoices = voices.filter(function(v) { return (v.lang || '').toLowerCase().indexOf('fa') === 0; });
         var info = '<b>صداهای مرورگر (' + voices.length + ' کل، ' + faVoices.length + ' فارسی):</b><br>';
-        if (faVoices.length > 0) {
-            info += faVoices.map(function(v) { return '✅ ' + v.name + ' (' + v.lang + ')'; }).join('<br>');
-        } else {
-            info += '⚠️ هیچ صدای فارسی نصب نیست — موتور مرورگر رباتیک خواهد بود.';
-        }
+        if (faVoices.length > 0) info += faVoices.map(function(v) { return '✅ ' + v.name + ' (' + v.lang + ')'; }).join('<br>');
+        else info += '⚠️ هیچ صدای فارسی نصب نیست.';
         document.getElementById('tts-voices-info').innerHTML = info;
     }
-
     function closePanel() {
         var o = document.getElementById('tts-diag-overlay'); if (o) o.remove();
         var m = document.getElementById('tts-diag-modal'); if (m) m.remove();
     }
     document.getElementById('tts-diag-close').onclick = closePanel;
     document.getElementById('tts-diag-overlay').onclick = closePanel;
-
     document.getElementById('tts-diag-test').onclick = function() {
         var resBox = document.getElementById('tts-diag-result');
         var engine = document.querySelector('input[name="tts-engine"]:checked').value;
-        var testText = 'سلام. من پارسیس یار هستم. نام من اَمینی است. مبلغ یک میلیون و دویست هزار ریال در تاریخ ۱۴۰۵/۰۷/۱۵ پرداخت شد. اگر این جمله را واضح و طبیعی می‌شنوی، صدا به‌درستی تنظیم شده است.';
-
+        var testText = 'سلام. من پارسیس یار هستم. نام من اَمینی است. مبلغ یک میلیون و دویست هزار ریال در تاریخ ۱۴۰۵/۰۷/۱۵ پرداخت شد.';
         var oldEngine = AI_TTS.engine, oldVoice = AI_TTS.avaliaiVoice, oldModel = AI_TTS.avaliaiModel, oldRate = AI_TTS.rate;
         AI_TTS.engine = engine;
         AI_TTS.avaliaiVoice = document.getElementById('tts-voice-select').value;
         AI_TTS.avaliaiModel = document.getElementById('tts-model-select').value;
         AI_TTS.rate = Number(document.getElementById('tts-rate-slider').value);
-
         resBox.textContent = '⏳ در حال پخش...';
         resBox.style.color = '#4f46e5';
         aiStopSpeaking();
@@ -788,7 +668,6 @@ function openTtsDiagnosticPanel() {
             }, 6000);
         }, 200);
     };
-
     document.getElementById('tts-diag-save').onclick = function() {
         AI_TTS.engine = document.querySelector('input[name="tts-engine"]:checked').value;
         AI_TTS.avaliaiVoice = document.getElementById('tts-voice-select').value;
@@ -806,129 +685,222 @@ if (window.speechSynthesis) {
     setTimeout(function() { AI_TTS.voice = aiFindBestPersianVoice(); }, 500);
 }
 
-/* ==================== Context builder ==================== */
+/* =====================================================================
+   ★★★ Context Builder — نسخه کامل با تمام فیلدها ★★★
+   ===================================================================== */
 function aiBuildContext() {
     var lines = [];
     var todayJ = toJalali(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
     var todayStr = todayJ[0] + '/' + pad2(todayJ[1]) + '/' + pad2(todayJ[2]);
-    lines.push('=== 📅 اطلاعات پایه ===');
-    lines.push('نرم‌افزار: ' + APP_NAME + ' (نسخه ' + APP_VERSION + ')');
-    lines.push('⚠️ تاریخ امروز (شمسی): ' + todayStr + ' (' + WEEKDAYS_FA[new Date().getDay()] + ')');
-    lines.push('⚠️ تمام مبالغ در این دیتابیس به ریال هستند.');
-    lines.push('واحد نمایش فعلی کاربر: ' + currencyLabel());
 
-    var periods = DB.load('fiscalPeriods', []);
-    if (periods.length > 0) {
-        lines.push('\n=== 📅 دوره‌های مالی ===');
+    var personsAll    = DB.load('persons', []);
+    var companiesAll  = DB.load('companies', []);
+    var banksAll      = DB.load('bankAccounts', []);
+    var cashBoxesAll  = DB.load('cashBoxes', []);
+    var projectsAll   = DB.load('projects', []);
+    var facilitiesAll = DB.load('facilities', []);
+    var vouchersAll   = DB.load('vouchers', []);
+    var accountsAll   = DB.load('accounts', []);
+    var periodsAll    = DB.load('fiscalPeriods', []);
+    var notesAll      = DB.load('notes', []);
+    var sourcesAll    = DB.load('cashFlowSources', []);
+    var estimatesAll  = DB.load('dailyEstimates', []);
+
+    /* ============ هدر ============ */
+    lines.push('╔══════════════════════════════════════════╗');
+    lines.push('║  🤖 CONTEXT SYSTEM — پارسیس یار          ║');
+    lines.push('╚══════════════════════════════════════════╝');
+    lines.push('📅 امروز (شمسی): ' + todayStr + ' — ' + WEEKDAYS_FA[new Date().getDay()]);
+    lines.push('📦 نسخه: ' + APP_VERSION);
+    lines.push('💱 واحد نمایش فعلی: ' + currencyLabel());
+    lines.push('⚠️ تمام مبالغ در دیتابیس به ریال هستند. اگر کاربر «تومان» گفت، × ۱۰ کن.');
+
+    /* ============ آمار ============ */
+    lines.push('');
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    lines.push('📊 آمار کامل دیتابیس (این داده‌ها موجودند!)');
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    lines.push('👥 اشخاص: ' + personsAll.length + ' | 🏢 شرکت‌ها: ' + companiesAll.length);
+    lines.push('🏦 حساب بانکی: ' + banksAll.length + ' | 💰 صندوق: ' + cashBoxesAll.length);
+    lines.push('📁 پروژه: ' + projectsAll.length + ' | 🏦 تسهیلات: ' + facilitiesAll.length);
+    lines.push('📄 اسناد: ' + vouchersAll.length + ' | 📒 حساب چارت: ' + accountsAll.length);
+    lines.push('📅 دوره مالی: ' + periodsAll.length + ' | 📔 یادداشت: ' + notesAll.length);
+    lines.push('📥 منابع دریافتنی: ' + sourcesAll.length + ' | 📝 برآورد: ' + estimatesAll.length);
+
+    /* ============ دوره‌ها ============ */
+    if (periodsAll.length > 0) {
+        lines.push('');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        lines.push('📅 دوره‌های مالی');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         var activeP = null;
-        periods.forEach(function(p) {
-            var am = (p.id === state.activePeriodId) ? ' ⭐(دوره فعال فعلی)' : '';
+        periodsAll.forEach(function(p) {
+            var am = (p.id === state.activePeriodId) ? ' ⭐ (فعال)' : '';
             if (p.id === state.activePeriodId) activeP = p;
-            lines.push('- «' + p.title + '» از ' + p.from + ' تا ' + p.to + am);
+            lines.push('• «' + p.title + '» از ' + p.from + ' تا ' + p.to + am);
         });
         if (activeP) lines.push('⚠️ سند باید تاریخش در بازه ' + activeP.from + ' تا ' + activeP.to + ' باشد.');
         else lines.push('⚠️ هیچ دوره فعالی انتخاب نشده!');
-    } else lines.push('\n=== 📅 دوره مالی === (تعریف نشده)');
+    }
 
-    var accounts = DB.load('accounts', []);
-    if (accounts.length > 0) {
-        lines.push('\n=== 🗂️ چارت حساب‌ها (' + accounts.length + ' حساب) ===');
-        lines.push('فرمت: [کد] عنوان سطح | تفصیلی مرتبط | ویژگی‌ها');
+    /* ============ چارت حساب‌ها ============ */
+    if (accountsAll.length > 0) {
+        lines.push('');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        lines.push('🗂️ چارت حساب‌ها (' + accountsAll.length + ' حساب)');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         var byParent = {};
-        accounts.forEach(function(a) {
+        accountsAll.forEach(function(a) {
             var p = a.parent || '__root__';
             if (!byParent[p]) byParent[p] = [];
             byParent[p].push(a);
         });
-        function walk(pid, depth) {
+        function walkChart(pid, depth) {
             var arr = byParent[pid] || [];
             arr.sort(function(a, b) { return (a.code || '').localeCompare(b.code || '', 'fa'); });
             arr.forEach(function(a) {
                 var extra = [];
                 if (a.links && a.links.length > 0) extra.push('تفصیلی: ' + a.links.map(linkTypeName).join('، '));
                 if (a.cfEffect) extra.push('گردش وجه نقد');
+                if (a.active === false) extra.push('غیرفعال');
                 var lvlName = depth === 0 ? 'گروه' : (depth === 1 ? 'کل' : (depth === 2 ? 'معین' : 'تفصیلی'));
                 lines.push(new Array(depth + 1).join('   ') + '├─ [' + (a.code || '?') + '] ' + (a.name || '') + ' (' + lvlName + ')' + (extra.length ? ' — ' + extra.join(' | ') : ''));
-                walk(a.id, depth + 1);
+                walkChart(a.id, depth + 1);
             });
         }
-        walk('__root__', 0);
-        var leaves = accounts.filter(function(a) { return !accounts.some(function(x) { return x.parent === a.id; }); });
-        lines.push('\n=== 📋 فقط این کدها را در account_code استفاده کن (' + leaves.length + ' معین) ===');
-        leaves.forEach(function(a) { lines.push('- ' + a.code + ' → ' + getAccountLabel(a.id, accounts)); });
-    } else lines.push('\n=== 🗂️ چارت حساب‌ها === (خالی - اول باید تعریف شود)');
+        walkChart('__root__', 0);
+        var leaves = accountsAll.filter(function(a) { return !accountsAll.some(function(x) { return x.parent === a.id; }); });
+        lines.push('');
+        lines.push('📋 کدهای معین معتبر برای account_code (فقط این ' + leaves.length + ' کد):');
+        leaves.forEach(function(a) { lines.push('   ' + a.code + ' → ' + getAccountLabel(a.id, accountsAll)); });
+    }
 
-    var persons = DB.load('persons', []);
-    if (persons.length > 0) {
-        lines.push('\n=== 👥 اشخاص (' + persons.length + ') ===');
-        lines.push('⚠️ در فیلد details.person نام دقیق از این لیست استفاده کن.');
-        persons.forEach(function(p) {
-            var parts = ['نام: ' + (p.first || '—'), 'خانوادگی: ' + (p.last || '—')];
-            if (p.mobile) parts.push('موبایل: ' + p.mobile);
-            if (p.nationalId) parts.push('کد ملی: ' + p.nationalId);
-            lines.push('- ' + parts.join(' | '));
+    /* ============ اشخاص — با تمام فیلدها ============ */
+    if (personsAll.length > 0) {
+        lines.push('');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        lines.push('👥 اشخاص (' + personsAll.length + ') — تمام اطلاعات');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        lines.push('⚠️ در details.person دقیقاً «نام خانوادگی» را بنویس.');
+        personsAll.forEach(function(p) {
+            var row = '• «' + (p.first || '—') + ' ' + (p.last || '—') + '»';
+            row += ' | نام پدر: ' + (p.father || '—');
+            row += ' | کد ملی: ' + (p.nationalId || '—');
+            row += ' | **تاریخ تولد: ' + (p.birth || '—') + '**';
+            if (p.mobile) row += ' | موبایل: ' + p.mobile;
+            if (p.phone)  row += ' | تلفن: ' + p.phone;
+            if (p.email)  row += ' | ایمیل: ' + p.email;
+            if (p.bankTitle) row += ' | بانک: ' + p.bankTitle;
+            if (p.acc)    row += ' | شماره حساب: ' + p.acc;
+            if (p.iban)   row += ' | شبا: ' + p.iban;
+            if (p.card)   row += ' | کارت: ' + p.card;
+            if (p.address) row += ' | آدرس: ' + p.address;
+            lines.push(row);
         });
-    } else lines.push('\n=== 👥 اشخاص === (خالی)');
+    }
 
-    var companies = DB.load('companies', []);
-    if (companies.length > 0) {
-        lines.push('\n=== 🏢 شرکت‌ها (' + companies.length + ') ===');
-        companies.forEach(function(c) { lines.push('- ' + (c.name || '—') + (c.phone ? ' | تلفن: ' + c.phone : '')); });
-    } else lines.push('\n=== 🏢 شرکت‌ها === (خالی)');
+    /* ============ شرکت‌ها ============ */
+    if (companiesAll.length > 0) {
+        lines.push('');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        lines.push('🏢 شرکت‌ها (' + companiesAll.length + ')');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        companiesAll.forEach(function(c) {
+            var row = '• «' + (c.name || '—') + '»';
+            if (c.phone)   row += ' | تلفن: ' + c.phone;
+            if (c.email)   row += ' | ایمیل: ' + c.email;
+            if (c.address) row += ' | آدرس: ' + c.address;
+            lines.push(row);
+        });
+    }
 
-    var banks = DB.load('bankAccounts', []);
-    if (banks.length > 0) {
-        lines.push('\n=== 🏦 حساب‌های بانکی (' + banks.length + ') ===');
-        lines.push('⚠️ در فیلد details.bank دقیقاً یکی از این‌ها را بنویس.');
-        var tb = 0;
-        banks.forEach(function(b) {
+    /* ============ بانک‌ها ============ */
+    if (banksAll.length > 0) {
+        lines.push('');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        lines.push('🏦 حساب‌های بانکی (' + banksAll.length + ')');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        lines.push('⚠️ در details.bank دقیقاً «نام بانک + شماره حساب» را بنویس.');
+        var totalBankAll = 0;
+        banksAll.forEach(function(b) {
             var bal = getBankBalance(b.id);
-            tb += bal;
-            var det = '🏦 ' + (b.bank || '—');
-            if (b.account) det += ' | حساب: ' + b.account;
-            if (b.branchName) det += ' | شعبه: ' + b.branchName;
-            det += ' | مانده: ' + formatRial(bal) + ' ریال';
-            lines.push('- ' + det);
+            totalBankAll += bal;
+            var row = '• «' + (b.bank || '—') + '»';
+            if (b.type)       row += ' | نوع: ' + b.type;
+            if (b.account)    row += ' | شماره حساب: ' + b.account;
+            if (b.branchName) row += ' | شعبه: ' + b.branchName;
+            if (b.branchCode) row += ' | کد شعبه: ' + b.branchCode;
+            if (b.iban)       row += ' | شبا: ' + b.iban;
+            if (b.card)       row += ' | کارت: ' + b.card;
+            if (b.order != null) row += ' | ترتیب: ' + b.order;
+            if (b.minBalance) row += ' | حداقل: ' + formatRial(b.minBalance) + ' ریال';
+            row += ' | **مانده: ' + formatRial(bal) + ' ریال**';
+            lines.push(row);
         });
-        lines.push('💰 جمع مانده بانک‌ها: ' + formatRial(tb) + ' ریال');
-    } else lines.push('\n=== 🏦 حساب‌های بانکی === (خالی)');
+        lines.push('💰 جمع کل مانده بانک‌ها: ' + formatRial(totalBankAll) + ' ریال');
+    }
 
-    var cbs = DB.load('cashBoxes', []);
-    if (cbs.length > 0) {
-        lines.push('\n=== 💰 صندوق‌ها (' + cbs.length + ') ===');
-        lines.push('⚠️ در فیلد details.cashbox دقیقاً عنوان صندوق را بنویس.');
-        var tc = 0;
-        cbs.forEach(function(c) {
+    /* ============ صندوق‌ها ============ */
+    if (cashBoxesAll.length > 0) {
+        lines.push('');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        lines.push('💰 صندوق‌ها (' + cashBoxesAll.length + ')');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        lines.push('⚠️ در details.cashbox دقیقاً عنوان صندوق را بنویس.');
+        var totalCashAll = 0;
+        cashBoxesAll.forEach(function(c) {
             var bal = getCashBoxBalance(c.id);
-            tc += bal;
-            lines.push('- «' + (c.title || '—') + '» | نوع: ' + (c.type || '—') + (c.unit ? ' | واحد: ' + c.unit : '') + ' | مانده: ' + formatRial(bal) + ' ریال');
+            totalCashAll += bal;
+            var row = '• «' + (c.title || '—') + '»';
+            if (c.type)  row += ' | نوع: ' + c.type;
+            if (c.unit)  row += ' | واحد: ' + c.unit;
+            if (c.order != null) row += ' | ترتیب: ' + c.order;
+            row += ' | **مانده: ' + formatRial(bal) + ' ریال**';
+            lines.push(row);
         });
-        lines.push('💰 جمع صندوق‌ها: ' + formatRial(tc) + ' ریال');
-    } else lines.push('\n=== 💰 صندوق‌ها === (خالی)');
+        lines.push('💰 جمع کل صندوق‌ها: ' + formatRial(totalCashAll) + ' ریال');
+    }
 
-    var projects = DB.load('projects', []);
-    if (projects.length > 0) {
-        lines.push('\n=== 📁 پروژه‌ها (' + projects.length + ') ===');
-        lines.push('⚠️ در فیلد details.project نام دقیق پروژه را بنویس.');
-        projects.forEach(function(p) { lines.push('- «' + (p.name || '—') + '»'); });
-    } else lines.push('\n=== 📁 پروژه‌ها === (خالی)');
+    /* ============ پروژه‌ها ============ */
+    if (projectsAll.length > 0) {
+        lines.push('');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        lines.push('📁 پروژه‌ها (' + projectsAll.length + ')');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        lines.push('⚠️ در details.project دقیقاً نام پروژه را بنویس.');
+        projectsAll.forEach(function(p) { lines.push('• «' + (p.name || '—') + '»'); });
+    }
 
-    var facilities = DB.load('facilities', []);
-    if (facilities.length > 0) {
-        lines.push('\n=== 🏦 تسهیلات (' + facilities.length + ') ===');
-        facilities.forEach(function(f) {
-            var ins = (f.installments || []);
+    /* ============ تسهیلات ============ */
+    if (facilitiesAll.length > 0) {
+        lines.push('');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        lines.push('🏦 تسهیلات (' + facilitiesAll.length + ')');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        facilitiesAll.forEach(function(f) {
+            var bankObj = banksAll.find(function(b) { return b.id === f.bankId; });
+            var bankName = bankObj ? bankObj.bank : '—';
+            var ins = f.installments || [];
             var paid = ins.filter(function(x) { return x.status === 'paid'; });
             var unpaid = ins.filter(function(x) { return x.status !== 'paid'; });
             var paidAmt = paid.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
             var unpaidAmt = unpaid.reduce(function(s, x) { return s + (Number(x.amount) || 0); }, 0);
-            lines.push('- «' + f.name + '» | دسته: ' + categoryName(f.category) + ' | مبلغ اولیه: ' + formatRial(f.initial || 0) + ' | پرداخت: ' + formatRial(paidAmt) + ' | باقی: ' + formatRial(unpaidAmt) + ' (' + unpaid.length + ' قسط)');
+            var row = '• «' + f.name + '»';
+            row += ' | دسته: ' + categoryName(f.category);
+            row += ' | بانک: ' + bankName;
+            row += ' | تاریخ: ' + (f.date || '—');
+            row += ' | مبلغ اولیه: ' + formatRial(f.initial || 0) + ' ریال';
+            row += ' | پرداخت: ' + formatRial(paidAmt) + ' ریال';
+            row += ' | باقی: ' + formatRial(unpaidAmt) + ' ریال';
+            row += ' | تعداد قسط: ' + ins.length + ' (' + paid.length + ' پرداخت، ' + unpaid.length + ' باقی)';
+            row += ' | وضعیت: ' + (f.status === 'settled' ? 'تسویه' : 'جاری');
+            lines.push(row);
         });
-    } else lines.push('\n=== 🏦 تسهیلات === (خالی)');
+    }
 
-    lines.push('\n=== ⏰ اقساط ۷ روز آینده ===');
+    /* ============ اقساط ۷ روز آینده ============ */
     var upcoming = [];
-    facilities.forEach(function(f) {
+    facilitiesAll.forEach(function(f) {
         (f.installments || []).forEach(function(inst) {
             if (inst.status === 'paid' || !inst.date) return;
             var ip = inst.date.split('/').map(Number);
@@ -937,55 +909,94 @@ function aiBuildContext() {
             if (dleft >= 0 && dleft <= 7) upcoming.push({ f: f, inst: inst, daysLeft: dleft });
         });
     });
-    if (upcoming.length === 0) lines.push('- هیچ قسطی در ۷ روز آینده نیست.');
+    lines.push('');
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    lines.push('⏰ اقساط ۷ روز آینده (' + upcoming.length + ')');
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    if (upcoming.length === 0) lines.push('• هیچ قسطی در ۷ روز آینده نیست.');
     else {
         upcoming.sort(function(a, b) { return a.daysLeft - b.daysLeft; });
         var upTotal = 0;
         upcoming.forEach(function(u) {
             upTotal += Number(u.inst.amount) || 0;
-            lines.push('- ' + u.f.name + ' | ' + u.inst.date + ' | ' + formatRial(u.inst.amount || 0) + ' ریال | ' + (u.daysLeft === 0 ? 'امروز' : u.daysLeft + ' روز دیگر'));
+            lines.push('• ' + u.f.name + ' | ' + u.inst.date + ' | ' + formatRial(u.inst.amount || 0) + ' ریال | ' + (u.daysLeft === 0 ? 'امروز' : u.daysLeft + ' روز دیگر'));
         });
         lines.push('💰 جمع: ' + formatRial(upTotal) + ' ریال');
     }
 
-    var sources = DB.load('cashFlowSources', []);
-    if (sources.length > 0) {
-        lines.push('\n=== 📥 منابع دریافتنی (' + sources.length + ') ===');
-        sources.forEach(function(s) {
-            lines.push('- ' + getSourceLabel(s) + ' | تاریخ: ' + (s.expectedDate || '—') + ' | ' + formatRial(s.amount || 0) + ' ریال');
+    /* ============ منابع دریافتنی ============ */
+    if (sourcesAll.length > 0) {
+        lines.push('');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        lines.push('📥 منابع دریافتنی (' + sourcesAll.length + ')');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        sourcesAll.forEach(function(s) {
+            lines.push('• ' + getSourceLabel(s) + ' | تاریخ: ' + (s.expectedDate || '—') + ' | ' + formatRial(s.amount || 0) + ' ریال' + (s.notes ? ' | ' + s.notes : ''));
         });
     }
 
-    var estimates = DB.load('dailyEstimates', []);
-    if (estimates.length > 0) {
-        lines.push('\n=== 📝 برآورد هزینه‌ها (' + estimates.length + ') ===');
-        estimates.forEach(function(est) {
-            lines.push('- «' + (est.title || est.desc) + '» | بازه: ' + est.from + ' تا ' + est.to + ' | ' + formatRial(est.total || 0) + ' ریال');
+    /* ============ برآوردها ============ */
+    if (estimatesAll.length > 0) {
+        lines.push('');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        lines.push('📝 برآورد هزینه‌ها (' + estimatesAll.length + ')');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        estimatesAll.forEach(function(est) {
+            lines.push('• «' + (est.title || est.desc) + '» | بازه: ' + est.from + ' تا ' + est.to + ' | ' + formatRial(est.total || 0) + ' ریال | تعداد آیتم: ' + (est.items || []).length);
         });
     }
 
-    var vouchers = DB.load('vouchers', []);
-    if (vouchers.length > 0) {
-        var approved = vouchers.filter(function(v) { return v.status === 'approved'; });
-        var draft = vouchers.filter(function(v) { return v.status !== 'approved'; });
-        lines.push('\n=== 📄 اسناد ===');
-        lines.push('کل: ' + vouchers.length + ' | تأیید: ' + approved.length + ' | پیش‌نویس: ' + draft.length);
-        var recent = approved.slice().sort(function(a, b) { return compareVals(b.date, a.date); }).slice(0, 10);
+    /* ============ اسناد — با ریز اقلام ============ */
+    if (vouchersAll.length > 0) {
+        var approved = vouchersAll.filter(function(v) { return v.status === 'approved'; });
+        var draft = vouchersAll.filter(function(v) { return v.status !== 'approved'; });
+        lines.push('');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        lines.push('📄 اسناد حسابداری (' + vouchersAll.length + ')');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        lines.push('کل: ' + vouchersAll.length + ' | تأیید: ' + approved.length + ' | پیش‌نویس: ' + draft.length);
+        var recent = approved.slice().sort(function(a, b) { return compareVals(b.date, a.date); }).slice(0, 15);
         if (recent.length > 0) {
-            lines.push('--- ۱۰ سند آخر ---');
+            lines.push('');
+            lines.push('📌 ۱۵ سند آخر (تأییدشده) با ریز اقلام:');
             recent.forEach(function(v) {
+                lines.push('');
+                lines.push('  ┌─ سند #' + v.number + ' | تاریخ: ' + v.date + ' | نوع: ' + voucherTypeName(v.type) + ' | شرح: ' + (v.desc || '—'));
+                lines.push('  │  مبلغ کل: ' + formatRial(getVoucherAmount(v)) + ' ریال');
+                (v.lines || []).forEach(function(l, idx) {
+                    var accLabel = getAccountLabel(l.account, accountsAll);
+                    var detStr = '';
+                    if (l.details) Object.keys(l.details).forEach(function(lt) {
+                        if (l.details[lt]) {
+                            if (detStr) detStr += ' + ';
+                            detStr += linkTypeName(lt) + ': ' + getDetailLabel(lt, l.details[lt]);
+                        }
+                    });
+                    var d = Number(l.debit) || 0;
+                    var c = Number(l.credit) || 0;
+                    var side = d > 0 ? 'بدهکار: ' + formatRial(d) : 'بستانکار: ' + formatRial(c);
+                    lines.push('  │  ' + (idx+1) + '. ' + accLabel + (detStr ? ' [' + detStr + ']' : '') + ' | ' + side + ' | ' + (l.description || '—'));
+                });
+                lines.push('  └─');
+            });
+        }
+        if (draft.length > 0) {
+            lines.push('');
+            lines.push('📌 پیش‌نویس‌های در انتظار تأیید (' + draft.length + '):');
+            draft.slice(0, 5).forEach(function(v) {
                 lines.push('• #' + v.number + ' | ' + v.date + ' | ' + formatRial(getVoucherAmount(v)) + ' ریال | ' + (v.desc || '—'));
             });
         }
     }
 
+    /* ============ خلاصه ماه ============ */
     var pr = getPeriodMonthRange();
     var monthInc = 0, monthExp = 0;
-    vouchers.filter(function(v) { return v.status === 'approved' && v.date >= pr.from && v.date <= pr.to; }).forEach(function(v) {
+    vouchersAll.filter(function(v) { return v.status === 'approved' && v.date >= pr.from && v.date <= pr.to; }).forEach(function(v) {
         (v.lines || []).forEach(function(l) {
             if (!l.account) return;
-            var rootId = getRootAccountId(l.account, accounts);
-            var root = accounts.find(function(a) { return a.id === rootId; });
+            var rootId = getRootAccountId(l.account, accountsAll);
+            var root = accountsAll.find(function(a) { return a.id === rootId; });
             if (!root) return;
             var codeRoot = String(root.code || '').charAt(0);
             var d = Number(l.debit) || 0, c = Number(l.credit) || 0;
@@ -993,32 +1004,77 @@ function aiBuildContext() {
             else if (codeRoot === '5') monthExp += d;
         });
     });
-    lines.push('\n=== 📊 خلاصه ماه جاری (' + getJalaliMonthName(pr.month) + ' ' + toFa(pr.year) + ') ===');
-    lines.push('- درآمد: ' + formatRial(monthInc) + ' ریال');
-    lines.push('- هزینه: ' + formatRial(monthExp) + ' ریال');
-    lines.push('- سود/زیان: ' + formatRial(monthInc - monthExp) + ' ریال');
+    lines.push('');
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    lines.push('📊 خلاصه ماه جاری (' + getJalaliMonthName(pr.month) + ' ' + toFa(pr.year) + ')');
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    lines.push('• درآمد: ' + formatRial(monthInc) + ' ریال');
+    lines.push('• هزینه: ' + formatRial(monthExp) + ' ریال');
+    lines.push('• سود/زیان: ' + formatRial(monthInc - monthExp) + ' ریال');
 
-    var notes = DB.load('notes', []);
-    if (notes.length > 0) {
-        lines.push('\n=== 📔 یادداشت‌ها (' + notes.length + ') ===');
-        notes.slice(0, 10).forEach(function(n) {
+    /* ============ یادداشت‌ها ============ */
+    if (notesAll.length > 0) {
+        lines.push('');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        lines.push('📔 یادداشت‌ها (' + notesAll.length + ')');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        notesAll.slice(0, 15).forEach(function(n) {
             var chk = (n.checklist || []).length;
             var done = (n.checklist || []).filter(function(c) { return c.done; }).length;
-            lines.push('- ' + (n.date || '—') + ' | ' + (n.title || '—') + (chk > 0 ? ' (' + done + '/' + chk + ')' : '') + (n.archived ? ' 📦' : ''));
+            var row = '• ' + (n.date || '—') + ' | «' + (n.title || '—') + '»';
+            if (chk > 0) row += ' | چک‌لیست: ' + done + '/' + chk;
+            if (n.archived) row += ' | 📦 آرشیو';
+            if (n.content) row += ' | ' + String(n.content).substring(0, 80);
+            lines.push(row);
         });
     }
 
+    /* ============ شرح‌های استاندارد ============ */
     var stdDesc = DB.load('standardDescriptions', []);
-    if (stdDesc.length > 0) lines.push('\n=== 💬 شرح‌های استاندارد ===\n' + stdDesc.join(' ، '));
+    if (stdDesc.length > 0) {
+        lines.push('');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        lines.push('💬 شرح‌های استاندارد');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        lines.push(stdDesc.join(' ، '));
+    }
 
+    /* ============ نرخ‌ها ============ */
     var cr = LIVE_RATES_CACHE;
     if (cr && cr.ts > 0 && cr.values) {
-        lines.push('\n=== 💱 نرخ‌های لحظه‌ای ===');
+        lines.push('');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        lines.push('💱 نرخ‌های لحظه‌ای (ریال)');
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         for (var ri = 0; ri < RATE_ASSETS.length; ri++) {
             var val = cr.values[RATE_ASSETS[ri].key] || 0;
-            if (val > 0) lines.push('- ' + RATE_ASSETS[ri].label + ': ' + formatRial(val) + ' ریال');
+            if (val > 0) lines.push('• ' + RATE_ASSETS[ri].label + ': ' + formatRial(val) + ' ریال');
         }
     }
+
+    /* ============ صفحات و ابزارها ============ */
+    lines.push('');
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    lines.push('🗺️ صفحات قابل باز کردن (page_key)');
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    Object.keys(AI_NAVIGABLE_PAGES).forEach(function(k) {
+        lines.push('• ' + k + ' → ' + AI_NAVIGABLE_PAGES[k]);
+    });
+
+    lines.push('');
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    lines.push('🛠️ ابزارهای موجود برای تو (AI)');
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    AI_TOOLS.forEach(function(t) {
+        if (t.function) lines.push('• ' + t.function.name + ' — ' + t.function.description);
+    });
+
+    lines.push('');
+    lines.push('╔══════════════════════════════════════════╗');
+    lines.push('║  ✅ این تمام داده‌های کاربر است.        ║');
+    lines.push('║  اگر چیزی اینجا نیست، واقعاً وجود ندارد. ║');
+    lines.push('╚══════════════════════════════════════════╝');
+
     return lines.join('\n');
 }
 
@@ -1045,36 +1101,24 @@ function aiBuildSystemPrompt() {
         '1. اگر کاربر از داده‌ای پرسید و آن داده در context نبود، **قبل از هر پاسخی** این را بگو:\n' +
         '   «در این لحظه داده‌ای درباره X در context من نیست. لطفاً اگر مطمئنید داده وجود دارد، دکمه 🗑 (پاک کردن چت) یا 🔄 (بروزرسانی) را بزنید و دوباره بپرسید.»\n' +
         '2. **هرگز** به کاربر نگو «شما داده‌ای ثبت نکرده‌اید» یا «در سیستم شما چیزی وجود ندارد» — چون ممکن است context ناقص به تو رسیده باشد.\n' +
-        '3. اگر context خالی یا ناقص به نظر می‌رسد، از کاربر بخواه دکمه 🗑 یا 🔄 را بزند و دوباره بپرسد.\n\n' +
+        '3. **حتماً** بخش «آمار کامل دیتابیس» را در ابتدای context چک کن. اگر تعداد اشخاص > 0 بود، یعنی داده وجود دارد و باید در لیست پایین پیدا کنی.\n' +
+        '4. اگر context خالی یا ناقص به نظر می‌رسد، از کاربر بخواه دکمه 🗑 یا 🔄 را بزند و دوباره بپرسد.\n\n' +
         '═══════════════════════════════════════\n' +
         '📝 **صدور سند (create_voucher_draft)**\n' +
         '═══════════════════════════════════════\n' +
         '⚠️ **فقط وقتی** کاربر صریحاً گفت: «سند بزن»، «ثبت کن»، «پرداخت شد»، «واریز شد»، «هزینه شد».\n\n' +
         '**گام‌به‌گام**:\n' +
         '1. **تاریخ**: اگر کاربر تاریخ نگفت، امروز. فرمت YYYY/MM/DD. باید در بازه دوره فعال باشد.\n' +
-        '2. **حساب‌ها**: از لیست «فقط این کدها را در account_code استفاده کن» کد **دقیق** بردار.\n' +
+        '2. **حساب‌ها**: از لیست «کدهای معین معتبر» کد **دقیق** بردار.\n' +
         '3. **تفصیلی‌ها (بسیار مهم)**: اگر حساب معین «تفصیلی مرتبط» دارد، در فیلد `details` نام دقیق بنویس:\n' +
-        '   • برای person → نام کامل شخص (مثلاً: "علی رضایی")\n' +
-        '   • برای bank → نام بانک + شماره حساب (مثلاً: "بانک ملی - 48003")\n' +
-        '   • برای cashbox → عنوان صندوق (مثلاً: "صندوق نقد")\n' +
+        '   • برای person → «نام خانوادگی شخص» (مثلاً: "آراد پورعباد")\n' +
+        '   • برای bank → «نام بانک + شماره حساب»\n' +
+        '   • برای cashbox → «عنوان صندوق»\n' +
         '   • برای project → نام پروژه\n' +
         '   • برای facility → نام تسهیلات\n' +
         '   • برای company → نام شرکت\n' +
         '4. **توازن**: جمع بدهکار = بستانکار **حتماً**.\n' +
         '5. **شرح هر قلم**: هر ردیف **باید** description داشته باشد.\n\n' +
-        '**مثال درست برای «۵۰۰ هزار تومان کرایه تاکسی از صندوق پرداخت شد»**:\n' +
-        '```json\n' +
-        '{\n' +
-        '  "date": "' + todayJalaliStr() + '",\n' +
-        '  "desc": "کرایه تاکسی",\n' +
-        '  "type": "general",\n' +
-        '  "lines": [\n' +
-        '    { "account_code": "<کد معین هزینه ایاب و ذهاب>", "debit": 5000000, "credit": 0, "description": "کرایه تاکسی" },\n' +
-        '    { "account_code": "<کد معین صندوق>", "debit": 0, "credit": 5000000, "description": "پرداخت از صندوق", "details": { "cashbox": "<نام دقیق صندوق از لیست>" } }\n' +
-        '  ]\n' +
-        '}\n' +
-        '```\n' +
-        '⚠️ توجه: ۵۰۰ هزار تومان = ۵,۰۰۰,۰۰۰ ریال.\n\n' +
         '═══════════════════════════════════════\n' +
         '🗺️ **باز کردن صفحه‌ها (navigate_and_run_report)**\n' +
         '═══════════════════════════════════════\n' +
@@ -1100,7 +1144,7 @@ function aiBuildSystemPrompt() {
         '═══════════════════════════════════════\n\n' + aiBuildContext();
 }
 
-/* ==================== Markdown rendering ==================== */
+/* ==================== Markdown ==================== */
 function _aiSplitTableRow(line) {
     var t = String(line).trim();
     if (t.charAt(0) === '|') t = t.slice(1);
@@ -1153,12 +1197,8 @@ function renderAIMarkdown(text) {
 
 /* ==================== API Calls ==================== */
 async function _aiDoFetch(modelId, userMessage, includeTools, imageData) {
-    /* ★ Cache کردن context برای این پیام */
-    if (!AI._contextCache) {
-        AI._contextCache = aiBuildSystemPrompt();
-    }
+    if (!AI._contextCache) AI._contextCache = aiBuildSystemPrompt();
     var sys = AI._contextCache;
-
     var histArr = AI.history.slice();
     for (var hi = histArr.length - 1; hi >= 0; hi--) {
         if (histArr[hi].role === 'user') { histArr.splice(hi, 1); break; }
@@ -1232,7 +1272,7 @@ async function aiCallAPI(userMessage, imageData) {
     throw new Error('همه مدل‌ها ناموفق بودند. آخرین خطا: ' + (errors[errors.length - 1] || 'نامشخص'));
 }
 
-/* ==================== Fuzzy matching for details ==================== */
+/* ==================== Fuzzy matching ==================== */
 function aiNormalizeStr(s) {
     return String(s || '').trim().toLowerCase()
         .replace(/[يى]/g, 'ی').replace(/[كک]/g, 'ک')
@@ -1376,7 +1416,7 @@ function aiHandleVoucherDraft(args) {
     var td = 0, tc = 0;
     lines.forEach(function(l) { td += l.debit; tc += l.credit; });
     if (Math.abs(td - tc) > 0.5 && lines.length >= 2) {
-        problems.push('سند متوازن نیست. بدهکار: ' + formatMoney(td) + ' ریال | بستانکار: ' + formatMoney(tc) + ' ریال | اختلاف: ' + formatMoney(Math.abs(td - tc)) + ' ریال. یکی از ردیف‌ها را اصلاح کن.');
+        problems.push('سند متوازن نیست. بدهکار: ' + formatMoney(td) + ' ریال | بستانکار: ' + formatMoney(tc) + ' ریال | اختلاف: ' + formatMoney(Math.abs(td - tc)) + ' ریال.');
     }
     var date = normalizeDigits(String(args.date || '').trim());
     if (!/^\d{4}\/\d{1,2}\/\d{1,2}$/.test(date)) date = todayJalaliStr();
@@ -1487,7 +1527,7 @@ function aiHandleCreateFiscalPeriod(args) {
     var from = normalizeDigits(String(args.from).trim());
     var to = normalizeDigits(String(args.to).trim());
     if (!/^\d{4}\/\d{1,2}\/\d{1,2}$/.test(from) || !/^\d{4}\/\d{1,2}\/\d{1,2}$/.test(to)) {
-        return { error: 'فرمت تاریخ نامعتبر (باید YYYY/MM/DD باشد)' };
+        return { error: 'فرمت تاریخ نامعتبر' };
     }
     if (from > to) return { error: 'شروع باید قبل از پایان' };
     var nid = uid();
@@ -1529,16 +1569,9 @@ function aiHandleCreateAccount(args) {
     }) : [];
     if (level !== 3) links = [];
     var o = {
-        id: uid(),
-        code: code,
-        name: String(args.name).trim(),
-        parent: parentId,
-        level: level,
-        cat: args.cat || 'permanent',
-        nature: args.nature || 'debit',
-        active: true,
-        links: links,
-        cfEffect: (level === 3) && !!args.cfEffect
+        id: uid(), code: code, name: String(args.name).trim(), parent: parentId, level: level,
+        cat: args.cat || 'permanent', nature: args.nature || 'debit', active: true,
+        links: links, cfEffect: (level === 3) && !!args.cfEffect
     };
     accounts.push(o);
     DB.save('accounts', accounts);
@@ -1556,15 +1589,9 @@ function aiHandleCreateFacility(args) {
         if (res.id) bankId = res.id;
     }
     var o = {
-        id: uid(),
-        name: String(args.name).trim(),
-        category: args.category || 'facility',
-        bankId: bankId,
-        date: normalizeDigits(String(args.date || '').trim()),
-        initial: Number(args.initial) || 0,
-        paid: 0,
-        installments: [],
-        status: 'active'
+        id: uid(), name: String(args.name).trim(), category: args.category || 'facility',
+        bankId: bankId, date: normalizeDigits(String(args.date || '').trim()),
+        initial: Number(args.initial) || 0, paid: 0, installments: [], status: 'active'
     };
     list.push(o);
     DB.save('facilities', list);
@@ -1582,14 +1609,9 @@ function aiHandleCreateNote(args) {
         });
     }
     var o = {
-        id: uid(),
-        title: String(args.title).trim(),
+        id: uid(), title: String(args.title).trim(),
         date: normalizeDigits(String(args.date || todayJalaliStr()).trim()),
-        content: String(args.content || ''),
-        checklist: cl,
-        imageRefs: [],
-        archived: false,
-        savedAt: Date.now()
+        content: String(args.content || ''), checklist: cl, imageRefs: [], archived: false, savedAt: Date.now()
     };
     list.push(o);
     DB.save('notes', list);
@@ -1626,7 +1648,7 @@ function aiRender() {
     if (!AI.apiKey) {
         box.innerHTML = '<div class="ai-setup"><h3>🤖 به پارسیس یار خوش آمدید</h3>' +
             '<p>کلید API را از تنظیمات (⚙) وارد کنید.<br>سرویس AvalAI ایرانی است.<br><a href="https://avalai.ir" target="_blank">avalai.ir</a></p>' +
-            '<p style="margin-top:14px;font-size:0.82rem;color:#667eea">🎤 می‌توانی با میکروفون صحبت کنی<br>📷 می‌توانی عکس فاکتور/فیش/فرم بفرستی<br>🔊 پاسخ‌ها به صورت صوتی هم پخش می‌شوند</p>' +
+            '<p style="margin-top:14px;font-size:0.82rem;color:#667eea">🎤 با میکروفون صحبت کن<br>📷 عکس فاکتور بفرست<br>🔊 پاسخ‌ها با صدای پارسی</p>' +
             '<button class="btn-primary" onclick="document.getElementById(\'ai-settings-btn\').click()">⚙ تنظیمات</button></div>';
         return;
     }
@@ -1705,9 +1727,7 @@ function aiClose() {
 }
 async function aiSend() {
     if (AI.isThinking) return;
-    /* ★ پاک کردن cache context برای دریافت تازه */
     AI._contextCache = null;
-
     var inp = document.getElementById('ai-input');
     var text = (inp.value || '').trim();
     var img = AI_PENDING_IMAGE;
@@ -1738,9 +1758,9 @@ async function aiSend() {
             }
             var msgContent = result.content || '';
             if (!msgContent) {
-                if (drafts.length > 0) msgContent = '✅ پیش‌نویس سند آماده شد. برای بازبینی روی دکمه «بارگذاری در فرم سند» بزن.';
+                if (drafts.length > 0) msgContent = '✅ پیش‌نویس سند آماده شد.';
                 else if (actions.length > 0) msgContent = '✅ عملیات با موفقیت انجام شد.';
-                else if (errors.length > 0) msgContent = '⚠️ نتوانستم کامل انجام دهم. لطفاً متن خطا را ببین و اصلاح کن.';
+                else if (errors.length > 0) msgContent = '⚠️ نتوانستم کامل انجام دهم.';
                 else msgContent = '⚠️ نتوانستم انجام دهم.';
             }
             var msg = { role: 'assistant', content: msgContent };
@@ -1755,7 +1775,6 @@ async function aiSend() {
             AI.history.push(txtMsg);
             aiAutoSpeakIfNeeded(txtMsg);
         }
-        /* ★ محدود کردن طول تاریخچه در حافظه */
         if (AI.history.length > AI.MAX_HISTORY * 2) {
             AI.history = AI.history.slice(-AI.MAX_HISTORY * 2);
         }
@@ -1809,8 +1828,7 @@ function initDraggableFab() {
         return { x: e.clientX, y: e.clientY };
     }
     function onDown(e) {
-        isDragging = true;
-        moved = false;
+        isDragging = true; moved = false;
         var p = getPoint(e);
         startX = p.x; startY = p.y;
         startL = fab.offsetLeft;
@@ -1822,8 +1840,7 @@ function initDraggableFab() {
         var p = getPoint(e);
         var dx = p.x - startX, dy = p.y - startY;
         if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
-        var newL = startL + dx;
-        var newB = startB - dy;
+        var newL = startL + dx, newB = startB - dy;
         newL = Math.max(4, Math.min(window.innerWidth - fab.offsetWidth - 4, newL));
         newB = Math.max(4, Math.min(window.innerHeight - fab.offsetHeight - 4, newB));
         fab.style.left = newL + 'px';
@@ -1915,8 +1932,6 @@ function aiInit() {
     });
     var ttsBtn = document.getElementById('ai-tts-btn');
     if (ttsBtn) ttsBtn.addEventListener('click', function(e) { e.stopPropagation(); aiToggleSpeak(); });
-
-    /* ★ دکمه بروزرسانی Context */
     var refreshBtn = document.getElementById('ai-refresh-btn');
     if (refreshBtn) {
         refreshBtn.addEventListener('click', function(e) {
@@ -1926,7 +1941,6 @@ function aiInit() {
             showToast('🔄 Context و مدل‌های failed بروزرسانی شد');
         });
     }
-
     var ttsAuto = document.getElementById('ai-auto-speak');
     if (ttsAuto) {
         ttsAuto.checked = !!AI_TTS.autoSpeak;
