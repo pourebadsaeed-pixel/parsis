@@ -11,8 +11,6 @@ function trackFormUsage(pageName) {
     DB.save('formUsage', state.formUsage);
     renderFrequentNav();
 }
-
-/* ★ اصلاح‌شده طبق درخواست ۳: نگاشت کامل همه صفحات به برچسب فارسی */
 function renderFrequentNav() {
     var container = document.getElementById('nav-frequent-items');
     var group = document.getElementById('nav-frequent-group');
@@ -362,7 +360,7 @@ function makeTableResizable(table) {
     applyColWidths(tableId);
 }
 
-/* ★ جدید طبق درخواست ۵: بازنشانی عرض ستون‌ها */
+/* ★ بازنشانی عرض ستون‌ها */
 function resetColumnWidths(tableId) {
     if (!tableId) return;
     delete colWidths[tableId];
@@ -542,7 +540,6 @@ function makeCardCollapsible(cardEl, key, defaultOpen) {
 }
 
 /* ==================== buildHeaderButtons ==================== */
-/* ★ اصلاح‌شده طبق درخواست ۵: افزودن دکمه بازنشانی عرض ستون‌ها */
 function buildHeaderButtons() {
     var headers = document.querySelectorAll('.list-header');
     for (var i = 0; i < headers.length; i++) {
@@ -1418,6 +1415,8 @@ function attachFilterRowsToAllTables() {
 /* =====================================================================
    ============ ۱۸) اشتراک‌گذاری گزارش‌ها و ویجت‌ها ============
    ===================================================================== */
+
+/* اشتراک‌گذاری متنی (پشتیبان) */
 function shareAsText(title, text) {
     var fullText = '📊 ' + title + '\n\n' + text;
     if (navigator.share) {
@@ -1447,24 +1446,140 @@ function reportToText(containerEl) {
     }
     return lines.join('\n');
 }
+
+/* =====================================================================
+   ============ ۱۹) اشتراک‌گذاری به‌صورت تصویر (PNG) ============
+   ===================================================================== */
+
+/* بارگذاری تنبل html2canvas از CDN */
+var _html2canvasLoadPromise = null;
+function loadHtml2Canvas() {
+    if (window.html2canvas) return Promise.resolve(window.html2canvas);
+    if (_html2canvasLoadPromise) return _html2canvasLoadPromise;
+    _html2canvasLoadPromise = new Promise(function(resolve, reject) {
+        var urls = [
+            'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
+            'https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
+        ];
+        var idx = 0;
+        function tryNext() {
+            if (idx >= urls.length) {
+                _html2canvasLoadPromise = null;
+                reject(new Error('بارگذاری html2canvas ناموفق بود (اتصال اینترنت را چک کن)'));
+                return;
+            }
+            var s = document.createElement('script');
+            s.src = urls[idx++];
+            s.async = true;
+            s.onload = function() {
+                if (window.html2canvas) resolve(window.html2canvas);
+                else tryNext();
+            };
+            s.onerror = function() { tryNext(); };
+            document.head.appendChild(s);
+        }
+        tryNext();
+    });
+    return _html2canvasLoadPromise;
+}
+
+/* گرفتن اسکرین‌شات از یک عنصر DOM و اشتراک‌گذاری آن به‌صورت تصویر */
+async function shareAsImage(el, title, filename) {
+    if (!el) { showToast('محتوایی برای اشتراک نیست.'); return; }
+    showToast('📸 در حال آماده‌سازی تصویر...');
+    var h2c;
+    try {
+        h2c = await loadHtml2Canvas();
+    } catch (e) {
+        showToast('⚠️ ' + (e.message || 'خطا در بارگذاری کتابخانه') + ' — سوئیچ به متن');
+        if (typeof shareAsText === 'function' && typeof reportToText === 'function') {
+            shareAsText(title || 'گزارش پارسیس', reportToText(el));
+        }
+        return;
+    }
+
+    /* مخفی کردن موقت دکمه‌های کنترلی که نباید در تصویر باشند */
+    var hidden = [];
+    var selectors = '.share-btn, .widget-share-btn, .col-resizer, .col-reset-btn, .col-toggle-btn, .eye-toggle-btn, .filters-toggle-btn, .card-collapse-btn, .column-filter-row, .col-filter-menu, #col-filter-menu';
+    el.querySelectorAll(selectors).forEach(function (node) {
+        if (node.style.display !== 'none') {
+            hidden.push({ el: node, old: node.style.display });
+            node.style.display = 'none';
+        }
+    });
+
+    var canvas;
+    try {
+        canvas = await h2c(el, {
+            backgroundColor: '#ffffff',
+            scale: Math.min(Math.max(window.devicePixelRatio || 1, 2), 3),
+            useCORS: true,
+            allowTaint: false,
+            logging: false,
+            scrollX: 0,
+            scrollY: -window.scrollY,
+            windowWidth: el.scrollWidth,
+            windowHeight: el.scrollHeight
+        });
+    } catch (e) {
+        console.error('html2canvas error:', e);
+        showToast('⚠️ خطا در ساخت تصویر — سوئیچ به متن');
+        hidden.forEach(function (x) { x.el.style.display = x.old; });
+        if (typeof shareAsText === 'function' && typeof reportToText === 'function') {
+            shareAsText(title || 'گزارش پارسیس', reportToText(el));
+        }
+        return;
+    } finally {
+        hidden.forEach(function (x) { x.el.style.display = x.old; });
+    }
+
+    /* تبدیل canvas به Blob و اشتراک */
+    canvas.toBlob(async function (blob) {
+        if (!blob) { showToast('❌ ساخت تصویر ناموفق بود'); return; }
+        var safeName = (filename || 'parsis-report') + '-' + todayJalaliStr().replace(/\//g, '-') + '.png';
+        var file = new File([blob], safeName, { type: 'image/png' });
+        var shareTitle = title || 'گزارش پارسیس';
+
+        /* تلاش برای Web Share API با فایل تصویری */
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({
+                    files: [file],
+                    title: shareTitle,
+                    text: shareTitle
+                });
+                showToast('✅ تصویر اشتراک شد.');
+                return;
+            } catch (e) {
+                if (e && e.name === 'AbortError') return;
+                console.warn('Web Share failed:', e);
+            }
+        }
+
+        /* fallback: دانلود تصویر */
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = safeName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+        showToast('💾 تصویر دانلود شد — در تلگرام پیست کن.');
+    }, 'image/png', 0.95);
+}
+window.shareAsImage = shareAsImage;
+
+/* ساخت دکمه‌های اشتراک روی هدرهای لیست و ویجت‌ها */
 function buildShareButtons() {
     document.querySelectorAll('.list-header').forEach(function(h) {
         if (h.querySelector('.share-btn')) return;
         var btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'share-btn';
-        btn.title = 'اشتراک‌گذاری گزارش';
+        btn.title = 'اشتراک‌گذاری گزارش (تصویر)';
         btn.innerHTML = '📤';
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            var card = h.closest('.card');
-            var target = null;
-            var tableId = h.getAttribute('data-col-table');
-            if (tableId) target = document.getElementById(tableId);
-            if (!target) target = card ? (card.querySelector('.table-wrap') || card) : h.parentElement;
-            var title = (document.querySelector('.page.active > h2') || {}).textContent || 'گزارش پارسیس';
-            shareAsText(title, reportToText(target));
-        });
         h.appendChild(btn);
     });
     document.querySelectorAll('.widget-card').forEach(function(w) {
@@ -1472,16 +1587,128 @@ function buildShareButtons() {
         var btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'widget-share-btn';
-        btn.title = 'اشتراک‌گذاری ویجت';
+        btn.title = 'اشتراک‌گذاری ویجت (تصویر)';
         btn.innerHTML = '📤';
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            var title = (w.querySelector('h3') || {}).textContent || 'ویجت پارسیس';
-            shareAsText(title, reportToText(w));
-        });
         if (getComputedStyle(w).position === 'static') w.style.position = 'relative';
         w.appendChild(btn);
     });
 }
 window.buildShareButtons = buildShareButtons;
 window.shareAsText = shareAsText;
+
+/* =====================================================================
+   ============ ۲۰) Event Delegation برای دکمه‌های هدر و ویجت ============
+   ===================================================================== */
+(function() {
+    function handleHeaderButtonClick(e) {
+        var target = e.target;
+        var btn;
+
+        /* ⚙ منوی ستون‌ها */
+        btn = target.closest ? target.closest('.col-toggle-btn') : null;
+        if (btn) {
+            e.stopPropagation();
+            e.preventDefault();
+            var h = btn.closest('.list-header');
+            var tableId = h ? h.getAttribute('data-col-table') : null;
+            if (tableId) {
+                if (typeof showColMenu === 'function') showColMenu(tableId, btn);
+            }
+            return;
+        }
+
+        /* ↔ بازنشانی عرض ستون‌ها */
+        btn = target.closest ? target.closest('.col-reset-btn') : null;
+        if (btn) {
+            e.stopPropagation();
+            e.preventDefault();
+            var h2 = btn.closest('.list-header');
+            var tableId2 = h2 ? h2.getAttribute('data-col-table') : null;
+            if (tableId2) {
+                if (typeof resetColumnWidths === 'function') resetColumnWidths(tableId2);
+                else showToast('⚠️ تابع بازنشانی یافت نشد.');
+            } else {
+                showToast('⚠️ جدولی برای این هدر تعریف نشده.');
+            }
+            return;
+        }
+
+        /* 👁/🙈 چشمی — مخفی/نمایش مبالغ */
+        btn = target.closest ? target.closest('.eye-toggle-btn') : null;
+        if (btn) {
+            e.stopPropagation();
+            e.preventDefault();
+            var key = btn.getAttribute('data-hide-key');
+            if (key) {
+                toggleHideState(key);
+                if (typeof rerenderCurrentPage === 'function') rerenderCurrentPage();
+            }
+            return;
+        }
+
+        /* 🔍 دکمه فیلترها */
+        btn = target.closest ? target.closest('.filters-toggle-btn') : null;
+        if (btn) {
+            e.stopPropagation();
+            e.preventDefault();
+            var visible = document.body.classList.toggle('show-table-filters');
+            try { localStorage.setItem('parsis.tableFiltersVisible', visible ? '1' : '0'); } catch (err) {}
+            document.querySelectorAll('.filters-toggle-btn').forEach(function(b) {
+                b.classList.toggle('active', visible);
+            });
+            return;
+        }
+
+        /* 📤 اشتراک‌گذاری گزارش — تصویر PNG */
+        btn = target.closest ? target.closest('.share-btn') : null;
+        if (btn) {
+            e.stopPropagation();
+            e.preventDefault();
+            var card = btn.closest('.card');
+            var target_el = card || (btn.closest('.list-header') ? btn.closest('.list-header').parentElement : null);
+            var titleEl = document.querySelector('.page.active > h2');
+            var title = titleEl ? titleEl.textContent : 'گزارش پارسیس';
+            if (typeof shareAsImage === 'function') {
+                shareAsImage(target_el, title.trim(), 'parsis-report');
+            } else if (typeof shareAsText === 'function' && typeof reportToText === 'function') {
+                shareAsText(title.trim(), reportToText(target_el));
+            }
+            return;
+        }
+
+        /* 📤 اشتراک‌گذاری ویجت — تصویر PNG */
+        btn = target.closest ? target.closest('.widget-share-btn') : null;
+        if (btn) {
+            e.stopPropagation();
+            e.preventDefault();
+            var w = btn.closest('.widget-card');
+            if (w) {
+                var wTitle = (w.querySelector('h3') || {}).textContent || 'ویجت پارسیس';
+                if (typeof shareAsImage === 'function') {
+                    shareAsImage(w, wTitle.trim(), 'parsis-widget');
+                } else if (typeof shareAsText === 'function' && typeof reportToText === 'function') {
+                    shareAsText(wTitle.trim(), reportToText(w));
+                }
+            }
+            return;
+        }
+    }
+
+    /* capture phase → قبل از هندلرهای دیگر اجرا می‌شود */
+    document.addEventListener('click', handleHeaderButtonClick, true);
+
+    /* اطمینان: اگر یکی از توابع لازم نبود، هشدار در کنسول */
+    setTimeout(function() {
+        var missing = [];
+        if (typeof showColMenu !== 'function') missing.push('showColMenu');
+        if (typeof resetColumnWidths !== 'function') missing.push('resetColumnWidths');
+        if (typeof toggleHideState !== 'function') missing.push('toggleHideState');
+        if (typeof shareAsText !== 'function') missing.push('shareAsText');
+        if (typeof shareAsImage !== 'function') missing.push('shareAsImage');
+        if (missing.length > 0) {
+            console.warn('⚠️ توابع گمشده:', missing.join(', '));
+        } else {
+            console.log('✅ Event Delegation دکمه‌های هدر فعال شد.');
+        }
+    }, 1500);
+})();
