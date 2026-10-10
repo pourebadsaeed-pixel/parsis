@@ -1,6 +1,9 @@
 /* =====================================================================
    پارسیس v27 — 04-vouchers,estimates,sources,facilities,installments.js
    اسناد، اقلام سند، برآورد هزینه، منابع دریافتنی، تسهیلات، اقساط
+
+   [ادغام‌شده با]:
+     • 12-advanced-features.js — editVoucherFromAnywhere / openVoucherForEditById
    ===================================================================== */
 'use strict';
 
@@ -601,6 +604,45 @@ function printVoucherPreview() {
     win.document.close();
     setTimeout(function() { win.focus(); win.print(); }, 400);
 }
+
+/* =====================================================================
+   ============ ویرایش سند از هر گزارش (ادغام از 12) ============
+   ===================================================================== */
+
+/**
+ * از هر جدول گزارشی (گردش حساب، گردش وجه نقد، ...) روی ردیف کلیک شود
+ * و سند مربوطه را باز می‌کند. اگر سند تأیید شده باشد، از کاربر می‌پرسد
+ * که برگشت از تأیید شود و ویرایش کند یا فقط مشاهده.
+ */
+function openVoucherForEditById(vid) {
+    var v = findVoucherById(vid);
+    if (!v) { showToast('سند یافت نشد.'); return; }
+    if (v.status === 'approved') {
+        var ans = confirm('این سند تأیید شده است.\n\nOK = برگشت از تأیید + ویرایش\nCancel = فقط مشاهده');
+        if (ans) {
+            var l = DB.load('vouchers', []);
+            for (var i = 0; i < l.length; i++) {
+                if (l[i].id === vid) { l[i].status = 'draft'; break; }
+            }
+            DB.save('vouchers', l);
+            showToast('↩ سند به پیش‌نویس برگشت.');
+            loadVoucherForEdit(v);
+        } else {
+            openVoucherPreview(v);
+        }
+        return;
+    }
+    loadVoucherForEdit(v);
+}
+window.openVoucherForEditById = openVoucherForEditById;
+
+/**
+ * نام مستعار عمومی — از هر جای برنامه قابل فراخوانی است.
+ */
+function editVoucherFromAnywhere(vid) {
+    openVoucherForEditById(vid);
+}
+window.editVoucherFromAnywhere = editVoucherFromAnywhere;
 
 /* ==================== Templates Apply / Save ==================== */
 function applyTemplate(tplId) {
