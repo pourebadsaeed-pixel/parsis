@@ -18,7 +18,7 @@
     <h1 class="topbar-title">پارسیس</h1>
     <div class="date-info">
         <div class="date-line jalali" id="date-jalali">—</div>
-        <div class="date-line greg" id="date-gregorian">—</div>
+        <div class="date-line greg" id="date-gregorian" style="display:none"></div>
     </div>
     <div class="period-badge" id="topbar-period">—</div>
     <button id="settings-btn" class="icon-btn">⚙</button>
@@ -80,6 +80,7 @@
                 <button data-page="report-facility">🏦 خلاصه تسهیلات</button>
                 <button data-page="report-facility-full">📊 گزارش جامع تسهیلات</button>
                 <button data-page="report-rates">📈 گزارش نرخ ارز و طلا</button>
+                <button data-page="report-compare">📊 گزارش مقایسه‌ای</button>
                 <button data-page="daily-close">📅 قیمت پایانی روز</button>
             </div>
         </div>
@@ -328,7 +329,7 @@
 </section>
 
 <section id="page-voucher-list" class="page"><h2>📄 فهرست اسناد</h2><div class="card">
-    <div class="list-header" data-col-table="voucher-table-list" data-hide-key="voucher-list"><span class="count-badge" id="vlist-count">۰</span><select class="filter-input" id="vl-period-filter" style="flex:0 0 auto"><option value="">همه دوره‌ها</option></select><input type="text" class="filter-input" id="vlist-search" placeholder="🔍 جستجو"><button class="export-btn" data-export="vouchers">📊 اکسل</button></div>
+    <div class="list-header" data-col-table="voucher-table-list" data-hide-key="voucher-list"><span class="count-badge" id="vlist-count">۰</span><button class="export-btn" data-export="vouchers">📊 اکسل</button></div>
     <div class="table-wrap"><table class="data-table" id="voucher-table-list"><thead><tr><th data-sortable data-sort-key="number">شماره <span class="sort-ind"></span></th><th data-sortable data-sort-key="date">تاریخ <span class="sort-ind"></span></th><th data-sortable data-sort-key="type">نوع <span class="sort-ind"></span></th><th data-sortable data-sort-key="periodName">دوره <span class="sort-ind"></span></th><th data-sortable data-sort-key="desc">شرح <span class="sort-ind"></span></th><th data-sortable data-sort-key="amount">مبلغ <span class="sort-ind"></span></th><th data-sortable data-sort-key="status">وضعیت <span class="sort-ind"></span></th><th>عملیات</th></tr></thead><tbody id="voucher-list-body"></tbody></table></div>
 </div></section>
 
@@ -452,6 +453,26 @@
     <p class="muted" style="margin-bottom:14px;font-size:0.8rem">این گزارش فقط معین‌هایی را که در «تعریف حساب‌ها» گزینه «موثر در گزارش گردش وجه نقد» دارند را در نظر می‌گیرد.</p>
     <div class="card">
         <div class="grid-2"><div class="field"><label>از تاریخ</label><input type="text" id="cfd-from" class="date-picker" dir="ltr"></div><div class="field"><label>تا تاریخ</label><input type="text" id="cfd-to" class="date-picker" dir="ltr"></div></div>
+        <div class="grid-2">
+            <div class="field"><label>نوع سند</label>
+                <select id="cfd-vtype">
+                    <option value="general" selected>عمومی</option>
+                    <option value="">همه اسناد</option>
+                    <option value="opening">افتتاحیه</option>
+                    <option value="establishment">افتتاحیه استقرار</option>
+                    <option value="closing">بستن حساب</option>
+                    <option value="final">اختتامیه</option>
+                </select>
+            </div>
+            <div class="field"><label>نمایش گزارش</label>
+                <select id="cfd-view">
+                    <option value="main" selected>گزارش اصلی</option>
+                    <option value="details">جزئیات</option>
+                    <option value="full">کامل (اصلی + جزئیات)</option>
+                </select>
+            </div>
+        </div>
+        <label class="checkbox-item" style="margin-bottom:10px"><input type="checkbox" id="cfd-strip-babet"> <span>حذف عبارت «بابت» از ابتدای شرح‌ها</span></label>
         <div class="form-buttons"><button id="cfd-run" class="btn-primary">🔍 اجرا</button><button id="cfd-today" class="btn-secondary">امروز تا یک ماه</button><button id="cfd-print" class="btn-secondary">🖨 چاپ</button><button id="cfd-export" class="btn-secondary">📊 اکسل</button></div>
     </div>
     <div class="card"><div class="list-header" data-col-table="cfd-table" data-hide-key="cfd"><span class="count-badge" id="cfd-count">۰</span><span class="unit-chip" id="cfd-unit"></span></div><div id="cfd-result"></div></div>
@@ -547,6 +568,25 @@
         <div class="list-header" data-col-table="rr-table" data-hide-key="rr"><span class="count-badge" id="rr-count">۰</span><span class="unit-chip" id="rr-unit"></span></div>
         <div id="rr-result"><div class="widget-empty">برای دریافت داده، روی «دریافت گزارش» بزنید.</div></div>
     </div>
+</section>
+
+<section id="page-report-compare" class="page"><h2>📊 گزارش مقایسه‌ای دوره‌ها</h2>
+    <div class="card">
+        <div class="grid-4">
+            <div class="field"><label>از تاریخ — دوره ۱</label><input type="text" id="rc-from1" class="date-picker" dir="ltr"></div>
+            <div class="field"><label>تا تاریخ — دوره ۱</label><input type="text" id="rc-to1" class="date-picker" dir="ltr"></div>
+            <div class="field"><label>از تاریخ — دوره ۲</label><input type="text" id="rc-from2" class="date-picker" dir="ltr"></div>
+            <div class="field"><label>تا تاریخ — دوره ۲</label><input type="text" id="rc-to2" class="date-picker" dir="ltr"></div>
+        </div>
+        <div class="grid-4">
+            <div class="field"><label>نوع</label><select id="rc-cat"><option value="">همه</option><option value="permanent">دائمی</option><option value="temporary">موقت</option><option value="none">مهم نیست</option></select></div>
+            <div class="field"><label>ماهیت</label><select id="rc-nature"><option value="">همه</option><option value="debit">بدهکار</option><option value="credit">بستانکار</option><option value="none">مهم نیست</option></select></div>
+            <div class="field"><label>نوع سند</label><select id="rc-vtype"><option value="general" selected>عمومی</option><option value="">همه اسناد</option><option value="opening">افتتاحیه</option><option value="establishment">افتتاحیه استقرار</option><option value="closing">بستن حساب</option><option value="final">اختتامیه</option></select></div>
+            <div class="field"><label>سطح</label><select id="rc-level"><option value="2">کل</option><option value="3" selected>معین</option></select></div>
+        </div>
+        <div class="form-buttons"><button id="rc-run" class="btn-primary">🔍 اجرا</button><button id="rc-print" class="btn-secondary">🖨 چاپ</button><button id="rc-export" class="btn-secondary">📊 اکسل</button></div>
+    </div>
+    <div class="card"><div class="list-header" data-col-table="rc-table" data-hide-key="rc"><span class="count-badge" id="rc-count">۰</span><span class="unit-chip" id="rc-unit"></span></div><div id="rc-result"></div></div>
 </section>
 
 <section id="page-daily-close" class="page">
@@ -777,7 +817,6 @@
 
 </div>
 
-<!-- ============ اسکریپت‌ها به ترتیب وابستگی ============ -->
 <!-- ============ اسکریپت‌ها به ترتیب وابستگی ============ -->
 <script src="./01-core,db,state,digits,dates,calendar,calc.js"></script>
 <script src="./02-ui,nav,sidebar,theme,tables,sort,columns,csv,print.js"></script>
