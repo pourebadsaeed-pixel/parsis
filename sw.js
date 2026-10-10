@@ -19,7 +19,8 @@ var ASSETS = [
   './09-settings,backup,restore,reset,init.js',
   './10-enhancements.js',
   './11-sms-direction-fix.js',
-  './12-advanced-features.js'
+  './12-advanced-features.js',
+  './13-filter-toggle.js'
 ];
 
 self.addEventListener('install', function(event) {
