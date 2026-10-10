@@ -2,23 +2,32 @@
    پارسیس v27 — 08-ai,assistant,tts,tools,vision,voice.js
    دستیار هوشمند: AI، ابزارها، TTS چند-موتوره + تبدیل اعداد فارسی،
    Vision، Voice
+
+   [پچ‌های اعمال‌شده]:
+     • پاک‌سازی خودکار تاریخچه AI هنگام تغییر نسخه
+     • عدم ذخیره‌سازی تاریخچه در localStorage (فقط در حافظه)
+     • کاهش MAX_HISTORY به ۸ برای context تمیزتر
+     • ترتیب fallback: مدل‌های قوی اول، ضعیف آخر
+     • System prompt تقویت‌شده با هشدار context
+     • دکمه 🔄 بروزرسانی Context در هدر AI
+     • Cache کردن context در هر پیام (سرعت بهتر)
    ===================================================================== */
 'use strict';
 
 /* ==================== Models & Tools ==================== */
 var AVALAI_MODELS = [
     { id: 'gpt-4o-mini',                label: 'GPT-4o Mini (پیشنهاد، vision)' },
-    { id: 'gpt-4o',                     label: 'GPT-4o (vision)' },
     { id: 'gpt-4.1-mini',               label: 'GPT-4.1 Mini (vision)' },
+    { id: 'gpt-4o',                     label: 'GPT-4o (vision)' },
     { id: 'gpt-4.1',                    label: 'GPT-4.1 (vision)' },
-    { id: 'gpt-3.5-turbo',              label: 'GPT-3.5 Turbo (اقتصادی)' },
+    { id: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet (vision)' },
+    { id: 'gemini-2.0-flash',           label: 'Gemini 2.0 Flash (vision)' },
+    { id: 'gemini-1.5-pro',             label: 'Gemini 1.5 Pro (vision)' },
     { id: 'deepseek-chat',              label: 'DeepSeek Chat' },
     { id: 'deepseek-reasoner',          label: 'DeepSeek Reasoner' },
-    { id: 'gemini-2.0-flash',           label: 'Gemini 2.0 Flash (vision)' },
     { id: 'gemini-1.5-flash',           label: 'Gemini 1.5 Flash (vision)' },
-    { id: 'gemini-1.5-pro',             label: 'Gemini 1.5 Pro (vision)' },
-    { id: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet (vision)' },
-    { id: 'o1-mini',                    label: 'o1-mini' }
+    { id: 'gpt-3.5-turbo',              label: 'GPT-3.5 Turbo (فقط fallback)' },
+    { id: 'o1-mini',                    label: 'o1-mini (فقط fallback)' }
 ];
 var VISION_MODEL_IDS = ['gpt-4o-mini','gpt-4o','gpt-4.1-mini','gpt-4.1','gemini-2.0-flash','gemini-1.5-flash','gemini-1.5-pro','claude-3-5-sonnet-20241022'];
 
@@ -31,7 +40,7 @@ var AI_NAVIGABLE_PAGES = {
     'templates': 'الگوهای سند', 'notes': 'دفترچه یادداشت', 'sms': 'پیامک بانکی',
     'report-cashflow': 'وضعیت نقدینگی', 'report-cashflow-desc': 'گردش وجه نقد',
     'report-account': 'مرور حساب‌ها', 'report-trial': 'تراز آزمایشی',
-    'report-incomplete': 'تراکنش‌های تکمیل نشده', 'report-facility': 'خلاصه تسهیلات',
+    'report-incomplete': 'تراکنش‌های ناقص', 'report-facility': 'خلاصه تسهیلات',
     'report-facility-full': 'گزارش جامع تسهیلات', 'report-rates': 'گزارش نرخ ارز و طلا',
     'report-compare': 'گزارش مقایسه‌ای دوره‌ها',
     'daily-close': 'قیمت پایانی روز'
@@ -51,16 +60,35 @@ var AI_TOOLS = [
     { type: 'function', function: { name: 'create_note', description: 'ایجاد یادداشت جدید.', parameters: { type: 'object', properties: { title: { type: 'string' }, date: { type: 'string' }, content: { type: 'string' }, checklist: { type: 'array', items: { type: 'string' } } }, required: ['title'] } } }
 ];
 
+/* =====================================================================
+   ★ پاک‌سازی خودکار تاریخچه AI هنگام تغییر نسخه
+   ===================================================================== */
+(function autoClearAIHistoryOnVersionChange() {
+    try {
+        var lastVer = DB.load('ai.lastAppVersion', '');
+        if (lastVer !== APP_VERSION) {
+            DB.save('ai.history', []);
+            DB.save('ai.failedModels', {});
+            DB.save('ai.lastAppVersion', APP_VERSION);
+            try { localStorage.removeItem(LS_PREFIX + 'ai.history'); } catch(e) {}
+            console.log('🔄 نسخه جدید شناسایی شد — تاریخچه AI پاک شد');
+        }
+    } catch (e) {
+        console.warn('autoClearAIHistory error:', e);
+    }
+})();
+
 /* ==================== AI State ==================== */
 var AI = {
     provider: DB.load('ai.provider', 'avalai'),
     apiKey: DB.load('ai.apiKey', ''),
     model: DB.load('ai.model', 'gpt-4o-mini'),
     autoFallback: DB.load('ai.autoFallback', true),
-    failedModels: {},
-    history: DB.load('ai.history', []),
-    MAX_HISTORY: 20,
-    isThinking: false
+    failedModels: DB.load('ai.failedModels', {}),
+    history: [],                       // ★ دیگر در localStorage ذخیره نمی‌شود
+    MAX_HISTORY: 8,                    // ★ کاهش از ۲۰ به ۸
+    isThinking: false,
+    _contextCache: null                // ★ کش context برای هر پیام
 };
 var AI_PENDING_IMAGE = null;
 var AI_VOICE_ACTIVE = false;
@@ -71,8 +99,12 @@ function aiSaveSettings() {
     DB.save('ai.apiKey', AI.apiKey);
     DB.save('ai.model', AI.model);
     DB.save('ai.autoFallback', AI.autoFallback);
+    DB.save('ai.failedModels', AI.failedModels);
 }
-function aiSaveHistory() { DB.save('ai.history', AI.history.slice(-AI.MAX_HISTORY)); }
+/* ★ تاریخچه دیگر ذخیره نمی‌شود (فقط در حافظه) */
+function aiSaveHistory() {
+    // intentionally left empty — history is in-memory only
+}
 
 /* ==================== Image preview ==================== */
 function aiRenderImagePreview() {
@@ -903,6 +935,13 @@ function aiBuildSystemPrompt() {
         '5. **پاسخ‌ها با Markdown فارسی روان**: جدول، بولت، عناوین، اعداد فارسی.\n' +
         '6. **هرگز داده ساختگی نساز**. اگر خالی است، صریح بگو.\n\n' +
         '═══════════════════════════════════════\n' +
+        '🚨 **هشدار مهم درباره داده‌های کاربر**\n' +
+        '═══════════════════════════════════════\n' +
+        '1. اگر کاربر از داده‌ای پرسید و آن داده در context نبود، **قبل از هر پاسخی** این را بگو:\n' +
+        '   «در این لحظه داده‌ای درباره X در context من نیست. لطفاً اگر مطمئنید داده وجود دارد، دکمه 🗑 (پاک کردن چت) را بزنید و دوباره بپرسید.»\n' +
+        '2. **هرگز** به کاربر نگو «شما داده‌ای ثبت نکرده‌اید» یا «در سیستم شما چیزی وجود ندارد» — چون ممکن است context ناقص به تو رسیده باشد.\n' +
+        '3. اگر context خالی یا ناقص به نظر می‌رسد، از کاربر بخواه دکمه 🗑 (پاک کردن چت) یا 🔄 (بروزرسانی) را بزند و دوباره بپرسد.\n\n' +
+        '═══════════════════════════════════════\n' +
         '📝 **صدور سند (create_voucher_draft)**\n' +
         '═══════════════════════════════════════\n' +
         '⚠️ **فقط وقتی** کاربر صریحاً گفت: «سند بزن»، «ثبت کن»، «پرداخت شد»، «واریز شد»، «هزینه شد».\n\n' +
@@ -1009,7 +1048,12 @@ function renderAIMarkdown(text) {
 
 /* ==================== API Calls ==================== */
 async function _aiDoFetch(modelId, userMessage, includeTools, imageData) {
-    var sys = aiBuildSystemPrompt();
+    /* ★ Cache کردن context برای این پیام */
+    if (!AI._contextCache) {
+        AI._contextCache = aiBuildSystemPrompt();
+    }
+    var sys = AI._contextCache;
+
     var histArr = AI.history.slice();
     for (var hi = histArr.length - 1; hi >= 0; hi--) {
         if (histArr[hi].role === 'user') { histArr.splice(hi, 1); break; }
@@ -1556,6 +1600,9 @@ function aiClose() {
 }
 async function aiSend() {
     if (AI.isThinking) return;
+    /* ★ پاک کردن cache context برای دریافت تازه */
+    AI._contextCache = null;
+
     var inp = document.getElementById('ai-input');
     var text = (inp.value || '').trim();
     var img = AI_PENDING_IMAGE;
@@ -1603,12 +1650,15 @@ async function aiSend() {
             AI.history.push(txtMsg);
             aiAutoSpeakIfNeeded(txtMsg);
         }
+        /* ★ محدود کردن طول تاریخچه در حافظه */
+        if (AI.history.length > AI.MAX_HISTORY * 2) {
+            AI.history = AI.history.slice(-AI.MAX_HISTORY * 2);
+        }
     } catch (e) {
         AI.history.push({ role: 'error', content: '⚠️ ' + (e.message || 'خطا') });
     } finally {
         AI.isThinking = false;
         if (btn) btn.disabled = false;
-        aiSaveHistory();
         aiRender();
     }
 }
@@ -1727,8 +1777,10 @@ function aiInit() {
     document.getElementById('ai-clear-btn').addEventListener('click', function() {
         if (!confirm('پاک شود؟')) return;
         AI.history = [];
-        aiSaveHistory();
+        AI._contextCache = null;
+        AI.failedModels = {};
         aiRender();
+        showToast('🗑 چت پاک شد و context بروزرسانی شد');
     });
     document.getElementById('ai-send-btn').addEventListener('click', aiSend);
     document.getElementById('ai-input').addEventListener('keydown', function(e) {
@@ -1758,6 +1810,18 @@ function aiInit() {
     });
     var ttsBtn = document.getElementById('ai-tts-btn');
     if (ttsBtn) ttsBtn.addEventListener('click', function(e) { e.stopPropagation(); aiToggleSpeak(); });
+
+    /* ★ دکمه بروزرسانی Context */
+    var refreshBtn = document.getElementById('ai-refresh-btn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            AI._contextCache = null;
+            AI.failedModels = {};
+            showToast('🔄 Context و مدل‌های failed بروزرسانی شد');
+        });
+    }
+
     var ttsAuto = document.getElementById('ai-auto-speak');
     if (ttsAuto) {
         ttsAuto.checked = !!AI_TTS.autoSpeak;
