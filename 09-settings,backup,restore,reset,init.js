@@ -62,8 +62,8 @@ function bindSettingsButtons() {
     document.getElementById('settings-btn').addEventListener('click', function() {
         document.getElementById('settings-modal').classList.add('show');
         document.getElementById('settings-overlay').classList.add('show');
-        renderWidgetOrderUI();
-        renderDashboardOrderUI();
+        if (typeof renderWidgetOrderUI === 'function') renderWidgetOrderUI();
+        if (typeof renderDashboardOrderUI === 'function') renderDashboardOrderUI();
         var aboutEl = document.getElementById('about-version');
         if (aboutEl) aboutEl.textContent = APP_NAME + ' — نسخه ' + toFa(APP_VERSION) + ' (PWA)';
     });
@@ -177,35 +177,50 @@ function bindSmsButtons() {
     function onSAR(val) {
         state.smsAutoRead = val;
         DB.save('smsAutoRead', val);
-        document.getElementById('sms-auto-read').checked = val;
-        document.getElementById('set-sms-auto-read').checked = val;
+        var e1 = document.getElementById('sms-auto-read');
+        var e2 = document.getElementById('set-sms-auto-read');
+        if (e1) e1.checked = val;
+        if (e2) e2.checked = val;
     }
-    document.getElementById('sms-auto-read').addEventListener('change', function() { onSAR(this.checked); });
-    document.getElementById('set-sms-auto-read').addEventListener('change', function() { onSAR(this.checked); });
-    document.getElementById('sms-read-clip').addEventListener('click', function() { readClipboardAndAdd(false); });
-    document.getElementById('parse-sms').addEventListener('click', function() {
+    var sar = document.getElementById('sms-auto-read');
+    if (sar) sar.addEventListener('change', function() { onSAR(this.checked); });
+    var ssar = document.getElementById('set-sms-auto-read');
+    if (ssar) ssar.addEventListener('change', function() { onSAR(this.checked); });
+
+    var src = document.getElementById('sms-read-clip');
+    if (src) src.addEventListener('click', function() {
+        if (typeof readClipboardAndAdd === 'function') readClipboardAndAdd(false);
+        else showToast('⚠️ سیستم پیامک لود نشده.');
+    });
+
+    var ps = document.getElementById('parse-sms');
+    if (ps) ps.addEventListener('click', function() {
         var text = document.getElementById('sms-text').value;
         if (!text.trim()) { alert('متن را وارد کن.'); return; }
+        if (typeof addSmsToInbox !== 'function') { alert('سیستم پیامک لود نشده.'); return; }
         var res = addSmsToInbox(text, 'paste');
         if (res.ok) {
             showToast('✅');
             document.getElementById('sms-text').value = '';
-            renderSmsInbox();
-            updateSmsBadge();
+            if (typeof renderSmsInbox === 'function') renderSmsInbox();
+            if (typeof updateSmsBadge === 'function') updateSmsBadge();
         } else {
             alert(res.reason === 'duplicate' ? 'قبلاً ثبت شده.' : 'قابل تشخیص نبود.');
         }
     });
-    document.getElementById('clear-sms').addEventListener('click', function() {
+    var cs = document.getElementById('clear-sms');
+    if (cs) cs.addEventListener('click', function() {
         document.getElementById('sms-text').value = '';
         document.getElementById('sms-result').innerHTML = '';
     });
-    document.getElementById('sms-clear-converted').addEventListener('click', function() {
+    var scc = document.getElementById('sms-clear-converted');
+    if (scc) scc.addEventListener('click', function() {
         if (!confirm('حذف تبدیل‌شده‌ها؟')) return;
+        if (typeof getSmsInbox !== 'function') return;
         var l = getSmsInbox().filter(function(s) { return s.status === 'new'; });
-        saveSmsInbox(l);
-        renderSmsInbox();
-        updateSmsBadge();
+        if (typeof saveSmsInbox === 'function') saveSmsInbox(l);
+        if (typeof renderSmsInbox === 'function') renderSmsInbox();
+        if (typeof updateSmsBadge === 'function') updateSmsBadge();
     });
 }
 
@@ -516,7 +531,7 @@ function bindVoucherForm() {
     });
     document.getElementById('save-as-template').addEventListener('click', saveVoucherAsTemplate);
     document.getElementById('goto-templates').addEventListener('click', function() { goToPage('templates'); });
-    // ★ دیگر نیازی به vl-period-filter و vlist-search نیست چون حذف شده‌اند
+    // این دو عنصر از HTML حذف شده‌اند اما برای سازگاری محافظت می‌کنیم
     var vpf = document.getElementById('vl-period-filter');
     if (vpf) vpf.addEventListener('change', renderVoucherList);
     var vsrch = document.getElementById('vlist-search');
@@ -620,7 +635,7 @@ function bindReportButtons() {
     document.getElementById('cfd-print').addEventListener('click', function() { printHtmlReport('#cfd-result', 'گردش وجه نقد'); });
     document.getElementById('cfd-export').addEventListener('click', function() { exportReportTable('#cfd-result', 'cash-flow-by-desc'); });
 
-    /* ★ گزارش مقایسه‌ای (جدید) */
+    /* گزارش مقایسه‌ای (جدید) */
     var rcRunBtn = document.getElementById('rc-run');
     if (rcRunBtn) rcRunBtn.addEventListener('click', runComparisonReport);
     var rcPrintBtn = document.getElementById('rc-print');
@@ -834,38 +849,42 @@ function init() {
     refreshTemplateSelect();
     renderTemplateList();
     applyWidgetVisibility();
-    renderWidgetOrderUI();
+    if (typeof renderWidgetOrderUI === 'function') renderWidgetOrderUI();
     renderFrequentNav();
-    renderSmsInbox();
-    updateSmsBadge();
+
+    /* ★ محافظ‌های SMS — اگر فایل ۶ نسخه قدیمی باشد، خطا نمی‌دهد */
+    if (typeof renderSmsInbox === 'function') renderSmsInbox();
+    if (typeof updateSmsBadge === 'function') updateSmsBadge();
 
     /* تنظیمات اولیه */
     document.getElementById('set-currency-display2').value = state.currencyDisplay;
     document.getElementById('set-hide-numbers').checked = state.hideNumbers;
-    document.getElementById('set-sms-auto-read').checked = state.smsAutoRead;
-    document.getElementById('sms-auto-read').checked = state.smsAutoRead;
+    var ssar2 = document.getElementById('set-sms-auto-read');
+    if (ssar2) ssar2.checked = state.smsAutoRead;
+    var sar2 = document.getElementById('sms-auto-read');
+    if (sar2) sar2.checked = state.smsAutoRead;
     var aboutEl = document.getElementById('about-version');
     if (aboutEl) aboutEl.textContent = APP_NAME + ' — نسخه ' + toFa(APP_VERSION) + ' (PWA)';
     updateUnitChips();
 
-    /* بایندینگ‌ها */
-    bindSidebarNav();
-    bindSettingsButtons();
-    bindThemeFontButtons();
-    bindWidgetToggles();
-    bindCurrencyHide();
-    bindBankCashTypes();
-    bindSmsButtons();
-    bindBaseDataForms();
-    bindCashForms();
-    bindChartForm();
-    bindVoucherForm();
-    bindTemplateForm();
-    bindReportButtons();
-    bindModalClosers();
-    bindNotesForm();
-    bindFilterInputs();
-    bindExportButtons();
+    /* بایندینگ‌ها — با محافظ در برابر خطاهای احتمالی */
+    try { bindSidebarNav(); } catch(e) { console.warn('bindSidebarNav:', e); }
+    try { bindSettingsButtons(); } catch(e) { console.warn('bindSettingsButtons:', e); }
+    try { bindThemeFontButtons(); } catch(e) { console.warn('bindThemeFontButtons:', e); }
+    try { bindWidgetToggles(); } catch(e) { console.warn('bindWidgetToggles:', e); }
+    try { bindCurrencyHide(); } catch(e) { console.warn('bindCurrencyHide:', e); }
+    try { bindBankCashTypes(); } catch(e) { console.warn('bindBankCashTypes:', e); }
+    try { bindSmsButtons(); } catch(e) { console.warn('bindSmsButtons:', e); }
+    try { bindBaseDataForms(); } catch(e) { console.warn('bindBaseDataForms:', e); }
+    try { bindCashForms(); } catch(e) { console.warn('bindCashForms:', e); }
+    try { bindChartForm(); } catch(e) { console.warn('bindChartForm:', e); }
+    try { bindVoucherForm(); } catch(e) { console.warn('bindVoucherForm:', e); }
+    try { bindTemplateForm(); } catch(e) { console.warn('bindTemplateForm:', e); }
+    try { bindReportButtons(); } catch(e) { console.warn('bindReportButtons:', e); }
+    try { bindModalClosers(); } catch(e) { console.warn('bindModalClosers:', e); }
+    try { bindNotesForm(); } catch(e) { console.warn('bindNotesForm:', e); }
+    try { bindFilterInputs(); } catch(e) { console.warn('bindFilterInputs:', e); }
+    try { bindExportButtons(); } catch(e) { console.warn('bindExportButtons:', e); }
 
     /* بروزرسانی اولیه */
     updateDateDisplay();
@@ -877,7 +896,7 @@ function init() {
         updateTopbarPeriod();
     }, 60000);
 
-    /* ★ بازه‌های پیش‌فرض گزارش مقایسه‌ای */
+    /* بازه‌های پیش‌فرض گزارش مقایسه‌ای */
     (function initCompareDefaults() {
         var f1 = document.getElementById('rc-from1');
         if (!f1) return;
@@ -892,9 +911,12 @@ function init() {
     /* فرم سند جدید */
     newVoucherForm();
     attachDatePickers();
-    buildHeaderButtons();
-    makeAllTablesResizable();
-    checkClipboardSupport();
+    if (typeof buildHeaderButtons === 'function') buildHeaderButtons();
+    if (typeof makeAllTablesResizable === 'function') makeAllTablesResizable();
+
+    /* ★ محافظ checkClipboardSupport */
+    if (typeof checkClipboardSupport === 'function') checkClipboardSupport();
+
     clearNoteForm();
 
     /* کارت‌های قابل جمع شدن */
@@ -910,6 +932,7 @@ function init() {
     /* خواندن خودکار پیامک */
     function autoRead() {
         if (!state.smsAutoRead) return;
+        if (typeof readClipboardAndAdd !== 'function') return;
         setTimeout(function() { readClipboardAndAdd(true); }, 700);
     }
     window.addEventListener('focus', autoRead);
@@ -918,15 +941,15 @@ function init() {
     });
 
     /* AI */
-    aiInit();
-    aiRender();
-    initAvalaiCreditRefresh();
+    if (typeof aiInit === 'function') aiInit();
+    if (typeof aiRender === 'function') aiRender();
+    if (typeof initAvalaiCreditRefresh === 'function') initAvalaiCreditRefresh();
 
     /* estimate / auto helpers */
-    renderEstimateItems();
-    autoAttachReportHelpers();
+    if (typeof renderEstimateItems === 'function') renderEstimateItems();
+    if (typeof autoAttachReportHelpers === 'function') autoAttachReportHelpers();
 
-    /* ★ ساخت دکمه‌های اشتراک‌گذاری */
+    /* ساخت دکمه‌های اشتراک‌گذاری */
     if (typeof buildShareButtons === 'function') setTimeout(buildShareButtons, 300);
 
     console.log('🎉 ' + APP_NAME + ' v' + APP_VERSION + ' — آماده است. (۹ ماژول بارگذاری شد + پچ‌ها)');
