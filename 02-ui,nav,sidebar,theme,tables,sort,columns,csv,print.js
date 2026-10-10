@@ -289,78 +289,121 @@ function initHomeSwipe() {
     }, { passive: true });
 }
 
-/* ==================== Table resize ==================== */
+/* =====================================================================
+   ============ Table resize (نسخه اصلاح‌شده — بدون minWidth) ============
+   ===================================================================== */
 var colWidths = DB.load('colWidths', {});
 function saveColWidths() { DB.save('colWidths', colWidths); }
+
 function applyColWidths(tableId) {
     var table = document.getElementById(tableId);
     if (!table) return;
     var widths = colWidths[tableId] || [];
     var ths = table.querySelectorAll('thead th');
-    var totalW = 0;
     for (var i = 0; i < ths.length; i++) {
-        if (widths[i]) { ths[i].style.width = widths[i] + 'px'; ths[i].style.minWidth = widths[i] + 'px'; totalW += widths[i]; }
-        else { totalW += ths[i].offsetWidth || 100; }
+        if (widths[i]) {
+            ths[i].style.width = widths[i] + 'px';
+        } else {
+            ths[i].style.width = '';
+        }
+        // ★ حذف minWidth (عامل اصلی پهن شدن بی‌نهایت)
+        ths[i].style.minWidth = '';
+        ths[i].style.maxWidth = '';
     }
-    if (totalW > 0) table.style.minWidth = totalW + 'px';
+    // ★ حذف minWidth از جدول
+    table.style.minWidth = '';
 }
+
 function updateTableMinWidth(table) {
-    var ths = table.querySelectorAll('thead th');
-    var totalW = 0;
-    for (var i = 0; i < ths.length; i++) totalW += ths[i].offsetWidth || 0;
-    if (totalW > 0) table.style.minWidth = totalW + 'px';
+    // ★ دیگر minWidth روی جدول نمی‌گذاریم
+    if (!table) return;
+    table.style.minWidth = '';
 }
+
 function makeTableResizable(table) {
     if (!table || table.dataset.resizable === '1') return;
     table.dataset.resizable = '1';
     var tableId = table.id;
     if (!tableId) return;
+
+    var MIN_W = 50;
+    var MAX_W = 600;   // ★ سقف عرض هر ستون
     var ths = table.querySelectorAll('thead th');
+
     for (var i = 0; i < ths.length; i++) {
         (function(th, idx) {
             if (th.querySelector('.col-resizer')) return;
             var res = document.createElement('div');
             res.className = 'col-resizer';
+            res.title = 'بکش تا عرض تغییر کند • دابل‌کلیک: بازنشانی این ستون';
             th.appendChild(res);
-            var startX, startW, isDragging = false;
-            res.addEventListener('mousedown', function(e) {
-                e.preventDefault(); e.stopPropagation();
-                isDragging = true; startX = e.pageX; startW = th.offsetWidth;
-                document.body.style.cursor = 'col-resize'; document.body.style.userSelect = 'none';
-            });
-            res.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                var t = e.touches[0];
-                isDragging = true; startX = t.pageX; startW = th.offsetWidth;
+
+            var startX = 0, startW = 0, isDragging = false;
+
+            function start(x) {
+                isDragging = true;
+                startX = x;
+                startW = th.offsetWidth;
+                document.body.style.cursor = 'col-resize';
                 document.body.style.userSelect = 'none';
-            }, { passive: false });
-            function moveHandler(x) {
+                document.body.classList.add('resizing-cols');
+            }
+            function move(x) {
                 if (!isDragging) return;
                 var diff = startX - x;
-                var w = Math.max(50, startW + diff);
-                th.style.width = w + 'px'; th.style.minWidth = w + 'px';
-                updateTableMinWidth(table);
+                var w = Math.max(MIN_W, Math.min(MAX_W, startW + diff));
+                th.style.width = w + 'px';
+                th.style.minWidth = '';
+                th.style.maxWidth = '';
             }
-            function endHandler() {
+            function end() {
                 if (!isDragging) return;
                 isDragging = false;
                 document.body.style.cursor = '';
                 document.body.style.userSelect = '';
+                document.body.classList.remove('resizing-cols');
                 if (!colWidths[tableId]) colWidths[tableId] = [];
                 colWidths[tableId][idx] = th.offsetWidth;
                 saveColWidths();
-                updateTableMinWidth(table);
             }
-            document.addEventListener('mousemove', function(e) { moveHandler(e.pageX); });
-            document.addEventListener('mouseup', endHandler);
-            document.addEventListener('touchmove', function(e) { if (isDragging) { moveHandler(e.touches[0].pageX); e.preventDefault(); } }, { passive: false });
-            document.addEventListener('touchend', endHandler);
+
+            /* ★ دابل‌کلیک: بازنشانی همین ستون */
+            res.addEventListener('dblclick', function(e) {
+                e.preventDefault(); e.stopPropagation();
+                th.style.width = '';
+                th.style.minWidth = '';
+                th.style.maxWidth = '';
+                if (colWidths[tableId]) {
+                    delete colWidths[tableId][idx];
+                    saveColWidths();
+                }
+                showToast('↔ عرض ستون بازنشانی شد.');
+            });
+
+            res.addEventListener('click', function(e) { e.stopPropagation(); });
+            res.addEventListener('mousedown', function(e) {
+                e.preventDefault(); e.stopPropagation();
+                start(e.pageX);
+            });
+            res.addEventListener('touchstart', function(e) {
+                e.preventDefault(); e.stopPropagation();
+                start(e.touches[0].pageX);
+            }, { passive: false });
+
+            document.addEventListener('mousemove', function(e) {
+                if (isDragging) move(e.pageX);
+            });
+            document.addEventListener('mouseup', end);
+            document.addEventListener('touchmove', function(e) {
+                if (isDragging) { move(e.touches[0].pageX); e.preventDefault(); }
+            }, { passive: false });
+            document.addEventListener('touchend', end);
         })(ths[i], i);
     }
     applyColWidths(tableId);
 }
 
-/* ★ بازنشانی عرض ستون‌ها */
+/* ★ بازنشانی همه عرض ستون‌ها */
 function resetColumnWidths(tableId) {
     if (!tableId) return;
     delete colWidths[tableId];
@@ -371,9 +414,10 @@ function resetColumnWidths(tableId) {
     for (var i = 0; i < ths.length; i++) {
         ths[i].style.width = '';
         ths[i].style.minWidth = '';
+        ths[i].style.maxWidth = '';
     }
     table.style.minWidth = '';
-    updateTableMinWidth(table);
+    table.style.width = '';
     showToast('↔ عرض ستون‌ها فیت شد.');
 }
 
