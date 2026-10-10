@@ -2509,3 +2509,78 @@ body.theme-midnight .note-content { background:var(--card-alt); }
   height: 17px;
   margin-left: 4px;
 }
+
+/* ============================================================
+   ============ v27 PATCH — Enhancements 9-point ==============
+   ============================================================ */
+
+/* ★ درخواست ۱: تاریخ تاپ‌بار تک‌خطی */
+.date-info { justify-content:center; }
+.date-line.jalali { font-size:0.82rem; white-space:nowrap; }
+@media (max-width:520px) { .date-line.jalali { font-size:0.7rem; } }
+
+/* ★ درخواست ۲: حذف فیلترها و ذره‌بین از پرینت */
+@media print {
+  .column-filter-row,
+  .filters-toggle-btn,
+  .col-filter-btn,
+  .col-toggle-btn,
+  .col-reset-btn,
+  .eye-toggle-btn,
+  .share-btn,
+  .widget-share-btn,
+  #col-filter-menu { display: none !important; }
+}
+
+/* ★ درخواست ۵: دکمه بازنشانی عرض ستون‌ها */
+.col-reset-btn {
+  background:var(--card-solid); color:var(--primary-dark);
+  border:1.5px solid var(--border); width:36px; height:34px;
+  border-radius:10px; font-size:1rem; cursor:pointer; padding:0;
+  display:inline-flex; align-items:center; justify-content:center;
+  transition: all var(--transition); font-weight:900;
+}
+.col-reset-btn:hover { border-color:var(--primary); background:var(--primary-soft); }
+
+/* ★ درخواست ۷: عنوان بخش گزارش گردش وجه نقد */
+.cfd-section-title {
+  font-weight:800; color:var(--primary-dark); font-size:0.95rem;
+  padding:10px 14px; background:var(--primary-soft);
+  border-radius:12px; margin-bottom:10px; border:1px solid var(--primary-light);
+}
+
+/* ★ درخواست ۹: دکمه‌های اشتراک‌گذاری گزارش‌ها و ویجت‌ها */
+.share-btn {
+  background:var(--card-solid); color:var(--primary-dark);
+  border:1.5px solid var(--border); width:36px; height:34px;
+  border-radius:10px; font-size:1rem; cursor:pointer; padding:0;
+  display:inline-flex; align-items:center; justify-content:center;
+  transition: all var(--transition);
+}
+.share-btn:hover { border-color:var(--primary); background:var(--primary-soft); }
+
+.widget-card { position:relative; }
+.widget-share-btn {
+  position:absolute; top:10px; right:10px; z-index:6;
+  background:var(--primary-soft); color:var(--primary-dark);
+  border:1px solid var(--border); width:30px; height:30px;
+  border-radius:9px; cursor:pointer; font-size:0.85rem;
+  display:flex; align-items:center; justify-content:center;
+  transition: all var(--transition);
+}
+.widget-share-btn:hover { background:var(--primary); color:#fff; }
+
+/* ★ درخواست ۸: جدول گزارش مقایسه‌ای */
+#rc-table td.num, #rc-table th { white-space:nowrap; }
+
+/* ★ کوچک‌سازی دکمه‌های هدر لیست‌ها */
+.list-header .col-reset-btn,
+.list-header .share-btn,
+.list-header .col-toggle-btn,
+.list-header .eye-toggle-btn,
+.list-header .filters-toggle-btn {
+  width:34px; height:32px; font-size:0.9rem;
+}
+
+/* ★ اطمینان از راست‌چین بودن جدول‌های گزارش در همه حالت‌ها */
+.report-table, .data-table, .cf-table { direction: rtl; }
