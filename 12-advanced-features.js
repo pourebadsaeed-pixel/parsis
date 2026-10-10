@@ -1,51 +1,49 @@
 /* =====================================================================
-   پارسیس v27 — 12-advanced-features.js
-   ویژگی‌های پیشرفته:
-   ۱) ویرایش و مسدود/آزادسازی الگوی پیامک
-   ۲) تشخیص دقیق جهت (برداشت/واریز) با علامت مبلغ
-   ۳) مرور حساب: کلیک روی هر ردیف → ویرایش سند
+   پارسیس v27 — 12-advanced-features.js (v2)
+   ۱) تشخیص دقیق جهت (برداشت/واریز) با علامت مبلغ
+   ۲) ویرایش/مسدودسازی الگو + label هوشمند
+   ۳) مرور حساب: کلیک روی ردیف → ویرایش سند
    ۴) تراز آزمایشی با سطح گروه
-   ۵) جستجو/فیلتر پیشرفته در تمام ستون‌های جداول
-   ۶) مرتب‌سازی سراسری در همه جداول
+   ۵) جستجو/فیلتر پیشرفته در ستون‌ها
+   ۶) مرتب‌سازی سراسری
    ===================================================================== */
 'use strict';
 
 /* ============================================================
-   ================ ۱) تشخیص دقیق جهت با علامت ================
+   ============ ۱) توابع کمکی جهت/مبلغ ============
    ============================================================ */
 function parseAmountWithSign(text) {
     var t = normalizeDigits(String(text || ''))
         .replace(/[−–—]/g, '-')
         .replace(/[＋]/g, '+');
 
-    var patterns = [
-        /مبلغ\s*[:ـ]?\s*([+\-]?\s*[\d][\d,]*)/,
-        /(?:انتقالي|انتقالی)\s*[:ـ]?\s*([+\-]?\s*[\d][\d,]*)/,
-        /(?:موجودي|موجودی)\s*[:ـ]?\s*([+\-]?\s*[\d][\d,]*)/,
-        /(?:برداشت|واریز|خرید|پرداخت)\s*[:ـ]?\s*([+\-]?\s*[\d][\d,]*)/,
-        /([+\-])\s*([\d]{1,3}(?:,[\d]{3})+)/
-    ];
-
-    for (var i = 0; i < patterns.length; i++) {
-        var m = t.match(patterns[i]);
-        if (!m) continue;
-        var raw, sign = '';
-        if (m.length >= 3 && (m[1] === '+' || m[1] === '-')) {
-            sign = m[1]; raw = m[2];
-        } else {
-            raw = String(m[1]).replace(/\s+/g, '');
-            if (raw.charAt(0) === '+') { sign = '+'; raw = raw.slice(1); }
-            else if (raw.charAt(0) === '-') { sign = '-'; raw = raw.slice(1); }
-        }
-        var num = Number(String(raw).replace(/,/g, ''));
-        if (num > 0) return { amount: num, sign: sign };
+    var labeled = t.match(/(?:انتقالي|انتقالی|مبلغ|برداشت|واریز|خرید|پرداخت|افزایش|کسر|موجودي|موجودی|حقوق|قسط)\s*[:ـ]?\s*([+\-]?\s*[\d][\d,]*(?:\s*[+\-])?)/);
+    if (labeled) {
+        var res = parseSignNum(labeled[1]);
+        if (res.amount > 0) return res;
     }
-    var m2 = t.match(/([+\-])?\s*([\d]{1,3}(?:,[\d]{3})+)/);
-    if (m2) return { amount: Number(m2[2].replace(/,/g, '')), sign: m2[1] || '' };
+
+    var m1 = t.match(/([+\-])\s*([\d]{1,3}(?:,[\d]{3})+)/);
+    if (m1) return { amount: Number(m1[2].replace(/,/g, '')), sign: m1[1] };
+
+    var m2 = t.match(/([\d]{1,3}(?:,[\d]{3})+)\s*([+\-])/);
+    if (m2) return { amount: Number(m2[1].replace(/,/g, '')), sign: m2[2] };
+
+    var m3 = t.match(/([\d]{1,3}(?:,[\d]{3})+)/);
+    if (m3) return { amount: Number(m3[1].replace(/,/g, '')), sign: '' };
+
     return { amount: 0, sign: '' };
 }
-window.parseAmountWithSign = parseAmountWithSign;
-
+function parseSignNum(str) {
+    var s = String(str).replace(/\s+/g, '').trim();
+    var sign = '';
+    if (s.charAt(0) === '+') { sign = '+'; s = s.slice(1); }
+    else if (s.charAt(0) === '-') { sign = '-'; s = s.slice(1); }
+    if (!sign && s.charAt(s.length - 1) === '+') { sign = '+'; s = s.slice(0, -1); }
+    else if (!sign && s.charAt(s.length - 1) === '-') { sign = '-'; s = s.slice(0, -1); }
+    var num = Number(s.replace(/,/g, ''));
+    return { amount: (isFinite(num) && num > 0) ? num : 0, sign: sign };
+}
 function detectDirectionPrecise(text) {
     var t = normalizeDigits(String(text || '')).replace(/[−–—]/g, '-');
     var amt = parseAmountWithSign(t);
@@ -69,13 +67,66 @@ function detectDirectionPrecise(text) {
     if (/برداشت|خرید|کسر|قسط|پرداخت/.test(t)) return 'out';
     return '';
 }
+window.parseAmountWithSign = parseAmountWithSign;
+window.parseSignNum = parseSignNum;
 window.detectSmsDirection = detectDirectionPrecise;
 
 /* ============================================================
-   ================ ۲) ویرایش/مسدودسازی الگوها ================
+   ============ ۲) شباهت با تضاد علامت ============
    ============================================================ */
 
-// override findMatchingSmsPattern برای نادیده گرفتن الگوهای مسدود
+/**
+ * نسخه جدید smsTokenSimilarity با رفتار سختگیرانه در مورد علامت:
+ * - علامت یکسان → +1.0
+ * - یکی علامت دار، یکی بدون علامت → +0.85
+ * - علامت متفاوت (+ در مقابل -) → تضاد → امتیاز کل صفر
+ */
+function smsTokenSimilarityV2(a, b) {
+    var n = Math.max(a.length, b.length);
+    if (n === 0) return 0;
+    var score = 0;
+    var hasSignConflict = false;
+
+    function getSign(t) {
+        if (!t) return '';
+        var c0 = t.charAt(0);
+        if (c0 === '+' || c0 === '-') return c0;
+        var cl = t.charAt(t.length - 1);
+        if (cl === '+' || cl === '-') return cl;
+        return '';
+    }
+    function isWild(t) {
+        return typeof t === 'string' && t.indexOf('#') !== -1;
+    }
+
+    for (var i = 0; i < n; i++) {
+        var ta = a[i], tb = b[i];
+        if (ta === undefined || tb === undefined) { score -= 0.2; continue; }
+        if (ta === tb) { score += 1.0; continue; }
+
+        var wildA = isWild(ta), wildB = isWild(tb);
+        if (wildA && wildB) {
+            var signA = getSign(ta), signB = getSign(tb);
+            if (signA === signB) score += 1.0;
+            else if (!signA || !signB) score += 0.85;
+            else { hasSignConflict = true; score -= 2.0; } // تضاد علامت
+        }
+        else if (wildA || wildB) score += 0.4;
+        else score -= 0.3;
+    }
+
+    // ⚠️ اگه تضاد علامت وجود داشته باشه، کل الگو رد می‌شه
+    if (hasSignConflict) return 0;
+
+    return Math.max(0, score / n);
+}
+window.smsTokenSimilarity = smsTokenSimilarityV2;
+
+/* ============================================================
+   ============ ۳) الگوها: ویرایش/مسدود ============
+   ============================================================ */
+
+// override برای نادیده گرفتن الگوهای مسدود
 (function () {
     var _orig = window.findMatchingSmsPattern;
     if (typeof _orig !== 'function') return;
@@ -83,13 +134,13 @@ window.detectSmsDirection = detectDirectionPrecise;
         var patterns = (typeof loadSmsPatterns === 'function') ? loadSmsPatterns() : [];
         var active = patterns.filter(function (p) { return !p.blocked; });
         if (active.length === 0) return null;
-        if (typeof buildSmsPattern !== 'function' || typeof smsTokenSimilarity !== 'function') {
+        if (typeof buildSmsPattern !== 'function' || typeof smsTokenSimilarityV2 !== 'function') {
             return _orig(raw);
         }
         var built = buildSmsPattern(raw);
         var best = null, bestScore = 0;
         for (var i = 0; i < active.length; i++) {
-            var s = smsTokenSimilarity(built.tokens, active[i].tokens || []);
+            var s = smsTokenSimilarityV2(built.tokens, active[i].tokens || []);
             if (s > bestScore) { bestScore = s; best = active[i]; }
         }
         return bestScore >= (window.SMS_PATTERN_THRESHOLD || 0.75)
@@ -98,99 +149,100 @@ window.detectSmsDirection = detectDirectionPrecise;
     };
 })();
 
+/* ---------- ویرایش الگو با Modal ساده‌تر ---------- */
 function openEditSmsPattern(patternId) {
-    var patterns = loadSmsPatterns();
-    var p = patterns.find(function (x) { return x.id === patternId; });
-    if (!p) { showToast('الگو یافت نشد.'); return; }
+    try {
+        var patterns = loadSmsPatterns();
+        var p = patterns.find(function (x) { return x.id === patternId; });
+        if (!p) { showToast('الگو یافت نشد.'); return; }
 
-    var old = document.getElementById('sms-edit-modal'); if (old) old.remove();
-    var oldO = document.getElementById('sms-edit-overlay'); if (oldO) oldO.remove();
+        var old = document.getElementById('sms-edit-modal'); if (old) old.remove();
+        var oldO = document.getElementById('sms-edit-overlay'); if (oldO) oldO.remove();
 
-    var accounts = DB.load('bankAccounts', []);
-    var accOpts = '<option value="">— تعیین نشده —</option>';
-    accounts.forEach(function (a) {
-        var sel = (p.linkedAccountId === a.id) ? ' selected' : '';
-        accOpts += '<option value="' + a.id + '"' + sel + '>' + esc((a.bank || '') + ' — ' + (a.account || '')) + '</option>';
-    });
-    var dirIn  = p.direction === 'in'  ? 'checked' : '';
-    var dirOut = p.direction === 'out' ? 'checked' : '';
+        var accounts = DB.load('bankAccounts', []);
+        var accOpts = '<option value="">— تعیین نشده —</option>';
+        for (var i = 0; i < accounts.length; i++) {
+            var a = accounts[i];
+            var sel = (p.linkedAccountId === a.id) ? ' selected' : '';
+            accOpts += '<option value="' + a.id + '"' + sel + '>' +
+                esc((a.bank || '') + ' — ' + (a.account || '')) + '</option>';
+        }
+        var dirIn  = p.direction === 'in'  ? 'checked' : '';
+        var dirOut = p.direction === 'out' ? 'checked' : '';
+        var preview = (p.tokens || []).join(' ');
 
-    var html = ''
-        + '<div id="sms-edit-overlay" class="overlay" style="z-index:1400"></div>'
-        + '<div id="sms-edit-modal" class="modal" style="max-width:560px;z-index:1410">'
-        +   '<div class="modal-head"><h2>✏️ ویرایش الگوی پیامک</h2>'
-        +     '<button id="sms-edit-close" class="close-btn">×</button></div>'
-        +   '<div class="modal-body">'
-        +     '<div class="field"><label>نام الگو</label>'
-        +       '<input type="text" id="se-label" value="' + esc(p.label || '') + '"></div>'
-        +     '<div class="field"><label>حساب بانکی مرتبط</label>'
-        +       '<select id="se-account">' + accOpts + '</select></div>'
-        +     '<div class="field"><label>جهت تراکنش</label>'
-        +       '<div class="psf-radio">'
-        +         '<label class="' + (dirIn ? 'checked-in' : '') + '"><input type="radio" name="se_dir" value="in" ' + dirIn + '> 📥 واریز</label>'
-        +         '<label class="' + (dirOut ? 'checked-out' : '') + '"><input type="radio" name="se_dir" value="out" ' + dirOut + '> 📤 برداشت</label>'
-        +       '</div></div>'
-        +     '<div class="field"><label>نمونه الگو</label>'
-        +       '<div style="background:var(--card-alt);border:1px solid var(--border);border-radius:10px;padding:10px;font-family:monospace;font-size:.78rem;direction:rtl;line-height:1.8;max-height:150px;overflow-y:auto">'
-        +         esc((p.tokens || []).join(' '))
-        +       '</div></div>'
-        +     '<div class="field"><label style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--card-alt);border-radius:10px;cursor:pointer">'
-        +       '<input type="checkbox" id="se-blocked" ' + (p.blocked ? 'checked' : '') + '> '
-        +       '<span style="font-size:.82rem">مسدود کردن این الگو (برای شناسایی خودکار استفاده نشود)</span></label></div>'
-        +   '</div>'
-        +   '<div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end">'
-        +     '<button id="sms-edit-save" class="btn-primary">💾 ذخیره</button>'
-        +     '<button id="sms-edit-cancel" class="btn-secondary">انصراف</button>'
-        +   '</div>'
-        + '</div>';
+        var html = ''
+            + '<div id="sms-edit-overlay" class="overlay" style="z-index:1400"></div>'
+            + '<div id="sms-edit-modal" class="modal" style="max-width:560px;z-index:1410">'
+            +   '<div class="modal-head"><h2>✏️ ویرایش الگوی پیامک</h2>'
+            +     '<button type="button" id="sms-edit-close" class="close-btn">×</button></div>'
+            +   '<div class="modal-body">'
+            +     '<div class="field"><label>نام الگو</label>'
+            +       '<input type="text" id="se-label" value="' + esc(p.label || '') + '"></div>'
+            +     '<div class="field"><label>حساب بانکی مرتبط</label>'
+            +       '<select id="se-account">' + accOpts + '</select></div>'
+            +     '<div class="field"><label>جهت تراکنش</label>'
+            +       '<div class="psf-radio" style="display:flex;gap:8px">'
+            +         '<label style="flex:1;display:flex;align-items:center;gap:6px;padding:10px;background:var(--card-alt);border-radius:10px;cursor:pointer;border:1.5px solid var(--border);justify-content:center">'
+            +           '<input type="radio" name="se_dir" value="in" ' + dirIn + ' style="accent-color:#059669"> 📥 واریز</label>'
+            +         '<label style="flex:1;display:flex;align-items:center;gap:6px;padding:10px;background:var(--card-alt);border-radius:10px;cursor:pointer;border:1.5px solid var(--border);justify-content:center">'
+            +           '<input type="radio" name="se_dir" value="out" ' + dirOut + ' style="accent-color:#dc2626"> 📤 برداشت</label>'
+            +       '</div></div>'
+            +     '<div class="field"><label>نمونه الگو</label>'
+            +       '<div style="background:var(--card-alt);border:1px solid var(--border);border-radius:10px;padding:10px;font-family:monospace;font-size:.78rem;direction:rtl;line-height:1.8;max-height:150px;overflow-y:auto">'
+            +         esc(preview) + '</div></div>'
+            +     '<div class="field"><label style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--card-alt);border-radius:10px;cursor:pointer">'
+            +       '<input type="checkbox" id="se-blocked" ' + (p.blocked ? 'checked' : '') + '> '
+            +       '<span style="font-size:.82rem">مسدود کردن این الگو</span></label></div>'
+            +   '</div>'
+            +   '<div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end">'
+            +     '<button type="button" id="sms-edit-cancel" class="btn-secondary">انصراف</button>'
+            +     '<button type="button" id="sms-edit-save" class="btn-primary">💾 ذخیره</button>'
+            +   '</div>'
+            + '</div>';
 
-    document.body.insertAdjacentHTML('beforeend', html);
+        document.body.insertAdjacentHTML('beforeend', html);
 
-    document.getElementById('sms-edit-close').onclick = closeSmsEditModal;
-    document.getElementById('sms-edit-cancel').onclick = closeSmsEditModal;
-    document.getElementById('sms-edit-overlay').onclick = closeSmsEditModal;
+        var closeFn = function () {
+            var m = document.getElementById('sms-edit-modal'); if (m) m.remove();
+            var o = document.getElementById('sms-edit-overlay'); if (o) o.remove();
+        };
+        document.getElementById('sms-edit-close').onclick = closeFn;
+        document.getElementById('sms-edit-cancel').onclick = closeFn;
+        document.getElementById('sms-edit-overlay').onclick = closeFn;
 
-    // رنگ کردن رادیوها
-    var radios = document.querySelectorAll('input[name="se_dir"]');
-    radios.forEach(function (r) {
-        r.addEventListener('change', function () {
-            var labels = document.querySelectorAll('.psf-radio label');
-            labels.forEach(function (L) {
-                L.classList.remove('checked-out', 'checked-in');
-                var inp = L.querySelector('input');
-                if (inp && inp.checked) L.classList.add(inp.value === 'in' ? 'checked-in' : 'checked-out');
-            });
-        });
-    });
+        document.getElementById('sms-edit-save').onclick = function () {
+            var all = loadSmsPatterns();
+            var idx = -1;
+            for (var j = 0; j < all.length; j++) if (all[j].id === patternId) { idx = j; break; }
+            if (idx === -1) { closeFn(); return; }
 
-    document.getElementById('sms-edit-save').onclick = function () {
-        var all = loadSmsPatterns();
-        var idx = all.findIndex(function (x) { return x.id === patternId; });
-        if (idx === -1) { closeSmsEditModal(); return; }
-        var newLabel = document.getElementById('se-label').value.trim();
-        var newAcc = document.getElementById('se-account').value;
-        var dirEl = document.querySelector('input[name="se_dir"]:checked');
-        var newDir = dirEl ? dirEl.value : '';
-        var blocked = document.getElementById('se-blocked').checked;
-        if (!newLabel) { alert('نام الگو اجباری است.'); return; }
-        all[idx].label = newLabel;
-        all[idx].linkedAccountId = newAcc;
-        all[idx].direction = newDir;
-        all[idx].blocked = blocked;
-        all[idx].lastEdited = Date.now();
-        saveSmsPatterns(all);
-        closeSmsEditModal();
-        if (typeof window.renderSmsPatternsManagerBody === 'function') window.renderSmsPatternsManagerBody();
-        showToast('✅ ذخیره شد' + (blocked ? ' (مسدود)' : ''));
-    };
-}
-function closeSmsEditModal() {
-    var m = document.getElementById('sms-edit-modal'); if (m) m.remove();
-    var o = document.getElementById('sms-edit-overlay'); if (o) o.remove();
+            var newLabel = document.getElementById('se-label').value.trim();
+            var newAcc = document.getElementById('se-account').value;
+            var dirEl = document.querySelector('input[name="se_dir"]:checked');
+            var newDir = dirEl ? dirEl.value : '';
+            var blocked = document.getElementById('se-blocked').checked;
+
+            if (!newLabel) { alert('نام الگو اجباری است.'); return; }
+
+            all[idx].label = newLabel;
+            all[idx].linkedAccountId = newAcc;
+            all[idx].direction = newDir;
+            all[idx].blocked = blocked;
+            all[idx].lastEdited = Date.now();
+            saveSmsPatterns(all);
+            closeFn();
+            if (typeof window.renderSmsPatternsManagerBody === 'function') window.renderSmsPatternsManagerBody();
+            showToast('✅ ذخیره شد' + (blocked ? ' (مسدود)' : ''));
+        };
+    } catch (err) {
+        console.error('خطا در ویرایش الگو:', err);
+        alert('خطا: ' + (err.message || err));
+    }
 }
 window.openEditSmsPattern = openEditSmsPattern;
 
-// بازنویسی لیست الگوها با دکمه ویرایش و مسدود
+/* ---------- لیست الگوها با دکمه‌های inline ---------- */
 window.renderSmsPatternsManagerBody = function () {
     var box = document.getElementById('sms-patterns-body');
     if (!box) return;
@@ -231,9 +283,13 @@ window.renderSmsPatternsManagerBody = function () {
             +     '</div>'
             +   '</div>'
             +   '<div style="display:flex;gap:6px;flex-wrap:wrap">'
-            +     '<button data-pattern-edit="' + p.id + '" style="background:#dbeafe;color:#1e40af;border:none;border-radius:9px;padding:8px 12px;font-family:inherit;font-weight:800;font-size:.8rem;cursor:pointer">✏️ ویرایش</button>'
-            +     '<button data-pattern-block="' + p.id + '" style="background:' + (p.blocked ? '#d1fae5;color:#065f46' : '#fef3c7;color:#92400e') + ';border:none;border-radius:9px;padding:8px 12px;font-family:inherit;font-weight:800;font-size:.8rem;cursor:pointer">' + (p.blocked ? '✅ رفع' : '🚫 مسدود') + '</button>'
-            +     '<button data-pattern-del="' + p.id + '" style="background:#fee2e2;color:#dc2626;border:none;border-radius:9px;padding:8px 12px;font-family:inherit;font-weight:800;font-size:.8rem;cursor:pointer">🗑</button>'
+            +     '<button type="button" onclick="window.openEditSmsPattern(\'' + p.id + '\')" '
+            +       'style="background:#dbeafe;color:#1e40af;border:none;border-radius:9px;padding:8px 12px;font-family:inherit;font-weight:800;font-size:.8rem;cursor:pointer">✏️ ویرایش</button>'
+            +     '<button type="button" data-pattern-block="' + p.id + '" '
+            +       'style="background:' + (p.blocked ? '#d1fae5;color:#065f46' : '#fef3c7;color:#92400e') + ';border:none;border-radius:9px;padding:8px 12px;font-family:inherit;font-weight:800;font-size:.8rem;cursor:pointer">'
+            +       (p.blocked ? '✅ رفع' : '🚫 مسدود') + '</button>'
+            +     '<button type="button" data-pattern-del="' + p.id + '" '
+            +       'style="background:#fee2e2;color:#dc2626;border:none;border-radius:9px;padding:8px 12px;font-family:inherit;font-weight:800;font-size:.8rem;cursor:pointer">🗑</button>'
             +   '</div>'
             + '</div>'
             + '<div style="background:var(--card-alt);border:1px solid var(--border);border-radius:10px;padding:10px;font-size:.76rem;direction:rtl;line-height:1.8">'
@@ -260,16 +316,12 @@ window.renderSmsPatternsManagerBody = function () {
             showToast('🗑 حذف شد');
         });
     });
-    box.querySelectorAll('[data-pattern-edit]').forEach(function (b) {
-        b.addEventListener('click', function () {
-            openEditSmsPattern(this.getAttribute('data-pattern-edit'));
-        });
-    });
     box.querySelectorAll('[data-pattern-block]').forEach(function (b) {
         b.addEventListener('click', function () {
             var id = this.getAttribute('data-pattern-block');
             var all = loadSmsPatterns();
-            var idx = all.findIndex(function (x) { return x.id === id; });
+            var idx = -1;
+            for (var j = 0; j < all.length; j++) if (all[j].id === id) { idx = j; break; }
             if (idx === -1) return;
             all[idx].blocked = !all[idx].blocked;
             saveSmsPatterns(all);
@@ -280,7 +332,140 @@ window.renderSmsPatternsManagerBody = function () {
 };
 
 /* ============================================================
-   ================ ۳) مرور حساب: کلیک روی ردیف → ویرایش ================
+   ============ ۴) convertSmsToVoucher با label هوشمند ============
+   ============================================================ */
+window.convertSmsToVoucher = function (smsId) {
+    var list = getSmsInbox();
+    var item = list.find(function (s) { return s.id === smsId; });
+    if (!item) { showToast('پیامک یافت نشد.'); return; }
+
+    var raw = normalizeDigits(item.rawText);
+    var p = item.parsed || {};
+    var amount = p.amount || 0;
+    var direction = '';
+    var bankAccountId = p.matchedAccountId || '';
+
+    // اولویت ۱: علامت کنار مبلغ
+    var amtRes = parseAmountWithSign(raw);
+    if (amtRes.amount > 0 && amtRes.sign) {
+        amount = amtRes.amount;
+        direction = amtRes.sign === '+' ? 'in' : 'out';
+    }
+
+    // اولویت ۲: الگو
+    var matched = (typeof findMatchingSmsPattern === 'function')
+        ? findMatchingSmsPattern(item.rawText) : null;
+    var patternDirMatches = false;
+    var patternLabel = '';
+    if (matched && matched.pattern) {
+        if (!direction && matched.pattern.direction) {
+            direction = matched.pattern.direction;
+            patternDirMatches = true;
+        } else if (direction && matched.pattern.direction === direction) {
+            patternDirMatches = true;
+        }
+        if (!bankAccountId && matched.pattern.linkedAccountId) {
+            bankAccountId = matched.pattern.linkedAccountId;
+        }
+        // ⚠️ label فقط اگه جهت الگو با جهت نهایی یکسان باشه
+        if (patternDirMatches) patternLabel = matched.pattern.label || '';
+    }
+
+    // اولویت ۳: کلمات کلیدی
+    if (!direction) direction = detectDirectionPrecise(raw);
+
+    // مبلغ
+    if (!amount || amount > 1e12) {
+        if (amtRes.amount > 0) amount = amtRes.amount;
+        else {
+            var mamt = raw.match(/مبلغ\s*[:ـ]?\s*([\d][\d,]*)/);
+            if (mamt) amount = Number(mamt[1].replace(/,/g, ''));
+        }
+    }
+    if (!amount || amount > 1e13) {
+        alert('⚠️ مبلغ قابل تشخیص نیست.\nبرای این پیامک از باکس «ثبت نشده» الگو تعریف کن.');
+        return;
+    }
+    if (!direction) {
+        var d = prompt('نوع تراکنش:\n1 = برداشت\n2 = واریز', '1');
+        if (d === '1') direction = 'out';
+        else if (d === '2') direction = 'in';
+        else return;
+    }
+
+    // حساب بانکی
+    if (!bankAccountId) {
+        var accounts = DB.load('bankAccounts', []);
+        if (accounts.length === 0) { alert('⚠️ هیچ حساب بانکی تعریف نشده.'); return; }
+        if (accounts.length === 1) bankAccountId = accounts[0].id;
+        else {
+            var opts = accounts.map(function (a, i) { return (i + 1) + '. ' + (a.bank || '') + ' — ' + (a.account || ''); }).join('\n');
+            var ans = prompt('حساب بانکی:\n\n' + opts + '\n\nشماره:');
+            if (!ans) return;
+            var idx = Number(normalizeDigits(ans)) - 1;
+            if (isNaN(idx) || idx < 0 || idx >= accounts.length) { alert('نامعتبر'); return; }
+            bankAccountId = accounts[idx].id;
+        }
+    }
+
+    var bankMoein = getBankMoeinId();
+    if (!bankMoein) { alert('⚠️ معین بانک تعریف نشده.'); return; }
+
+    // ⚠️ شرح خودکار بر اساس جهت نهایی — نه label الگو
+    var autoDesc = patternLabel;
+    if (!autoDesc) {
+        var bankName = p.bankName || '';
+        var accObj = DB.load('bankAccounts', []).find(function (b) { return b.id === bankAccountId; });
+        if (accObj && accObj.bank) bankName = accObj.bank;
+        autoDesc = (direction === 'in' ? 'واریز' : 'برداشت') + (bankName ? ' - ' + bankName : '');
+    }
+
+    var bankDetail = { bank: bankAccountId };
+    var lines = [];
+    if (direction === 'out') {
+        lines.push({ id: uid(), account: '', details: {}, debit: amount, credit: 0, description: autoDesc });
+        lines.push({ id: uid(), account: bankMoein, details: bankDetail, debit: 0, credit: amount, description: autoDesc, locked: true });
+    } else {
+        lines.push({ id: uid(), account: bankMoein, details: bankDetail, debit: amount, credit: 0, description: autoDesc, locked: true });
+        lines.push({ id: uid(), account: '', details: {}, debit: 0, credit: amount, description: autoDesc });
+    }
+
+    var vl = DB.load('vouchers', []);
+    var v = {
+        id: uid(),
+        number: (typeof getNextVoucherNumberForPeriod === 'function')
+            ? getNextVoucherNumberForPeriod(state.activePeriodId || '')
+            : String(vl.length + 1),
+        date: todayJalaliStr(),
+        type: 'general',
+        periodId: state.activePeriodId || '',
+        desc: autoDesc,
+        lines: lines,
+        status: 'draft'
+    };
+    vl.push(v);
+    DB.save('vouchers', vl);
+
+    for (var i = 0; i < list.length; i++) {
+        if (list[i].id === smsId) {
+            list[i].status = 'converted';
+            list[i].voucherId = v.id;
+            list[i].parsed.amount = amount;
+            list[i].parsed.direction = direction;
+            list[i].parsed.matchedAccountId = bankAccountId;
+        }
+    }
+    saveSmsInbox(list);
+    if (typeof renderSmsInbox === 'function') renderSmsInbox();
+    if (typeof window.updateSmsBadge === 'function') window.updateSmsBadge();
+    if (typeof loadVoucherForEdit === 'function') loadVoucherForEdit(v);
+
+    var dirLabel = direction === 'out' ? '🔴 برداشت' : '🟢 واریز';
+    showToast('✅ پیش‌نویس — ' + dirLabel + (patternLabel ? ' | ' + patternLabel : ''));
+};
+
+/* ============================================================
+   ============ ۵) مرور حساب: کلیک روی ردیف ============
    ============================================================ */
 (function () {
     var _origTurnover = window.openAccountTurnover;
@@ -326,7 +511,7 @@ window.editVoucherFromAnywhere = function (vid) {
             var l = DB.load('vouchers', []);
             for (var i = 0; i < l.length; i++) if (l[i].id === vid) l[i].status = 'draft';
             DB.save('vouchers', l);
-            showToast('↩ سند به پیش‌نویس برگشت.');
+            showToast('↩ برگشت از تأیید.');
             loadVoucherForEdit(v);
         } else {
             openVoucherPreview(v);
@@ -337,7 +522,7 @@ window.editVoucherFromAnywhere = function (vid) {
 };
 
 /* ============================================================
-   ================ ۴) تراز آزمایشی با سطح گروه ================
+   ============ ۶) تراز آزمایشی: سطح گروه ============
    ============================================================ */
 (function () {
     function ensureGroupOption() {
@@ -349,10 +534,7 @@ window.editVoucherFromAnywhere = function (vid) {
         opt.textContent = 'گروه';
         sel.insertBefore(opt, sel.firstChild);
     }
-    function loop() {
-        ensureGroupOption();
-        setTimeout(loop, 2000);
-    }
+    function loop() { ensureGroupOption(); setTimeout(loop, 2000); }
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function () { setTimeout(loop, 800); });
     } else {
@@ -361,7 +543,7 @@ window.editVoucherFromAnywhere = function (vid) {
 })();
 
 /* ============================================================
-   ================ ۵) جستجو/فیلتر پیشرفته ================
+   ============ ۷) جستجو/فیلتر پیشرفته ============
    ============================================================ */
 var COLUMN_FILTERS = {};
 var FILTER_OPS = [
@@ -418,7 +600,6 @@ function testFilter(cellText, filter) {
     }
     return true;
 }
-
 function applyColumnFiltersToTable(tableId) {
     var table = document.getElementById(tableId);
     if (!table) return;
@@ -433,9 +614,7 @@ function applyColumnFiltersToTable(tableId) {
     }
     rows.forEach(function (tr) {
         var tds = tr.children;
-        if (tds.length === 1 && tds[0].hasAttribute('colspan')) {
-            tr.style.display = 'none'; return;
-        }
+        if (tds.length === 1 && tds[0].hasAttribute('colspan')) { tr.style.display = 'none'; return; }
         var show = true;
         for (var key in filters) {
             var idx = Number(key);
@@ -447,7 +626,6 @@ function applyColumnFiltersToTable(tableId) {
         tr.style.display = show ? '' : 'none';
     });
 }
-
 function buildFilterRow(table) {
     if (!table || !table.id) return;
     var thead = table.querySelector('thead');
@@ -465,15 +643,12 @@ function buildFilterRow(table) {
             var td = document.createElement('th');
             td.className = 'column-filter-cell';
             td.style.cssText = 'padding:4px 6px;background:var(--card-alt);border-bottom:1px solid var(--border);font-weight:normal';
-
             var wrap = document.createElement('div');
             wrap.style.cssText = 'display:flex;gap:2px;align-items:center';
-
             var inp = document.createElement('input');
             inp.type = 'text';
             inp.placeholder = '🔍';
             inp.style.cssText = 'width:100%;padding:4px 6px;font-size:.72rem;border:1px solid var(--border);border-radius:6px;background:var(--card-solid);font-family:inherit;outline:none;min-width:0';
-
             var funnel = document.createElement('button');
             funnel.type = 'button';
             funnel.textContent = '▼';
@@ -483,7 +658,6 @@ function buildFilterRow(table) {
                 e.stopPropagation();
                 openFilterMenu(table.id, idx, inp, funnel);
             });
-
             wrap.appendChild(inp);
             wrap.appendChild(funnel);
             td.appendChild(wrap);
@@ -498,20 +672,17 @@ function buildFilterRow(table) {
                     funnel.textContent = '▼*';
                 }
             }
-
             inp.addEventListener('input', function () {
                 var v = this.value.trim();
                 if (!COLUMN_FILTERS[table.id]) COLUMN_FILTERS[table.id] = {};
                 if (!v) {
                     var cur = COLUMN_FILTERS[table.id][idx];
-                    if (cur && (cur.op === 'empty' || cur.op === 'notEmpty')) {
-                        // نگه‌دار
-                    } else {
+                    if (!cur || (cur.op !== 'empty' && cur.op !== 'notEmpty')) {
                         delete COLUMN_FILTERS[table.id][idx];
                     }
                 } else {
-                    var cur = COLUMN_FILTERS[table.id][idx] || {};
-                    COLUMN_FILTERS[table.id][idx] = { op: cur.op || 'contains', val: v };
+                    var cur2 = COLUMN_FILTERS[table.id][idx] || {};
+                    COLUMN_FILTERS[table.id][idx] = { op: cur2.op || 'contains', val: v };
                 }
                 applyColumnFiltersToTable(table.id);
             });
@@ -519,15 +690,12 @@ function buildFilterRow(table) {
     }
     thead.appendChild(filterTr);
 }
-
 function openFilterMenu(tableId, colIdx, inp, anchor) {
     var old = document.getElementById('col-filter-menu');
     if (old) old.remove();
-
     var menu = document.createElement('div');
     menu.id = 'col-filter-menu';
     menu.style.cssText = 'position:fixed;z-index:2000;background:var(--card-solid);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow-lg);padding:6px;min-width:170px;direction:rtl';
-
     var cur = (COLUMN_FILTERS[tableId] || {})[colIdx];
     var curOp = cur ? cur.op : 'contains';
 
@@ -547,6 +715,10 @@ function openFilterMenu(tableId, colIdx, inp, anchor) {
                 anchor.style.background = 'var(--primary)';
                 anchor.style.color = '#fff';
                 anchor.textContent = '▼*';
+            } else {
+                anchor.style.background = 'var(--primary-soft)';
+                anchor.style.color = 'var(--primary-dark)';
+                anchor.textContent = '▼';
             }
             menu.remove();
         });
@@ -577,7 +749,6 @@ function openFilterMenu(tableId, colIdx, inp, anchor) {
     if (top + 320 > window.innerHeight - 8) top = Math.max(8, rect.top - 320);
     menu.style.top = top + 'px';
     menu.style.left = left + 'px';
-
     setTimeout(function () {
         function closer(e) {
             if (!menu.contains(e.target) && e.target !== anchor) {
@@ -588,7 +759,6 @@ function openFilterMenu(tableId, colIdx, inp, anchor) {
         document.addEventListener('click', closer, true);
     }, 50);
 }
-
 function attachFilterRowsToAllTables() {
     var tables = document.querySelectorAll('table.data-table, table.report-table, table.cf-table');
     tables.forEach(function (t) {
@@ -599,7 +769,7 @@ function attachFilterRowsToAllTables() {
 }
 
 /* ============================================================
-   ================ ۶) مرتب‌سازی سراسری ================
+   ============ ۸) مرتب‌سازی سراسری ============
    ============================================================ */
 (function () {
     function getCellValue(tr, idx) {
@@ -658,14 +828,13 @@ function attachFilterRowsToAllTables() {
 })();
 
 /* ============================================================
-   ================ Init ================
+   ============ Init ============
    ============================================================ */
 (function () {
     function init() {
         attachFilterRowsToAllTables();
         if (window._enhanceGlobalSorting) window._enhanceGlobalSorting();
 
-        // MutationObserver: هر وقت tbody عوض شد، فیلترها را دوباره اضافه کن
         var observer = new MutationObserver(function (mutations) {
             var needsRefresh = false;
             for (var i = 0; i < mutations.length; i++) {
@@ -686,7 +855,6 @@ function attachFilterRowsToAllTables() {
         });
         observer.observe(document.body, { childList: true, subtree: true });
 
-        // چک دوره‌ای برای جداولی که با innerHTML بازنویسی می‌شوند
         setInterval(function () {
             var tables = document.querySelectorAll('table.data-table, table.report-table, table.cf-table');
             tables.forEach(function (t) {
@@ -697,7 +865,7 @@ function attachFilterRowsToAllTables() {
             });
         }, 900);
 
-        console.log('✨ 12-advanced-features.js loaded');
+        console.log('✨ 12-advanced-features.js v2 loaded');
     }
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 900); });
