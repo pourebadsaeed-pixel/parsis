@@ -2,8 +2,59 @@
    پارسیس v27 — 05-reports,cashflow,account,trial,incomplete,facility.js
    گزارش‌ها: وضعیت نقدینگی، گردش وجه نقد، مرور حساب‌ها، تراز آزمایشی،
    تراکنش‌های ناقص، خلاصه تسهیلات، جامع تسهیلات، نرخ ارز، قیمت پایانی
+
+   [ادغام‌شده با]:
+     • 10-enhancements.js — نمایش منفی در پرانتز قرمز (moneyHtml / fmtFor / fmtRep)
+     • 10-enhancements.js — runCashFlowByDescReport با اسکرول افقی + کلیک برای ویرایش سند
    ===================================================================== */
 'use strict';
+
+/* =====================================================================
+   ============ ۰) نمایش مبالغ منفی در پرانتز قرمز ============
+   ============ [ادغام از 10-enhancements.js]          ============
+   ===================================================================== */
+
+/**
+ * نمایش عدد به‌صورت HTML — منفی‌ها در پرانتز قرمز
+ * - اگر hide فعال باشد → "—"
+ * - واحد نمایش از state.currencyDisplay خوانده می‌شود (rial/toman/million)
+ */
+function moneyHtml(n, key) {
+    if (key && typeof getHideState === 'function' && getHideState(key)) return '—';
+    n = Number(n) || 0;
+    var mode = state.currencyDisplay || 'rial';
+    var v = n;
+    var decimals = 0;
+    if (mode === 'toman') v = n / 10;
+    else if (mode === 'million') { v = n / 1000000; decimals = 3; }
+    var abs = Math.abs(v);
+    var str = abs.toLocaleString('fa-IR', { maximumFractionDigits: decimals }).replace(/\u066C/g, ',');
+    if (v < 0) return '<span class="neg-money">(' + str + ')</span>';
+    return str;
+}
+window.moneyHtml = moneyHtml;
+
+/* Override نسخه‌های اصلی که در فایل 01 تعریف شده‌اند */
+window.fmtFor = function(n, key) {
+    if (getHideState(key)) return '—';
+    return moneyHtml(n);
+};
+window.fmtRep = function(n, key) { return fmtFor(n, key); };
+
+/* نام مستعار برای بافت‌هایی که می‌خواهند صریحاً HTML بگیرند */
+window.formatMoneyHTML = function(n) { return moneyHtml(n); };
+
+/* متن ساده بدون HTML — برای بافت‌هایی مثل textContent یا title */
+window.moneyText = function(n) {
+    n = Number(n) || 0;
+    var mode = state.currencyDisplay || 'rial';
+    var v = n;
+    if (mode === 'toman') v = n / 10;
+    else if (mode === 'million') v = n / 1000000;
+    var abs = Math.abs(v);
+    var str = abs.toLocaleString('fa-IR', { maximumFractionDigits: mode === 'million' ? 3 : 0 }).replace(/\u066C/g, ',');
+    return v < 0 ? '(' + str + ')' : str;
+};
 
 /* ==================== Helpers مشترک ==================== */
 function filterVouchers(opts) {
@@ -217,7 +268,10 @@ function runCashFlowReport() {
     autoAttachReportHelpers();
 }
 
-/* ==================== گردش وجه نقد ==================== */
+/* =====================================================================
+   ============ گردش وجه نقد — با اسکرول افقی + ویرایش سند ============
+   ============ [بازنویسی‌شده از 10-enhancements.js]            ============
+   ===================================================================== */
 function runCashFlowByDescReport() {
     var fromD = normalizeDigits((document.getElementById('cfd-from').value || '').trim());
     var toD = normalizeDigits((document.getElementById('cfd-to').value || '').trim());
@@ -230,9 +284,9 @@ function runCashFlowByDescReport() {
     var accounts = DB.load('accounts', []);
     var effectiveAccs = {};
     accounts.forEach(function(a) { if (a.cfEffect) effectiveAccs[a.id] = true; });
-    var effIds = Object.keys(effectiveAccs);
-    if (effIds.length === 0) {
-        document.getElementById('cfd-result').innerHTML = '<div class="card"><p class="muted" style="text-align:center;padding:16px">⚠️ هیچ معینی با گزینه «موثر در گزارش گردش وجه نقد» تعریف نشده است.</p></div>';
+    if (Object.keys(effectiveAccs).length === 0) {
+        document.getElementById('cfd-result').innerHTML =
+            '<div class="card"><p class="muted" style="text-align:center;padding:16px">⚠️ هیچ معینی با گزینه «موثر در گزارش گردش وجه نقد» تعریف نشده است.</p></div>';
         document.getElementById('cfd-count').textContent = '۰';
         return;
     }
@@ -250,48 +304,99 @@ function runCashFlowByDescReport() {
             buckets[desc].in += d;
             buckets[desc].out += c;
             buckets[desc].details.push({
-                date: v.date,
-                number: v.number,
-                desc: v.desc,
+                voucherId: v.id,
+                date: v.date, number: v.number, desc: v.desc,
                 accLabel: getAccountLabel(l.account, accounts),
                 lineDesc: l.description || '',
-                debit: d,
-                credit: c
+                debit: d, credit: c
             });
         });
     });
     var keys = Object.keys(buckets);
     keys.sort(function(a, b) { return compareVals(a, b); });
     if (keys.length === 0) {
-        document.getElementById('cfd-result').innerHTML = '<div class="card"><p class="muted" style="text-align:center;padding:16px">در این بازه گردشی ثبت نشده است.</p></div>';
+        document.getElementById('cfd-result').innerHTML =
+            '<div class="card"><p class="muted" style="text-align:center;padding:16px">در این بازه گردشی ثبت نشده است.</p></div>';
         document.getElementById('cfd-count').textContent = '۰';
         return;
     }
-    var html = '<div class="table-wrap"><table class="report-table" id="cfd-table"><thead><tr><th>#</th><th>بابت / شرح</th><th>ورود (بدهکار)</th><th>خروج (بستانکار)</th><th>مانده</th><th>تعداد</th></tr></thead><tbody>';
+    var html = '<div class="cfd-scroll-wrap">';
+    html += '<div class="table-wrap"><table class="report-table" id="cfd-table"><thead><tr>'
+        + '<th>#</th><th>بابت / شرح</th><th>ورود (بدهکار)</th><th>خروج (بستانکار)</th><th>مانده</th><th>تعداد</th>'
+        + '</tr></thead><tbody>';
     var tIn = 0, tOut = 0;
     for (var i = 0; i < keys.length; i++) {
-        var k = keys[i];
-        var b = buckets[k];
+        var k = keys[i]; var b = buckets[k];
         var bal = b.in - b.out;
-        tIn += b.in;
-        tOut += b.out;
-        html += '<tr><td class="num">' + toFa(i + 1) + '</td><td><strong>' + esc(k) + '</strong></td><td class="num" style="color:#1e9e6a">' + (hide ? '—' : (b.in ? formatMoney(b.in) : '—')) + '</td><td class="num" style="color:#c0392b">' + (hide ? '—' : (b.out ? formatMoney(b.out) : '—')) + '</td><td class="num" style="font-weight:bold;color:' + (bal >= 0 ? '#1e9e6a' : '#c0392b') + '">' + (hide ? '—' : formatMoney(bal)) + '</td><td class="num">' + toFa(b.details.length) + '</td></tr>';
+        tIn += b.in; tOut += b.out;
+        html += '<tr><td class="num">' + toFa(i + 1) + '</td>'
+            + '<td><strong>' + esc(k) + '</strong></td>'
+            + '<td class="num" style="color:#1e9e6a">' + (hide ? '—' : (b.in ? moneyHtml(b.in) : '—')) + '</td>'
+            + '<td class="num" style="color:#c0392b">' + (hide ? '—' : (b.out ? moneyHtml(b.out) : '—')) + '</td>'
+            + '<td class="num" style="font-weight:bold">' + (hide ? '—' : moneyHtml(bal)) + '</td>'
+            + '<td class="num">' + toFa(b.details.length) + '</td></tr>';
     }
-    html += '</tbody><tfoot><tr><td colspan="2" style="text-align:left">جمع</td><td class="num" style="color:#1e9e6a">' + (hide ? '—' : formatMoney(tIn)) + '</td><td class="num" style="color:#c0392b">' + (hide ? '—' : formatMoney(tOut)) + '</td><td class="num">' + (hide ? '—' : formatMoney(tIn - tOut)) + '</td><td></td></tr></tfoot></table></div>';
+    html += '</tbody><tfoot><tr><td colspan="2" style="text-align:left">جمع</td>'
+        + '<td class="num" style="color:#1e9e6a">' + (hide ? '—' : moneyHtml(tIn)) + '</td>'
+        + '<td class="num" style="color:#c0392b">' + (hide ? '—' : moneyHtml(tOut)) + '</td>'
+        + '<td class="num">' + (hide ? '—' : moneyHtml(tIn - tOut)) + '</td><td></td></tr></tfoot></table></div>';
+
+    /* جزئیات هر گروه — با اسکرول افقی و کلیک روی ردیف برای ویرایش سند */
     for (var j = 0; j < keys.length; j++) {
         var k2 = keys[j];
         var b2 = buckets[k2];
-        html += '<div class="cfd-group" style="margin-top:14px"><div class="cfd-head" onclick="var d=this.nextElementSibling;d.classList.toggle(\'show\')"><div class="cfd-title">' + esc(k2) + '</div><div class="cfd-nums"><span class="n in">ورود: ' + (hide ? '—' : formatMoney(b2.in)) + '</span><span class="n out">خروج: ' + (hide ? '—' : formatMoney(b2.out)) + '</span><span class="n bal">مانده: ' + (hide ? '—' : formatMoney(b2.in - b2.out)) + '</span></div></div><div class="cfd-details"><table class="data-table"><thead><tr><th>#</th><th>تاریخ</th><th>شماره</th><th>شرح سند</th><th>حساب</th><th>شرح قلم</th><th>بدهکار</th><th>بستانکار</th></tr></thead><tbody>';
+        html += '<div class="cfd-group" style="margin-top:14px">'
+            +   '<div class="cfd-head" onclick="this.nextElementSibling.classList.toggle(\'show\')">'
+            +     '<div class="cfd-title">' + esc(k2) + '</div>'
+            +     '<div class="cfd-nums">'
+            +       '<span class="n in">ورود: ' + (hide ? '—' : moneyHtml(b2.in)) + '</span>'
+            +       '<span class="n out">خروج: ' + (hide ? '—' : moneyHtml(b2.out)) + '</span>'
+            +       '<span class="n bal">مانده: ' + (hide ? '—' : moneyHtml(b2.in - b2.out)) + '</span>'
+            +     '</div>'
+            +   '</div>'
+            +   '<div class="cfd-details">'
+            +     '<div class="cfd-hscroll">'
+            +       '<table class="data-table cfd-detail-table">'
+            +         '<thead><tr><th>#</th><th>تاریخ</th><th>شماره</th><th>شرح سند</th><th>حساب</th><th>شرح قلم</th><th>بدهکار</th><th>بستانکار</th><th>عملیات</th></tr></thead>'
+            +         '<tbody>';
         for (var di = 0; di < b2.details.length; di++) {
             var d2 = b2.details[di];
-            html += '<tr><td>' + toFa(di + 1) + '</td><td dir="ltr">' + toFa(d2.date) + '</td><td dir="ltr">' + toFa(d2.number) + '</td><td>' + esc(d2.desc || '') + '</td><td>' + esc(d2.accLabel) + '</td><td>' + esc(d2.lineDesc) + '</td><td class="num dr">' + (hide ? '—' : (d2.debit ? formatMoney(d2.debit) : '—')) + '</td><td class="num cr">' + (hide ? '—' : (d2.credit ? formatMoney(d2.credit) : '—')) + '</td></tr>';
+            html += '<tr class="cfd-row" data-vid="' + d2.voucherId + '" style="cursor:pointer">'
+                +   '<td>' + toFa(di + 1) + '</td>'
+                +   '<td dir="ltr">' + toFa(d2.date) + '</td>'
+                +   '<td dir="ltr">' + toFa(d2.number) + '</td>'
+                +   '<td>' + esc(d2.desc || '') + '</td>'
+                +   '<td>' + esc(d2.accLabel) + '</td>'
+                +   '<td>' + esc(d2.lineDesc) + '</td>'
+                +   '<td class="num dr">' + (hide ? '—' : (d2.debit ? moneyHtml(d2.debit) : '—')) + '</td>'
+                +   '<td class="num cr">' + (hide ? '—' : (d2.credit ? moneyHtml(d2.credit) : '—')) + '</td>'
+                +   '<td><button class="row-btn edit" data-vid="' + d2.voucherId + '" title="ویرایش سند">✎</button></td>'
+                + '</tr>';
         }
-        html += '</tbody></table></div></div>';
+        html += '</tbody></table></div></div></div>';
     }
+    html += '</div>';
     document.getElementById('cfd-result').innerHTML = html;
     document.getElementById('cfd-count').textContent = toFa(keys.length) + ' دسته';
     var unitEl = document.getElementById('cfd-unit');
     if (unitEl) unitEl.textContent = 'واحد: ' + currencyLabel();
+
+    /* اتصال کلیک برای ویرایش سند (تابع در فایل ۰۴ تعریف شده) */
+    document.querySelectorAll('#cfd-result .cfd-row').forEach(function(row) {
+        row.addEventListener('click', function(e) {
+            if (e.target.closest('button')) return;
+            var vid = this.getAttribute('data-vid');
+            if (typeof openVoucherForEditById === 'function') openVoucherForEditById(vid);
+        });
+    });
+    document.querySelectorAll('#cfd-result .row-btn.edit').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var vid = this.getAttribute('data-vid');
+            if (typeof openVoucherForEditById === 'function') openVoucherForEditById(vid);
+        });
+    });
+
     autoAttachReportHelpers();
 }
 
@@ -758,7 +863,6 @@ function runFacilityFullReport() {
     autoAttachReportHelpers();
 }
 function renderFacilityFullSummary(rows) {
-    var st = sortState.rff;
     var hide = getHideState('rff');
     var html = '<div class="table-wrap"><table class="report-table" id="rff-table"><thead><tr>' +
         '<th data-sort="name">عنوان</th><th data-sort="category">دسته</th><th data-sort="bank">بانک</th><th data-sort="date">تاریخ</th>' +
