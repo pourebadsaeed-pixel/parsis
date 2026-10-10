@@ -594,19 +594,26 @@ body {
   text-align:center; color:var(--text-muted);
   padding:32px; font-size:0.9rem;
 }
+
+/* ★ دستگیره تغییر عرض ستون — نسخه اصلاح‌شده */
 .col-resizer {
-  position:absolute; top:0; left:0; width:14px; height:100%;
-  cursor:col-resize; user-select:none; z-index:3;
+  position:absolute; top:0; left:-3px; width:18px; height:100%;
+  cursor:col-resize; user-select:none; z-index:5;
   display:flex; align-items:center; justify-content:center;
+  touch-action:none;
 }
 .col-resizer::after {
   content:'⋮'; font-size:0.95rem; font-weight:800;
-  color:var(--text-muted); opacity:0.3; line-height:1;
+  color:var(--text-muted); opacity:0.25; line-height:1;
   transition: all 0.15s; pointer-events:none;
 }
 .col-resizer:hover::after, .col-resizer:active::after {
   opacity:1; color:var(--primary); transform:scale(1.4);
 }
+/* هنگام درگ، نشانگر ستون را مشخص می‌کنیم */
+body.resizing-cols * { cursor:col-resize !important; }
+body.resizing-cols .data-table th,
+body.resizing-cols .report-table th { user-select:none !important; }
 
 /* ================ BADGES ================ */
 .badge {
