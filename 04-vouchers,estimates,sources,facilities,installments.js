@@ -1,9 +1,6 @@
 /* =====================================================================
    پارسیس v27 — 04-vouchers,estimates,sources,facilities,installments.js
    اسناد، اقلام سند، برآورد هزینه، منابع دریافتنی، تسهیلات، اقساط
-
-   [ادغام‌شده با]:
-     • 12-advanced-features.js — editVoucherFromAnywhere / openVoucherForEditById
    ===================================================================== */
 'use strict';
 
@@ -372,9 +369,14 @@ function findVoucherById(id) {
     for (var i = 0; i < l.length; i++) if (l[i].id === id) return l[i];
     return null;
 }
+
+/* ★ اصلاح‌شده: المان‌های حذف‌شده دیگر کرش نمی‌کنند */
 function renderVoucherList() {
-    var filter = document.getElementById('vl-period-filter').value;
-    var search = (document.getElementById('vlist-search').value || '').toLowerCase();
+    var filterEl = document.getElementById('vl-period-filter');
+    var searchEl = document.getElementById('vlist-search');
+    var filter = filterEl ? (filterEl.value || '') : '';
+    var search = searchEl ? (searchEl.value || '').toLowerCase() : '';
+
     var vouchers = DB.load('vouchers', []);
     if (filter) vouchers = vouchers.filter(function(v) { return v.periodId === filter; });
     var periods = DB.load('fiscalPeriods', []);
@@ -606,14 +608,8 @@ function printVoucherPreview() {
 }
 
 /* =====================================================================
-   ============ ویرایش سند از هر گزارش (ادغام از 12) ============
+   ============ ویرایش سند از هر گزارش ============
    ===================================================================== */
-
-/**
- * از هر جدول گزارشی (گردش حساب، گردش وجه نقد، ...) روی ردیف کلیک شود
- * و سند مربوطه را باز می‌کند. اگر سند تأیید شده باشد، از کاربر می‌پرسد
- * که برگشت از تأیید شود و ویرایش کند یا فقط مشاهده.
- */
 function openVoucherForEditById(vid) {
     var v = findVoucherById(vid);
     if (!v) { showToast('سند یافت نشد.'); return; }
@@ -636,9 +632,6 @@ function openVoucherForEditById(vid) {
 }
 window.openVoucherForEditById = openVoucherForEditById;
 
-/**
- * نام مستعار عمومی — از هر جای برنامه قابل فراخوانی است.
- */
 function editVoucherFromAnywhere(vid) {
     openVoucherForEditById(vid);
 }
