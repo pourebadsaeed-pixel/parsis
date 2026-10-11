@@ -1,11 +1,17 @@
 /* =====================================================================
-   پارسیس v38 — 16-calendar-v37.js (جایگزین کامل)
-   رفع: خطای دکمه افزودن رویداد، آیکن تقویم، ساعت عقربه‌ای، نمایش تاریخ
+   پارسیس v39 — 16-calendar-v37.js (نسخه نهایی پایدار)
+   رفع قطعی: 
+     ۱) جابجایی ساعت/دقیقه در مودال ساعت (RTL issue)
+     ۲) آیکن تقویم قفل و باز نمی‌شود
+     ۳) انتخاب تاریخ ممکن نیست
+     ۴) نمایش تفصیلی ترکیبی
+     ۵) اقساط با ساعت پیش‌فرض ۲۱:۰۰
+     ۶) تقویم حرفه‌ای + یادآور
    ===================================================================== */
 'use strict';
 
 /* =====================================================================
-   ۱) رفع نمایش تفصیلی معین چند-نوعی — یک سلول جستجو + یک سلول انتخاب
+   ۱) نمایش تفصیلی معین چند-نوعی — یک سلول جستجو + یک سلول انتخاب
    ===================================================================== */
 (function fixCombinedDetailCell() {
     window.renderVoucherLines = function() {
@@ -68,7 +74,7 @@
             mainGrid.appendChild(selA);
             wrap.appendChild(mainGrid);
 
-            /* ردیف ۲: تفصیلی ترکیبی — یک سلول جستجو + یک سلول انتخاب */
+            /* ردیف ۲: تفصیلی ترکیبی */
             var acc = accounts.find(function(a) { return a.id === line.account; });
             if (acc && acc.links && acc.links.length > 0) {
                 var combined = [];
@@ -77,8 +83,7 @@
                     items.forEach(function(it) {
                         var lbl = getLinkedItemLabel(lt, it);
                         combined.push({
-                            linkType: lt,
-                            id: it.id,
+                            linkType: lt, id: it.id,
                             label: linkTypeName(lt) + ': ' + lbl,
                             searchText: (lbl + ' ' + linkTypeName(lt)).toLowerCase()
                         });
@@ -161,7 +166,7 @@
                 updateVoucherTotals();
             });
             var cD = document.createElement('button');
-            cD.type = 'button'; cD.className = 'calc-btn'; cD.title = 'ماشین حساب'; cD.textContent = '🧮';
+            cD.type = 'button'; cD.className = 'calc-btn'; cD.textContent = '🧮';
             cD.addEventListener('click', function() {
                 calcOpen(function() { return line.debit || 0; }, function(v) {
                     line.debit = v;
@@ -191,7 +196,7 @@
                 updateVoucherTotals();
             });
             var cC = document.createElement('button');
-            cC.type = 'button'; cC.className = 'calc-btn'; cC.title = 'ماشین حساب'; cC.textContent = '🧮';
+            cC.type = 'button'; cC.className = 'calc-btn'; cC.textContent = '🧮';
             cC.addEventListener('click', function() {
                 calcOpen(function() { return line.credit || 0; }, function(v) {
                     line.credit = v;
@@ -232,7 +237,7 @@
                 this.classList.remove('desc-required');
             });
             var clearBtn = document.createElement('button');
-            clearBtn.type = 'button'; clearBtn.className = 'desc-clear-btn'; clearBtn.title = 'خالی کردن شرح';
+            clearBtn.type = 'button'; clearBtn.className = 'desc-clear-btn';
             clearBtn.textContent = '🧹';
             clearBtn.style.cssText = 'background:#fee2e2;color:#dc2626;border:none;border-radius:10px;width:38px;height:38px;font-size:1.05rem;font-weight:800;cursor:pointer;flex-shrink:0';
             clearBtn.addEventListener('click', function(e) {
@@ -261,7 +266,7 @@
             bCp.className = 'ln-btn ln-copy'; bCp.textContent = '📋 کپی';
             bCp.addEventListener('click', function() { copyVoucherLine(idx); });
             var bSwap = document.createElement('button');
-            bSwap.className = 'ln-btn ln-swap'; bSwap.textContent = '🔄 بدهکار/بستانکار';
+            bSwap.className = 'ln-btn ln-swap'; bSwap.textContent = '🔄 جابجایی';
             bSwap.addEventListener('click', function() {
                 var tmp = line.debit; line.debit = line.credit; line.credit = tmp;
                 renderVoucherLines();
@@ -279,22 +284,25 @@
             wrap.appendChild(aW);
 
             box.appendChild(wrap);
-            attachDatePickers();
         })(i);
         updateVoucherTotals();
+        if (typeof attachDatePickers === 'function') attachDatePickers();
     };
 })();
 
 /* =====================================================================
-   ۲) ساعت عقربه‌ای واقعی (آنالوگ SVG)
+   ۲) ساعت عقربه‌ای — با رفع جابجایی HH/MM
    ===================================================================== */
 function openTimePicker(callback, initialValue) {
     var old = document.getElementById('time-picker-modal'); if (old) old.remove();
     var oldO = document.getElementById('time-picker-overlay'); if (oldO) oldO.remove();
+
     var init = initialValue || '21:00';
-    var ip = init.split(':');
-    var selH = Number(ip[0]) || 21;
-    var selM = Number(ip[1]) || 0;
+    var ip = String(init).split(':');
+    var selH = Number(ip[0]); if (isNaN(selH)) selH = 21;
+    var selM = Number(ip[1]); if (isNaN(selM)) selM = 0;
+    selH = Math.max(0, Math.min(23, selH));
+    selM = Math.max(0, Math.min(59, selM));
     var mode = 'hour';
 
     var html = ''
@@ -305,13 +313,17 @@ function openTimePicker(callback, initialValue) {
         +     '<button id="tp-close" class="close-btn">×</button>'
         +   '</div>'
         +   '<div class="modal-body" style="text-align:center;padding:16px">'
-        +     '<div style="display:flex;justify-content:center;gap:14px;margin-bottom:14px">'
-        +       '<div id="tp-hh-display" style="font-size:2.4rem;font-weight:900;font-family:monospace;direction:ltr;padding:8px 18px;background:#eef2ff;color:#4338ca;border-radius:12px;cursor:pointer">' + pad2(selH) + '</div>'
+        /* ★★★ اینجا direction:ltr اضافه شد تا HH:MM درست نمایش داده شود ★★★ */
+        +     '<div style="direction:ltr;display:flex;justify-content:center;gap:14px;margin-bottom:14px">'
+        +       '<div id="tp-hh-display" style="font-size:2.4rem;font-weight:900;font-family:monospace;direction:ltr;padding:8px 20px;background:#eef2ff;color:#4338ca;border-radius:12px;cursor:pointer;min-width:80px;text-align:center">' + pad2(selH) + '</div>'
         +       '<div style="font-size:2.4rem;font-weight:900;color:#4338ca">:</div>'
-        +       '<div id="tp-mm-display" style="font-size:2.4rem;font-weight:900;font-family:monospace;direction:ltr;padding:8px 18px;background:#f3f4f6;color:#6b7280;border-radius:12px;cursor:pointer">' + pad2(selM) + '</div>'
+        +       '<div id="tp-mm-display" style="font-size:2.4rem;font-weight:900;font-family:monospace;direction:ltr;padding:8px 20px;background:#fef2f2;color:#dc2626;border-radius:12px;cursor:pointer;min-width:80px;text-align:center">' + pad2(selM) + '</div>'
+        +     '</div>'
+        +     '<div style="text-align:center;font-size:0.75rem;color:#64748b;margin-bottom:10px">'
+        +       '👆 روی HH (آبی) کلیک کن = تنظیم ساعت | روی MM (قرمز) = تنظیم دقیقه'
         +     '</div>'
         +     '<div style="position:relative;width:280px;height:280px;margin:0 auto">'
-        +       '<svg id="tp-svg" viewBox="0 0 280 280" style="width:100%;height:100%;cursor:pointer;user-select:none">'
+        +       '<svg id="tp-svg" viewBox="0 0 280 280" style="width:100%;height:100%;cursor:pointer;user-select:none;touch-action:none">'
         +         '<circle cx="140" cy="140" r="130" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>'
         +         '<g id="tp-numbers"></g>'
         +         '<line id="tp-hour-hand" x1="140" y1="140" x2="140" y2="60" stroke="#4338ca" stroke-width="6" stroke-linecap="round"/>'
@@ -340,7 +352,7 @@ function openTimePicker(callback, initialValue) {
     function drawNumbers() {
         var nums = '';
         if (mode === 'hour') {
-            // 24 ساعت، دو رینگ: 0-11 بیرونی، 12-23 داخلی
+            // ۲۴ ساعت، دو رینگ
             for (var i = 0; i < 24; i++) {
                 var isOuter = i < 12;
                 var r = isOuter ? 110 : 78;
@@ -351,11 +363,10 @@ function openTimePicker(callback, initialValue) {
                 var isSel = (i === selH);
                 nums += '<text x="' + x + '" y="' + (y + 5) + '" text-anchor="middle" '
                      +  'font-size="' + (isOuter ? 16 : 13) + '" font-weight="800" '
-                     +  'fill="' + (isSel ? '#4338ca' : '#1e293b') + '" '
-                     +  'style="pointer-events:none">' + pad2(i) + '</text>';
+                     +  'fill="' + (isSel ? '#4338ca' : (isOuter ? '#1e293b' : '#64748b')) + '" '
+                     +  'style="pointer-events:none;font-family:monospace">' + pad2(i) + '</text>';
             }
         } else {
-            // 12 عدد دقیقه (0, 5, ... 55)
             for (var j = 0; j < 12; j++) {
                 var ang2 = j * 30 - 90;
                 var rad2 = ang2 * Math.PI / 180;
@@ -366,14 +377,13 @@ function openTimePicker(callback, initialValue) {
                 nums += '<text x="' + x2 + '" y="' + (y2 + 5) + '" text-anchor="middle" '
                      +  'font-size="16" font-weight="800" '
                      +  'fill="' + (isSel2 ? '#dc2626' : '#1e293b') + '" '
-                     +  'style="pointer-events:none">' + pad2(v) + '</text>';
+                     +  'style="pointer-events:none;font-family:monospace">' + pad2(v) + '</text>';
             }
         }
         numbersG.innerHTML = nums;
     }
 
     function drawHands() {
-        // ساعت
         var hAng = (selH % 12) * 30 + selM * 0.5 - 90;
         var hRad = hAng * Math.PI / 180;
         var hLen = (selH < 12 ? 75 : 55);
@@ -381,28 +391,32 @@ function openTimePicker(callback, initialValue) {
         var hy = CY + hLen * Math.sin(hRad);
         hourHand.setAttribute('x2', hx);
         hourHand.setAttribute('y2', hy);
-        // دقیقه
+
         var mAng = selM * 6 - 90;
         var mRad = mAng * Math.PI / 180;
         var mx = CX + 95 * Math.cos(mRad);
         var my = CY + 95 * Math.sin(mRad);
         minHand.setAttribute('x2', mx);
         minHand.setAttribute('y2', my);
-        // دستگیره روی دست فعال
+
         if (mode === 'hour') {
-            handle.setAttribute('cx', hx); handle.setAttribute('cy', hy);
+            handle.setAttribute('cx', hx);
+            handle.setAttribute('cy', hy);
             handle.setAttribute('fill', '#4338ca');
         } else {
-            handle.setAttribute('cx', mx); handle.setAttribute('cy', my);
+            handle.setAttribute('cx', mx);
+            handle.setAttribute('cy', my);
             handle.setAttribute('fill', '#dc2626');
         }
-        // Display
+
         hhDisp.textContent = pad2(selH);
         mmDisp.textContent = pad2(selM);
         hhDisp.style.background = mode === 'hour' ? '#eef2ff' : '#f3f4f6';
         hhDisp.style.color = mode === 'hour' ? '#4338ca' : '#6b7280';
+        hhDisp.style.boxShadow = mode === 'hour' ? '0 0 0 3px rgba(67,56,202,0.25)' : 'none';
         mmDisp.style.background = mode === 'minute' ? '#fef2f2' : '#f3f4f6';
         mmDisp.style.color = mode === 'minute' ? '#dc2626' : '#6b7280';
+        mmDisp.style.boxShadow = mode === 'minute' ? '0 0 0 3px rgba(220,38,38,0.25)' : 'none';
     }
 
     function posToTime(px, py) {
@@ -414,7 +428,7 @@ function openTimePicker(callback, initialValue) {
             var isInner = r < 95;
             var slot = Math.round(ang / 30) % 12;
             selH = isInner ? slot + 12 : slot;
-            if (selH >= 24) selH = selH - 12;
+            if (selH >= 24) selH -= 12;
         } else {
             selM = Math.round(ang / 6) % 60;
         }
@@ -422,33 +436,25 @@ function openTimePicker(callback, initialValue) {
         drawHands();
     }
 
-    function handleClick(e) {
+    function handlePointer(e) {
         var rect = svg.getBoundingClientRect();
-        var px = (e.clientX - rect.left) / rect.width * 280;
-        var py = (e.clientY - rect.top) / rect.height * 280;
+        var cx = (e.clientX !== undefined) ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+        var cy = (e.clientY !== undefined) ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+        var px = (cx - rect.left) / rect.width * 280;
+        var py = (cy - rect.top) / rect.height * 280;
         posToTime(px, py);
     }
 
-    // کلیک روی نمایش ساعت/دقیقه برای تغییر حالت
     hhDisp.addEventListener('click', function() { mode = 'hour'; drawNumbers(); drawHands(); });
     mmDisp.addEventListener('click', function() { mode = 'minute'; drawNumbers(); drawHands(); });
 
-    // پشتیبانی از touchmove برای کشیدن
     var isDragging = false;
-    function startDrag(e) { isDragging = true; handleClick(e.touches ? e.touches[0] : e); }
-    function moveDrag(e) {
-        if (!isDragging) return;
-        e.preventDefault();
-        handleClick(e.touches ? e.touches[0] : e);
-    }
-    function endDrag() { isDragging = false; }
-    svg.addEventListener('mousedown', startDrag);
-    svg.addEventListener('mousemove', moveDrag);
-    svg.addEventListener('mouseup', endDrag);
-    svg.addEventListener('mouseleave', endDrag);
-    svg.addEventListener('touchstart', startDrag, { passive: false });
-    svg.addEventListener('touchmove', moveDrag, { passive: false });
-    svg.addEventListener('touchend', endDrag);
+    svg.addEventListener('mousedown', function(e) { isDragging = true; handlePointer(e); });
+    document.addEventListener('mousemove', function(e) { if (isDragging) handlePointer(e); });
+    document.addEventListener('mouseup', function() { isDragging = false; });
+    svg.addEventListener('touchstart', function(e) { isDragging = true; handlePointer(e); }, { passive: true });
+    svg.addEventListener('touchmove', function(e) { if (isDragging) { e.preventDefault(); handlePointer(e); } }, { passive: false });
+    svg.addEventListener('touchend', function() { isDragging = false; });
 
     drawNumbers();
     drawHands();
@@ -469,7 +475,7 @@ function openTimePicker(callback, initialValue) {
 window.openTimePicker = openTimePicker;
 
 /* =====================================================================
-   ۳) ساعت در اقساط — پیش‌فرض ۲۱:۰۰
+   ۳) اقساط با ساعت پیش‌فرض ۲۱:۰۰
    ===================================================================== */
 (function patchInstallmentTime() {
     window.renderInstallments = function() {
@@ -482,7 +488,7 @@ window.openTimePicker = openTimePicker;
                 if (!ins.time) ins.time = '21:00';
                 var row = document.createElement('div');
                 row.className = 'installment-row';
-                row.style.cssText = 'grid-template-columns:38px 1fr 130px 1fr auto auto;display:grid;gap:8px;align-items:center;padding:10px;background:var(--card-alt);border-radius:12px;margin-bottom:6px;border:1px solid var(--border)';
+                row.style.cssText = 'display:grid;grid-template-columns:38px 1fr 130px 1fr auto auto auto;gap:8px;align-items:center;padding:10px;background:var(--card-alt);border-radius:12px;margin-bottom:6px;border:1px solid var(--border)';
 
                 var n = document.createElement('span');
                 n.textContent = '#' + toFa(idx + 1);
@@ -491,7 +497,7 @@ window.openTimePicker = openTimePicker;
                 var iD = document.createElement('input');
                 iD.type = 'text'; iD.dir = 'ltr'; iD.className = 'date-picker'; iD.placeholder = 'تاریخ';
                 iD.value = ins.date || '';
-                iD.style.cssText = 'padding:7px 10px;font-size:0.8rem;border:1.5px solid var(--border);border-radius:9px;background:var(--card-solid)';
+                iD.style.cssText = 'padding:7px 10px;font-size:0.8rem;border:1.5px solid var(--border);border-radius:9px;background:var(--card-solid);width:100%';
                 iD.addEventListener('input', function() { ins.date = this.value; });
 
                 var timeWrap = document.createElement('div');
@@ -513,13 +519,13 @@ window.openTimePicker = openTimePicker;
                 var iA = document.createElement('input');
                 iA.type = 'text'; iA.inputMode = 'numeric'; iA.dir = 'ltr'; iA.placeholder = 'مبلغ';
                 iA.value = ins.amount ? formatRaw(ins.amount) : '';
-                iA.style.cssText = 'padding:7px 10px;font-size:0.8rem;border:1.5px solid var(--border);border-radius:9px;background:var(--card-solid)';
+                iA.style.cssText = 'padding:7px 10px;font-size:0.8rem;border:1.5px solid var(--border);border-radius:9px;background:var(--card-solid);width:100%';
                 attachMoneyInput(iA, function(v) { ins.amount = v; renderInstallmentsTotals(); });
 
                 var sS = document.createElement('select');
                 sS.innerHTML = '<option value="registered">ثبت</option><option value="paid">پرداخت</option>';
                 sS.value = ins.status || 'registered';
-                sS.style.cssText = 'padding:7px 10px;font-size:0.8rem;border:1.5px solid var(--border);border-radius:9px;background:var(--card-solid)';
+                sS.style.cssText = 'padding:7px 10px;font-size:0.8rem;border:1.5px solid var(--border);border-radius:9px;background:var(--card-solid);width:100%';
                 sS.addEventListener('change', function() { ins.status = this.value; renderInstallmentsTotals(); });
 
                 var d = document.createElement('button');
@@ -552,7 +558,7 @@ window.openTimePicker = openTimePicker;
                 row.appendChild(iA); row.appendChild(sS); row.appendChild(d); row.appendChild(lastCell);
 
                 box.appendChild(row);
-                attachDatePickers();
+                if (typeof attachDatePickers === 'function') attachDatePickers();
             })(i);
         }
         renderInstallmentsTotals();
@@ -560,7 +566,7 @@ window.openTimePicker = openTimePicker;
 })();
 
 /* =====================================================================
-   ۴) تقویم حرفه‌ای — فقط اقساط + منابع دریافتنی
+   ۴) تقویم حرفه‌ای — فقط اقساط + منابع + رویدادهای شخصی
    ===================================================================== */
 (function overrideCalendarEvents() {
     window.calBuildAllEvents = function() {
@@ -606,25 +612,46 @@ window.openTimePicker = openTimePicker;
 
 /* استایل تقویم */
 (function injectCalendarStyle() {
-    if (document.getElementById('cal-v38-style')) return;
+    if (document.getElementById('cal-v39-style')) return;
     var s = document.createElement('style');
-    s.id = 'cal-v38-style';
+    s.id = 'cal-v39-style';
     s.textContent = ''
     + '.calg-mcell { display:flex;flex-direction:column;gap:3px }'
-    + '.calg-mcell .cd { display:flex;flex-direction:column;align-items:flex-start;gap:0;margin-bottom:4px;padding-bottom:3px;border-bottom:1px dashed var(--border) }'
-    + '.calg-mcell .cd .cjd { font-weight:900;font-size:0.85rem;color:#1e40af;line-height:1.15 }'
+    + '.calg-mcell .cd { display:flex;flex-direction:column;align-items:flex-start;gap:1px;margin-bottom:4px;padding-bottom:3px;border-bottom:1px dashed var(--border) }'
+    + '.calg-mcell .cd .cjd { font-weight:900;font-size:0.82rem;color:#1e40af;line-height:1.15 }'
     + '.calg-mcell.today .cd .cjd { color:#1e3a8a }'
-    + '.calg-mcell .cd .cwday { font-size:0.64rem;color:#64748b;font-weight:800;line-height:1 }'
+    + '.calg-mcell .cd .cwday { font-size:0.62rem;color:#64748b;font-weight:700;line-height:1 }'
     + '.calg-mcell .cd .cgd { font-size:0.6rem;color:#94a3b8;font-weight:700;direction:ltr;line-height:1 }'
     + '.calg-mcell .cev { display:flex;align-items:center;gap:4px;font-size:0.68rem;overflow:hidden;margin-bottom:2px;padding:2px 4px;border-radius:5px;background:rgba(99,102,241,0.06) }'
     + '.calg-mcell .cev .ctime { font-size:0.6rem;color:#6366f1;font-weight:800;direction:ltr;flex-shrink:0;font-family:monospace }'
     + '.calg-mcell .cev .ctxt { overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1 }'
     + '.calg-mcell .cdot { width:7px;height:7px;border-radius:2px;flex-shrink:0 }'
-    + '@media (max-width:640px) { .calg-mcell { min-height:80px } .calg-mcell .cev { display:none } }';
+    + '@media (max-width:640px) { .calg-mcell { min-height:80px } .calg-mcell .cev { display:none } }'
+    /* ★ استایل قوی برای دکمه تقویم */
+    + '.date-wrap { position:relative !important; display:block !important }'
+    + '.date-wrap .date-picker { padding-left:42px !important; padding-right:12px !important }'
+    + '.date-wrap .cal-btn {'
+    +   'position:absolute !important; top:50% !important; left:5px !important;'
+    +   'transform:translateY(-50%) !important;'
+    +   'z-index:99999 !important;'
+    +   'pointer-events:auto !important;'
+    +   'cursor:pointer !important;'
+    +   'width:34px !important; height:34px !important;'
+    +   'border-radius:9px !important;'
+    +   'border:1.5px solid var(--border) !important;'
+    +   'background:var(--primary-soft) !important;'
+    +   'color:var(--primary-dark) !important;'
+    +   'display:flex !important; align-items:center !important; justify-content:center !important;'
+    +   'padding:0 !important; font-size:1.05rem !important;'
+    +   'touch-action:manipulation !important;'
+    +   'box-shadow:0 1px 3px rgba(15,23,42,0.08) !important;'
+    + '}'
+    + '.date-wrap .cal-btn:hover { background:var(--primary) !important; color:#fff !important }'
+    + '.date-wrap .cal-btn:active { transform:translateY(-50%) scale(0.92) !important }';
     document.head.appendChild(s);
 })();
 
-/* Override renderMonth با نمایش کامل */
+/* Override renderMonth */
 (function overrideRenderMonth() {
     window.calRenderMonth = function(events) {
         var y = _cal.cursor.y, m = _cal.cursor.m;
@@ -729,7 +756,7 @@ window.openTimePicker = openTimePicker;
 })();
 
 /* =====================================================================
-   ۵) رفع باگ دکمه افزودن رویداد — با CAL_CATS کامل
+   ۵) رفع باگ دکمه افزودن رویداد
    ===================================================================== */
 (function patchEventModal() {
     window.calOpenEventModal = function(ev, defaultDate) {
@@ -739,7 +766,6 @@ window.openTimePicker = openTimePicker;
         var isNew = !ev;
         var title = isNew ? '＋ رویداد جدید' : '✎ ویرایش رویداد';
 
-        // ★ فیلتر: فقط دسته‌های قابل انتخاب توسط کاربر
         var USER_CATS = ['personal','work','birthday'];
         var catPicker = USER_CATS.map(function(k) {
             var c = window.CAL_CATS[k] || { color: '#999', icon: '📌', label: k };
@@ -799,7 +825,6 @@ window.openTimePicker = openTimePicker;
         document.getElementById('calg-cancel').onclick = close;
         document.getElementById('calg-modal-overlay').onclick = close;
 
-        // دکمه ساعت عقربه‌ای
         document.getElementById('calg-clock-btn').onclick = function() {
             var cur = document.getElementById('calg-time').value || '21:00';
             openTimePicker(function(hhmm) {
@@ -966,68 +991,150 @@ window.openTimePicker = openTimePicker;
 })();
 
 /* =====================================================================
-   ۷) رفع قطعی آیکن تقویم در ورودی‌های تاریخ
+   ۷) ★★★ رفع قطعی آیکن تقویم — با Event Delegation + Force Click
    ===================================================================== */
-(function robustDatePickers() {
+(function bulletproofDatePicker() {
+    function log() { /* console.log.apply(console, arguments); */ }
+
+    function attachOne(el) {
+        if (!el || el.nodeType !== 1) return;
+        // اگر قبلاً داخل date-wrap با دکمه هست، رد شو
+        var parent = el.parentNode;
+        if (!parent) return;
+        var wrap;
+        if (parent.classList && parent.classList.contains('date-wrap')) {
+            wrap = parent;
+        } else {
+            try {
+                wrap = document.createElement('div');
+                wrap.className = 'date-wrap';
+                parent.insertBefore(wrap, el);
+                wrap.appendChild(el);
+            } catch(err) { return; }
+        }
+        wrap.style.position = 'relative';
+        wrap.style.display = 'block';
+
+        // استایل‌های input
+        el.style.paddingLeft = '42px';
+        el.style.paddingRight = '12px';
+
+        if (wrap.querySelector('.cal-btn')) return;
+
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'cal-btn';
+        btn.innerHTML = '📅';
+        btn.title = 'باز کردن تقویم';
+        btn.setAttribute('data-picker-btn', '1');
+        btn.style.cssText = [
+            'position:absolute',
+            'top:50%',
+            'left:5px',
+            'transform:translateY(-50%)',
+            'z-index:9999',
+            'pointer-events:auto',
+            'cursor:pointer',
+            'width:34px',
+            'height:34px',
+            'border-radius:9px',
+            'border:1.5px solid var(--border)',
+            'background:var(--primary-soft)',
+            'color:var(--primary-dark)',
+            'display:flex',
+            'align-items:center',
+            'justify-content:center',
+            'padding:0',
+            'font-size:1.05rem',
+            'touch-action:manipulation',
+            'box-shadow:0 1px 3px rgba(15,23,42,0.08)'
+        ].join(';');
+
+        // ★ اتصال مستقیم برای اطمینان
+        (function(inputEl) {
+            var fire = function(ev) {
+                if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+                log('📅 button clicked');
+                if (typeof window.openCalendar === 'function') {
+                    try {
+                        window.openCalendar(inputEl);
+                    } catch(err) {
+                        console.error('📅 openCalendar failed:', err);
+                        alert('خطا در باز کردن تقویم: ' + (err.message || err));
+                    }
+                } else {
+                    console.error('📅 window.openCalendar not defined!');
+                    alert('تابع تقویم یافت نشد. صفحه را رفرش کنید.');
+                }
+            };
+            btn.addEventListener('click', fire, false);
+            btn.addEventListener('mousedown', function(ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+            }, true);
+            btn.addEventListener('touchstart', function(ev) {
+                ev.stopPropagation();
+            }, { passive: true });
+        })(el);
+
+        wrap.appendChild(btn);
+        log('📅 attached to', el.id || el.className);
+    }
+
     window.attachDatePickers = function() {
         var els = document.querySelectorAll('.date-picker');
         for (var i = 0; i < els.length; i++) {
-            (function(el) {
-                // اگر در date-wrap است و دکمه دارد، رد شو
-                var wrap = (el.parentNode && el.parentNode.classList && el.parentNode.classList.contains('date-wrap'))
-                    ? el.parentNode : null;
-                if (wrap && wrap.querySelector('.cal-btn')) return;
-
-                // اگر در date-wrap نیست، یکی بساز
-                if (!wrap) {
-                    try {
-                        wrap = document.createElement('div');
-                        wrap.className = 'date-wrap';
-                        wrap.style.cssText = 'position:relative;display:block';
-                        el.parentNode.insertBefore(wrap, el);
-                        wrap.appendChild(el);
-                    } catch(err) { return; }
-                }
-
-                el.style.paddingLeft = '42px';
-                el.style.paddingRight = '12px';
-
-                if (!wrap.querySelector('.cal-btn')) {
-                    var btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.className = 'cal-btn';
-                    btn.innerHTML = '📅';
-                    btn.title = 'باز کردن تقویم';
-                    btn.style.cssText = 'position:absolute;top:50%;left:5px;transform:translateY(-50%);' +
-                        'background:var(--primary-soft);color:var(--primary-dark);border:none;' +
-                        'width:32px;height:32px;border-radius:9px;cursor:pointer;font-size:1rem;' +
-                        'padding:0;display:flex;align-items:center;justify-content:center;z-index:5';
-
-                    (function(inputEl) {
-                        btn.addEventListener('click', function(e) {
-                            e.preventDefault(); e.stopPropagation();
-                            if (typeof openCalendar === 'function') {
-                                try { openCalendar(inputEl); }
-                                catch(err) { console.error('openCalendar error:', err); alert('خطا در باز کردن تقویم'); }
-                            }
-                        });
-                        btn.addEventListener('mousedown', function(e) { e.stopPropagation(); });
-                        btn.addEventListener('touchstart', function(e) { e.stopPropagation(); }, { passive: true });
-                    })(el);
-                    wrap.appendChild(btn);
-                }
-            })(els[i]);
+            try { attachOne(els[i]); } catch(e) { console.warn('attachOne err:', e); }
         }
     };
 
-    // اجرای دوره‌ای برای المان‌های جدید
-    setTimeout(function() { window.attachDatePickers(); }, 300);
-    setInterval(function() { window.attachDatePickers(); }, 1500);
+    // ★★★ Event Delegation (Capture Phase) به‌عنوان لایه‌ی پشتیبان
+    document.addEventListener('click', function(e) {
+        var t = e.target;
+        if (!t || !t.closest) return;
+        var btn = t.closest('.cal-btn');
+        if (!btn) return;
+        // اگر قبلاً handler اصلی اجرا شده، دیگر اجرا نکن
+        if (btn.dataset.handled === '1') {
+            delete btn.dataset.handled;
+            return;
+        }
+        var wrap = btn.closest('.date-wrap');
+        if (!wrap) return;
+        var inp = wrap.querySelector('.date-picker');
+        if (!inp) return;
+        e.preventDefault();
+        e.stopPropagation();
+        btn.dataset.handled = '1';
+        log('📅 delegation fired for', inp.id || inp.className);
+        if (typeof window.openCalendar === 'function') {
+            try {
+                window.openCalendar(inp);
+            } catch(err) {
+                console.error('📅 openCalendar (delegation) failed:', err);
+            }
+        }
+    }, true);
 
-    // اجرای اولیه پس از لود
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() { setTimeout(window.attachDatePickers, 500); });
-    }
+    // اجرای دوره‌ای
+    setTimeout(window.attachDatePickers, 300);
+    setTimeout(window.attachDatePickers, 1000);
+    setTimeout(window.attachDatePickers, 2500);
+    setInterval(window.attachDatePickers, 2000);
 })();
 
-console.log('✅ پارسیس v38 — پچ نهایی: دکمه رویداد + ساعت عقربه‌ای + آیکن تقویم + تاریخ کامل');
+/* =====================================================================
+   ۸) تست صحت در Console
+   ===================================================================== */
+setTimeout(function() {
+    console.log('════════ پارسیس v39 — بررسی ════════');
+    console.log('openCalendar:', typeof window.openCalendar);
+    console.log('cal-popup:', !!document.getElementById('cal-popup'));
+    console.log('cal-overlay:', !!document.getElementById('cal-overlay'));
+    console.log('.date-picker count:', document.querySelectorAll('.date-picker').length);
+    console.log('.date-wrap count:', document.querySelectorAll('.date-wrap').length);
+    console.log('.cal-btn count:', document.querySelectorAll('.cal-btn').length);
+    console.log('═════════════════════════════════════');
+}, 3500);
+
+console.log('✅ پارسیس v39 — رفع جابجایی ساعت + آیکن تقویم + انتخاب تاریخ');
