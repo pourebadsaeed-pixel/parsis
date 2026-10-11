@@ -1,11 +1,12 @@
 /* =====================================================================
-   پارسیس v34 — 15-account-review-final.js
-   گزارش مرور حساب‌ها — نسخه با آیکن گردش
+   پارسیس v35 — 15-account-review-final.js
+   گزارش مرور حساب‌ها — نسخه کامل با آیکن گردش
 
-   تغییرات v34:
-   ✔ دکمه 🔍 گردش کنار کد هر ردیف
-   ✔ حذف دبل‌کلیک (جایگزین با آیکن)
-   ✔ single-click فقط برای انتخاب سطر و ذره‌بین سطوح
+   تغییرات v35:
+   ✔ دکمه 📊 گردش کنار کد هر ردیف با onclick مستقیم
+   ✔ تابع جهانی window._AR_openTurnover
+   ✔ اضافه شدن ستون «عملیات» به مودال گردش با دکمه ویرایش
+   ✔ single-click فقط برای انتخاب سطر و فعال‌سازی ذره‌بین سطوح
    ===================================================================== */
 'use strict';
 
@@ -80,11 +81,11 @@ var _AR_LEVELS = { 1: 'گروه', 2: 'کل', 3: 'معین', 4: 'تفصیل' };
     +   'padding:12px; font-weight:900; text-align:center; border:1px solid #b9cfe5; '
     +   'position:sticky; bottom:0; z-index:3 }'
     + '.ar-empty { padding:40px 20px; text-align:center; color:#94a3b8; font-size:.9rem }'
-    /* ★ دکمه گردش */
+    /* دکمه گردش */
     + '.ar-turnover-btn { display:inline-flex; align-items:center; justify-content:center; '
-    +   'width:24px; height:24px; border-radius:6px; background:#dbeafe; color:#1e40af; '
-    +   'border:1px solid #93c5fd; cursor:pointer; font-size:.82rem; padding:0; '
-    +   'transition:all .15s; flex-shrink:0; font-family:inherit }'
+    +   'width:26px; height:26px; border-radius:6px; background:#dbeafe; color:#1e40af; '
+    +   'border:1px solid #93c5fd; cursor:pointer; font-size:.85rem; padding:0; '
+    +   'transition:all .15s; flex-shrink:0; font-family:inherit; line-height:1 }'
     + '.ar-turnover-btn:hover { background:#1e40af; color:#fff; transform:scale(1.15); '
     +   'box-shadow:0 2px 8px rgba(30,64,175,.4) }'
     + '.ar-turnover-btn:active { transform:scale(0.95) }'
@@ -320,7 +321,7 @@ function renderAccountReview() {
     html += '<div class="ar-tw">';
     html += '<table class="ar-tbl" id="ra-acc-table">';
     html += '<thead><tr>';
-    html += '<th style="width:140px">کد و گردش</th>';
+    html += '<th style="width:150px">کد و گردش</th>';
     html += '<th class="ar-th-name">عنوان</th>';
     html += '<th style="width:170px">گردش بدهکار</th>';
     html += '<th style="width:170px">گردش بستانکار</th>';
@@ -343,18 +344,27 @@ function renderAccountReview() {
         var badgeCls = 'b' + Math.min(_AR.activeLevel, 4);
         var lvlName = _AR_LEVELS[_AR.activeLevel];
 
+        // ★ شناسه‌های مورد نیاز برای گردش
+        var turnoverAcc = a.isDetail ? a.parentId : a.id;
+        var turnoverDetailAttr = a.isDetail
+            ? ' data-turnover-detail="' + a.id + '" data-turnover-link="' + a.linkType + '"'
+            : '';
+
         html += '<tr class="' + rowCls + '" '
              +  'data-id="' + (a.isDetail ? '' : a.id) + '" '
              +  (a.isDetail ? 'data-detail-id="' + a.id + '" data-parent-id="' + a.parentId + '" data-link="' + a.linkType + '"' : '')
              +  '>';
-        // ★ ستون کد + دکمه گردش
+
+        // ★ ستون کد + دکمه گردش با onclick مستقیم
         html += '<td class="ar-code">';
-        html += '<button class="ar-turnover-btn" '
-             +  'data-turnover-acc="' + (a.isDetail ? a.parentId : a.id) + '" '
-             +  (a.isDetail ? 'data-turnover-detail="' + a.id + '" data-turnover-link="' + a.linkType + '"' : '')
+        html += '<button type="button" class="ar-turnover-btn" '
+             +  'data-turnover-acc="' + turnoverAcc + '"'
+             +  turnoverDetailAttr
+             +  ' onclick="event.stopPropagation(); window._AR_openTurnover(this); return false;" '
              +  'title="نمایش گردش حساب">📊</button>';
         html += '<span>' + esc(a.code || '—') + '</span>';
         html += '</td>';
+
         html += '<td class="ar-name">' + esc(a.name || '') + (a.isDetail ? '' : ' <span class="ar-badge ' + badgeCls + '">' + lvlName + '</span>') + '</td>';
         html += '<td class="ar-num' + (b.debit ? '' : ' zero') + '">' + (hide ? '—' : moneyHtml(b.debit)) + '</td>';
         html += '<td class="ar-num' + (b.credit ? '' : ' zero') + '">' + (hide ? '—' : moneyHtml(b.credit)) + '</td>';
@@ -458,26 +468,13 @@ function bindAccountReviewEvents(accounts, box) {
         });
     });
 
-    // ★ دکمه‌های گردش (کلیک → باز کردن مودال گردش)
-    box.querySelectorAll('.ar-turnover-btn').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            var accId = this.getAttribute('data-turnover-acc');
-            var detId = this.getAttribute('data-turnover-detail');
-            var link = this.getAttribute('data-turnover-link');
-            if (detId && link) {
-                _openTurnoverSafe(accId, { linkType: link, detailId: detId });
-            } else {
-                _openTurnoverSafe(accId, null);
-            }
-        });
-    });
-
-    // ★ کلیک روی سطر → انتخاب (بدون دبل‌کلیک)
+    // کلیک روی سطر → انتخاب (دکمه گردش با onclick کار می‌کند)
     box.querySelectorAll('.ar-row').forEach(function(tr) {
         tr.addEventListener('click', function(e) {
-            // اگر روی دکمه گردش کلیک شد، کاری نکن
-            if (e.target.closest('.ar-turnover-btn')) return;
+            // اگر روی دکمه گردش کلیک شده، ردیف را انتخاب نکن
+            if (e.target.closest && e.target.closest('.ar-turnover-btn')) return;
+            if (e.target.classList && e.target.classList.contains('ar-turnover-btn')) return;
+
             var id = tr.getAttribute('data-id') || tr.getAttribute('data-detail-id');
             var isDetail = tr.hasAttribute('data-detail-id');
             _AR.selectedId = id;
@@ -494,20 +491,66 @@ function bindAccountReviewEvents(accounts, box) {
 }
 
 /* =====================================================================
+   ★ تابع جهانی برای باز کردن گردش (از onclick صدا زده می‌شود)
+   ===================================================================== */
+window._AR_openTurnover = function(btn) {
+    try {
+        if (!btn) {
+            console.warn('_AR_openTurnover: btn خالی است');
+            return;
+        }
+        var accId = btn.getAttribute('data-turnover-acc');
+        var detId = btn.getAttribute('data-turnover-detail');
+        var link = btn.getAttribute('data-turnover-link');
+
+        console.log('📊 Turnover click:', { accId: accId, detId: detId, link: link });
+
+        if (!accId) {
+            alert('⚠️ شناسه حساب یافت نشد.');
+            return;
+        }
+
+        if (typeof openAccountTurnover !== 'function') {
+            alert('⚠️ تابع گردش حساب در دسترس نیست. لطفاً فایل ۰۵ را بررسی کنید.');
+            return;
+        }
+
+        if (detId && link) {
+            _openTurnoverSafe(accId, { linkType: link, detailId: detId });
+        } else {
+            _openTurnoverSafe(accId, null);
+        }
+    } catch (err) {
+        console.error('خطا در باز کردن گردش:', err);
+        alert('خطا در باز کردن گردش:\n' + (err.message || err));
+    }
+};
+
+/* =====================================================================
    ★ باز کردن گردش + افزودن دکمه ویرایش به هر ردیف
    ===================================================================== */
 function _openTurnoverSafe(accountId, detailInfo) {
+    console.log('🔍 _openTurnoverSafe:', accountId, detailInfo);
+
     if (typeof openAccountTurnover !== 'function') {
-        alert('تابع گردش حساب در دسترس نیست.');
+        alert('تابع گردش حساب در دسترس نیست. فایل ۰۵ را بررسی کنید.');
         return;
     }
-    openAccountTurnover(accountId, detailInfo);
+
+    try {
+        openAccountTurnover(accountId, detailInfo);
+    } catch (err) {
+        console.error('خطا در openAccountTurnover:', err);
+        alert('خطا: ' + (err.message || err));
+        return;
+    }
+
     setTimeout(function() {
         var body = document.getElementById('turnover-body');
-        if (!body) return;
+        if (!body) { console.warn('turnover-body یافت نشد'); return; }
         var thead = body.querySelector('thead tr');
         var tbody = body.querySelector('tbody');
-        if (!thead || !tbody) return;
+        if (!thead || !tbody) { console.warn('thead/tbody یافت نشد'); return; }
 
         // ستون عملیات در هدر
         if (!thead.querySelector('[data-action-col]')) {
@@ -529,7 +572,7 @@ function _openTurnoverSafe(accountId, detailInfo) {
             var editCell = document.createElement('td');
             editCell.style.textAlign = 'center';
             var btn = document.createElement('button');
-            btn.className = 'row-btn edit';
+            btn.type = 'button';
             btn.title = 'ویرایش سند';
             btn.textContent = '✎';
             btn.style.cssText = 'background:#e0ecf8;color:#1e40af;border:none;border-radius:8px;width:34px;height:30px;font-size:1rem;cursor:pointer;font-weight:800';
@@ -549,7 +592,7 @@ function _openTurnoverSafe(accountId, detailInfo) {
             editCell.appendChild(btn);
             tr.appendChild(editCell);
         });
-    }, 180);
+    }, 200);
 }
 
 /* =====================================================================
@@ -585,4 +628,4 @@ function _openTurnoverSafe(accountId, detailInfo) {
     else setTimeout(apply, 2500);
 })();
 
-console.log('✅ گزارش مرور حساب‌ها v34 — آیکن گردش');
+console.log('✅ گزارش مرور حساب‌ها v35 — با onclick مستقیم');
