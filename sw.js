@@ -1,4 +1,4 @@
-// Service Worker پارسیس — v37
+// Service Worker پارسیس — v38
 var CACHE_NAME = 'parsis-v37';
 
 var ASSETS = [
