@@ -14,7 +14,8 @@ var ASSETS = [
   './06-widgets,dashboard,rates,close,sms.js',
   './07-notes,images,checklist,share,view.js',
   './08-ai,assistant,tts,tools,vision,voice.js',
-  './09-settings,backup,restore,reset,init.js'
+  './09-settings,backup,restore,reset,init.js',
+  './10-welcome,patch.js'
 ];
 
 self.addEventListener('install', function(event) {
