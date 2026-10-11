@@ -1,6 +1,11 @@
 /* =====================================================================
    پارسیس v27 — 04-vouchers,estimates,sources,facilities,installments.js
    اسناد، اقلام سند، برآورد هزینه، منابع دریافتنی، تسهیلات، اقساط
+
+   ★ پچ v28:
+     • پس از ذخیره پیش‌نویس، فرم در همان حالت باقی می‌ماند
+     • نوار وضعیت سند بالای فرم نمایش داده می‌شود
+     • هنگام بستن تبِ سندِ ذخیره‌شده و بدون تغییر، هشدار داده نمی‌شود
    ===================================================================== */
 'use strict';
 
@@ -8,6 +13,75 @@
 var voucherLines = [];
 var currentVoucherStatus = 'draft';
 
+/* ★ فلگ: سند ذخیره شده و بدون تغییر */
+window._voucherFormSavedAndClean = false;
+window._voucherSaved_backup = null;
+
+/* ★ استایل نوار وضعیت */
+(function injectVoucherStatusStyle() {
+    if (document.getElementById('voucher-status-style')) return;
+    var s = document.createElement('style');
+    s.id = 'voucher-status-style';
+    s.textContent =
+        '.voucher-status-bar { animation: vsbIn 0.35s ease; }' +
+        '@keyframes vsbIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:none; } }';
+    document.head.appendChild(s);
+})();
+
+/* ★ ساخت/بروزرسانی نوار وضعیت سند */
+function getOrCreateVoucherStatusBar() {
+    var bar = document.getElementById('voucher-status-bar');
+    if (bar) return bar;
+    var card = document.getElementById('voucher-head-card');
+    if (!card) return null;
+    bar = document.createElement('div');
+    bar.id = 'voucher-status-bar';
+    bar.className = 'voucher-status-bar';
+    bar.style.cssText =
+        'display:none;margin-bottom:12px;padding:10px 14px;border-radius:12px;' +
+        'font-weight:800;align-items:center;gap:10px;border:1px solid var(--border)';
+    bar.innerHTML =
+        '<span class="vsb-icon" style="font-size:1.1rem"></span>' +
+        '<span class="vsb-text"></span>' +
+        '<span class="vsb-id" style="font-size:.72rem;opacity:.7;margin-right:auto"></span>';
+    card.insertBefore(bar, card.firstChild);
+    return bar;
+}
+function setVoucherStatusBar(status, vId) {
+    var bar = getOrCreateVoucherStatusBar();
+    if (!bar) return;
+    if (!status) {
+        bar.style.display = 'none';
+        return;
+    }
+    bar.style.display = 'flex';
+    var icon = bar.querySelector('.vsb-icon');
+    var text = bar.querySelector('.vsb-text');
+    var idEl = bar.querySelector('.vsb-id');
+    if (status === 'approved') {
+        bar.style.background = 'linear-gradient(135deg,#d1fae5,#a7f3d0)';
+        bar.style.color = '#065f46';
+        bar.style.borderColor = '#059669';
+        icon.textContent = '✅';
+        text.textContent = 'سند تأیید شده';
+    } else if (status === 'draft') {
+        bar.style.background = 'linear-gradient(135deg,#fef3c7,#fde68a)';
+        bar.style.color = '#92400e';
+        bar.style.borderColor = '#f59e0b';
+        icon.textContent = '📝';
+        text.textContent = 'سند به‌عنوان پیش‌نویس ذخیره شد';
+    } else if (status === 'dirty') {
+        bar.style.background = 'linear-gradient(135deg,#dbeafe,#bfdbfe)';
+        bar.style.color = '#1e40af';
+        bar.style.borderColor = '#3b82f6';
+        icon.textContent = '✏️';
+        text.textContent = 'سند در حال ویرایش — ذخیره نشده';
+    }
+    idEl.textContent = vId ? ('شناسه: ' + String(vId).substring(0, 8)) : '';
+}
+window._setVoucherStatusBar = setVoucherStatusBar;
+
+/* ==================== Voucher Lines Render ==================== */
 function renderVoucherLines() {
     var box = document.getElementById('voucher-lines');
     if (!box) return;
@@ -370,7 +444,6 @@ function findVoucherById(id) {
     return null;
 }
 
-/* ★ اصلاح‌شده: المان‌های حذف‌شده دیگر کرش نمی‌کنند */
 function renderVoucherList() {
     var filterEl = document.getElementById('vl-period-filter');
     var searchEl = document.getElementById('vlist-search');
@@ -477,6 +550,8 @@ function setupSorting() {
         renderVoucherList();
     });
 }
+
+/* ★ بارگذاری سند برای ویرایش */
 function loadVoucherForEdit(v) {
     document.getElementById('v-id').value = v.id;
     document.getElementById('v-number').value = v.number;
@@ -486,8 +561,13 @@ function loadVoucherForEdit(v) {
     currentVoucherStatus = v.status || 'draft';
     voucherLines = JSON.parse(JSON.stringify(v.lines));
     renderVoucherLines();
+    // ★ نمایش نوار وضعیت
+    window._voucherFormSavedAndClean = true;
+    setVoucherStatusBar(v.status === 'approved' ? 'approved' : 'draft', v.id);
     goToPage('voucher-new');
 }
+
+/* ★ فرم سند جدید */
 function newVoucherForm() {
     document.getElementById('v-id').value = '';
     document.getElementById('v-number').value = getNextVoucherNumberForPeriod(state.activePeriodId || '');
@@ -497,6 +577,9 @@ function newVoucherForm() {
     currentVoucherStatus = 'draft';
     voucherLines = [{ id: uid(), account: '', details: {}, debit: 0, credit: 0, description: '' }];
     renderVoucherLines();
+    // ★ پاک کردن نوار وضعیت و فلگ
+    window._voucherFormSavedAndClean = false;
+    setVoucherStatusBar(null);
 }
 function getNextVoucherNumberForPeriod(periodId) {
     var vouchers = DB.load('vouchers', []);
@@ -509,6 +592,8 @@ function getNextVoucherNumberForPeriod(periodId) {
     });
     return String(maxN + 1);
 }
+
+/* ★ ذخیره سند — با حفظ فرم پس از ذخیره پیش‌نویس */
 function persistVoucher(approve) {
     if (currentVoucherStatus === 'approved' && !approve) {
         alert('سند تأیید شده قابل ذخیره به‌عنوان پیش‌نویس نیست.');
@@ -539,15 +624,110 @@ function persistVoucher(approve) {
     if (id) { for (var kk = 0; kk < l.length; kk++) if (l[kk].id === id) l[kk] = vch; }
     else l.push(vch);
     DB.save('vouchers', l);
+
     if (approve) {
         showToast('✅ سند تأیید شد.');
+        window._voucherFormSavedAndClean = true;
+        setVoucherStatusBar('approved', vch.id);
         goToPage('voucher-list');
     } else {
+        /* ★ ذخیره پیش‌نویس — فرم در همان حالت باقی می‌ماند */
         showToast('✅ پیش‌نویس ذخیره شد.');
-        newVoucherForm();
+
+        // به‌روزرسانی فیلدهای مخفی/قابل‌ویرایش برای ویرایش‌های بعدی
+        document.getElementById('v-id').value = vch.id;
+        document.getElementById('v-number').value = vch.number;
+        document.getElementById('v-date').value = vch.date;
+        document.getElementById('v-desc').value = vch.desc;
+        currentVoucherStatus = 'draft';
+
+        // نمایش نوار وضعیت
+        setVoucherStatusBar('draft', vch.id);
+
+        // علامت: سند ذخیره‌شده و بدون تغییر
+        window._voucherFormSavedAndClean = true;
     }
     updateHomeWidgets();
 }
+
+/* =====================================================================
+   ★ تشخیص تغییر در فرم سند پس از ذخیره — فلگ را dirty می‌کند
+   ===================================================================== */
+(function attachVoucherDirtyListener() {
+    function markDirty(e) {
+        if (!window._voucherFormSavedAndClean) return;
+        // فقط تغییرات کاربر واقعی (نه تغییرات برنامه‌ای)
+        if (e.isTrusted === false) return;
+        var page = document.getElementById('page-voucher-new');
+        if (!page || !page.contains(e.target)) return;
+        window._voucherFormSavedAndClean = false;
+        // تغییر ظاهر نوار وضعیت به حالت «ویرایش‌شده»
+        var bar = document.getElementById('voucher-status-bar');
+        if (bar) {
+            bar.style.background = 'linear-gradient(135deg,#dbeafe,#bfdbfe)';
+            bar.style.color = '#1e40af';
+            bar.style.borderColor = '#3b82f6';
+            var icon = bar.querySelector('.vsb-icon');
+            var text = bar.querySelector('.vsb-text');
+            if (icon) icon.textContent = '✏️';
+            if (text) text.textContent = 'سند در حال ویرایش — ذخیره نشده';
+        }
+    }
+    document.addEventListener('input', markDirty, true);
+    document.addEventListener('change', markDirty, true);
+})();
+
+/* =====================================================================
+   ★ مدیریت بستن تب سند
+   اگر سند ذخیره شده و بدون تغییر باشد، هنگام بستن تب هشدار داده نمی‌شود.
+   ===================================================================== */
+(function patchVoucherTabCloseBehavior() {
+    // ★ Capture phase: قبل از هندلر فایل ۰۲، فرم را موقتاً "خالی" می‌کنیم
+    //   تا hasUnsavedData = false شود و بستن تب بدون هشدار انجام شود.
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest && e.target.closest('.ft-close');
+        if (!btn) return;
+        var tab = btn.closest('.form-tab');
+        if (!tab || tab.dataset.page !== 'voucher-new') return;
+        if (!window._voucherFormSavedAndClean) return;
+
+        var desc = document.getElementById('v-desc');
+        window._voucherSaved_backup = {
+            desc: desc ? desc.value : '',
+            lines: voucherLines
+        };
+        if (desc) desc.value = '';
+        voucherLines = [];
+    }, true);
+
+    // ★ Bubble phase: بعد از اجرای هندلر فایل ۰۲، اگر تب بسته نشد، بازگردان
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest && e.target.closest('.ft-close');
+        if (!btn) return;
+        if (!window._voucherSaved_backup) return;
+        setTimeout(function() {
+            var stillOpen = document.querySelector('.form-tab[data-page="voucher-new"]');
+            if (stillOpen) {
+                // تب بسته نشد → داده‌ها را برگردان
+                var desc = document.getElementById('v-desc');
+                if (desc && window._voucherSaved_backup) {
+                    desc.value = window._voucherSaved_backup.desc;
+                }
+                if (window._voucherSaved_backup && window._voucherSaved_backup.lines) {
+                    voucherLines = window._voucherSaved_backup.lines;
+                }
+            } else {
+                // تب بسته شد → فرم را کاملاً تمیز کن
+                var desc2 = document.getElementById('v-desc');
+                if (desc2) desc2.value = '';
+                voucherLines = [{ id: uid(), account: '', details: {}, debit: 0, credit: 0, description: '' }];
+                window._voucherFormSavedAndClean = false;
+                setVoucherStatusBar(null);
+            }
+            window._voucherSaved_backup = null;
+        }, 80);
+    }, false);
+})();
 
 /* ==================== Voucher Preview ==================== */
 function openVoucherPreview(v) {
@@ -1253,3 +1433,33 @@ function clearFacForm() {
     currentFacilityId = null;
     currentInstallments = [];
 }
+
+/* =====================================================================
+   ★ فعال‌سازی دکمه‌های وضعیت پس از بارگذاری DOM
+   ===================================================================== */
+(function initVoucherStatusBarOnLoad() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                // اگر صفحه سند باز است و v-id پر است، وضعیت را نمایش بده
+                var vId = document.getElementById('v-id');
+                if (vId && vId.value) {
+                    var v = findVoucherById(vId.value);
+                    if (v) {
+                        setVoucherStatusBar(v.status === 'approved' ? 'approved' : 'draft', v.id);
+                    }
+                }
+            }, 1000);
+        });
+    } else {
+        setTimeout(function() {
+            var vId = document.getElementById('v-id');
+            if (vId && vId.value) {
+                var v = findVoucherById(vId.value);
+                if (v) {
+                    setVoucherStatusBar(v.status === 'approved' ? 'approved' : 'draft', v.id);
+                }
+            }
+        }, 1000);
+    }
+})();
