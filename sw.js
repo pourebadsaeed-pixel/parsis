@@ -1,7 +1,6 @@
-// Service Worker پارسیس — v33 (پچ اصلاحات ۹گانه)
-// Network-First برای HTML، Cache-First برای منابع ثابت
+// Service Worker پارسیس — v37
+var CACHE_NAME = 'parsis-v37';
 
-var CACHE_NAME = 'parsis-v33-patches';
 var ASSETS = [
   './index.html',
   './manifest.json',
@@ -16,7 +15,10 @@ var ASSETS = [
   './08-ai,assistant,tts,tools,vision,voice.js',
   './09-settings,backup,restore,reset,init.js',
   './10-welcome,patch.js',
-  './11-fixes-v29.js'
+  './11-fixes-v29.js',
+  './12-account-report-final.js',
+  './13-account-report-v31.js',
+  './14-calendar-google.js'
 ];
 
 self.addEventListener('install', function(event) {
