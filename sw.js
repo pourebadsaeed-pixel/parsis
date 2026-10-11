@@ -15,7 +15,8 @@ var ASSETS = [
   './07-notes,images,checklist,share,view.js',
   './08-ai,assistant,tts,tools,vision,voice.js',
   './09-settings,backup,restore,reset,init.js',
-  './10-welcome,patch.js'
+  './10-welcome,patch.js',
+  './11-fixes-v29.js'
 ];
 
 self.addEventListener('install', function(event) {
