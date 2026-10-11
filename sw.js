@@ -16,9 +16,8 @@ var ASSETS = [
   './09-settings,backup,restore,reset,init.js',
   './10-welcome,patch.js',
   './11-fixes-v29.js',
-  './12-account-report-final.js',
-  './13-account-report-v31.js',
-  './14-calendar-google.js'
+  './14-calendar-google.js',
+  './15-account-review-final.js'
 ];
 
 self.addEventListener('install', function(event) {
