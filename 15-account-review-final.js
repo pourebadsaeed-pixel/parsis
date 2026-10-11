@@ -1,19 +1,17 @@
 /* =====================================================================
-   پارسیس v33 — 15-account-review-final.js
-   گزارش مرور حساب‌ها — نسخه نهایی اصلاح‌شده
+   پارسیس v34 — 15-account-review-final.js
+   گزارش مرور حساب‌ها — نسخه با آیکن گردش
 
-   اصلاحات این نسخه:
-   ✔ نمایش/عدم نمایش ستون‌ها با list-header استاندارد
-   ✔ بازگشت صحیح از هر سطح به سطوح بالاتر (سیستم path)
-   ✔ حذف زیرمجموعه‌های inline از هر سطح
-   ✔ رفع تعارض single-click و double-click
-   ✔ دکمه ویرایش سند در مودال گردش حساب
+   تغییرات v34:
+   ✔ دکمه 🔍 گردش کنار کد هر ردیف
+   ✔ حذف دبل‌کلیک (جایگزین با آیکن)
+   ✔ single-click فقط برای انتخاب سطر و ذره‌بین سطوح
    ===================================================================== */
 'use strict';
 
 var _AR = {
     activeLevel: 1,
-    path: [],           // [groupId, kolId, moeinId, detailId]
+    path: [],
     selectedId: null
 };
 
@@ -65,7 +63,8 @@ var _AR_LEVELS = { 1: 'گروه', 2: 'کل', 3: 'معین', 4: 'تفصیل' };
     + '.ar-tbl tbody tr { cursor:pointer; transition:background .15s }'
     + '.ar-tbl tbody tr:hover { background:#f0f6ff !important }'
     + '.ar-tbl tbody tr.selected { background:#ffe9b3 !important; box-shadow:inset 0 0 0 2px #e8a33d }'
-    + '.ar-tbl .ar-code { font-family:monospace; direction:ltr; font-weight:800; color:#1e40af; text-align:center }'
+    + '.ar-tbl .ar-code { font-family:monospace; direction:ltr; font-weight:800; color:#1e40af; text-align:center; '
+    +   'display:flex; align-items:center; justify-content:center; gap:6px }'
     + '.ar-tbl .ar-name { text-align:right; font-weight:700; padding-right:16px !important }'
     + '.ar-tbl .ar-num { text-align:center; direction:ltr; font-variant-numeric:tabular-nums; font-weight:800 }'
     + '.ar-tbl .ar-num.zero { color:#cbd5e1; font-weight:500 }'
@@ -81,6 +80,14 @@ var _AR_LEVELS = { 1: 'گروه', 2: 'کل', 3: 'معین', 4: 'تفصیل' };
     +   'padding:12px; font-weight:900; text-align:center; border:1px solid #b9cfe5; '
     +   'position:sticky; bottom:0; z-index:3 }'
     + '.ar-empty { padding:40px 20px; text-align:center; color:#94a3b8; font-size:.9rem }'
+    /* ★ دکمه گردش */
+    + '.ar-turnover-btn { display:inline-flex; align-items:center; justify-content:center; '
+    +   'width:24px; height:24px; border-radius:6px; background:#dbeafe; color:#1e40af; '
+    +   'border:1px solid #93c5fd; cursor:pointer; font-size:.82rem; padding:0; '
+    +   'transition:all .15s; flex-shrink:0; font-family:inherit }'
+    + '.ar-turnover-btn:hover { background:#1e40af; color:#fff; transform:scale(1.15); '
+    +   'box-shadow:0 2px 8px rgba(30,64,175,.4) }'
+    + '.ar-turnover-btn:active { transform:scale(0.95) }'
     + '@media (max-width:720px) {'
     +   '.ar-main { flex-direction:column }'
     +   '.ar-side { width:100%; border-left:none; border-bottom:1px solid var(--border) }'
@@ -88,6 +95,7 @@ var _AR_LEVELS = { 1: 'گروه', 2: 'کل', 3: 'معین', 4: 'تفصیل' };
     +   '.ar-lvl { flex:1; min-width:80px; padding:9px 8px; font-size:.78rem }'
     +   '.ar-tbl { font-size:.74rem }'
     +   '.ar-tbl thead th, .ar-tbl tbody td { padding:7px 8px }'
+    +   '.ar-turnover-btn { width:22px; height:22px; font-size:.72rem }'
     + '}'
     /* filter panel */
     + '#ra-clean-panel { margin-bottom:12px; background:#fff; border:1px solid var(--border); border-radius:14px; overflow:hidden }'
@@ -104,7 +112,7 @@ var _AR_LEVELS = { 1: 'گروه', 2: 'کل', 3: 'معین', 4: 'تفصیل' };
 })();
 
 /* =====================================================================
-   ★ ساخت پنل فیلتر جدید
+   ★ پنل فیلتر
    ===================================================================== */
 function rebuildAccountFilterPanel() {
     var page = document.getElementById('page-report-account');
@@ -206,7 +214,7 @@ function _arLevel(acc, all) {
 function _arBreadcrumb(path, all) {
     if (!path || path.length === 0) return '<a data-goto-lvl="1">گروه</a>';
     var html = '<a data-goto-lvl="1">گروه</a>';
-    path.forEach(function(pid, i) {
+    path.forEach(function(pid) {
         var acc = all.find(function(a) { return a.id === pid; });
         if (!acc) return;
         html += '<span class="sep">›</span><a data-goto="' + pid + '">' + esc(acc.name) + '</a>';
@@ -238,13 +246,11 @@ function renderAccountReview() {
     var rolled = rollupBalances(accounts, result.balances);
     var detailBals = result.detailBalances || {};
 
-    // ★ تعیین parentId بر اساس activeLevel و path
     var parentId = null;
     if (_AR.activeLevel === 2) parentId = _AR.path[0] || null;
     else if (_AR.activeLevel === 3) parentId = _AR.path[1] || null;
     else if (_AR.activeLevel === 4) parentId = _AR.path[2] || null;
 
-    // ★ ساخت لیست حساب‌های سطح جاری
     var list = [];
     if (_AR.activeLevel <= 3) {
         accounts.forEach(function(a) {
@@ -257,7 +263,6 @@ function renderAccountReview() {
             list.push(a);
         });
     } else {
-        // سطح ۴ = تفصیلی
         Object.keys(detailBals).forEach(function(did) {
             var d = detailBals[did];
             if (parentId && d.parent !== parentId) return;
@@ -274,10 +279,8 @@ function renderAccountReview() {
         });
     }
 
-    // ★ محاسبه مجموع
     var tD = 0, tC = 0, tMD = 0, tMC = 0, shown = 0;
 
-    // ★ ساخت HTML
     var html = '<div class="ar-wrap">';
 
     // titlebar
@@ -288,7 +291,7 @@ function renderAccountReview() {
 
     html += '<div class="ar-main">';
 
-    // سایدبار سطوح
+    // سایدبار
     html += '<div class="ar-side">';
     html += '<div class="ar-side-head">سطوح حساب</div>';
     html += '<div class="ar-levels">';
@@ -307,7 +310,7 @@ function renderAccountReview() {
     // بدنه
     html += '<div class="ar-body">';
 
-    // ★ toolbar سازگار با سیستم نمایش/عدم نمایش ستون
+    // toolbar
     html += '<div class="list-header ar-toolbar" data-col-table="ra-acc-table" data-hide-key="ra">';
     html += '<span class="count-badge" id="ra-count">۰</span>';
     html += '<span style="flex:1"></span>';
@@ -317,7 +320,7 @@ function renderAccountReview() {
     html += '<div class="ar-tw">';
     html += '<table class="ar-tbl" id="ra-acc-table">';
     html += '<thead><tr>';
-    html += '<th style="width:110px">کد</th>';
+    html += '<th style="width:140px">کد و گردش</th>';
     html += '<th class="ar-th-name">عنوان</th>';
     html += '<th style="width:170px">گردش بدهکار</th>';
     html += '<th style="width:170px">گردش بستانکار</th>';
@@ -344,7 +347,14 @@ function renderAccountReview() {
              +  'data-id="' + (a.isDetail ? '' : a.id) + '" '
              +  (a.isDetail ? 'data-detail-id="' + a.id + '" data-parent-id="' + a.parentId + '" data-link="' + a.linkType + '"' : '')
              +  '>';
-        html += '<td class="ar-code">' + esc(a.code || '—') + '</td>';
+        // ★ ستون کد + دکمه گردش
+        html += '<td class="ar-code">';
+        html += '<button class="ar-turnover-btn" '
+             +  'data-turnover-acc="' + (a.isDetail ? a.parentId : a.id) + '" '
+             +  (a.isDetail ? 'data-turnover-detail="' + a.id + '" data-turnover-link="' + a.linkType + '"' : '')
+             +  'title="نمایش گردش حساب">📊</button>';
+        html += '<span>' + esc(a.code || '—') + '</span>';
+        html += '</td>';
         html += '<td class="ar-name">' + esc(a.name || '') + (a.isDetail ? '' : ' <span class="ar-badge ' + badgeCls + '">' + lvlName + '</span>') + '</td>';
         html += '<td class="ar-num' + (b.debit ? '' : ' zero') + '">' + (hide ? '—' : moneyHtml(b.debit)) + '</td>';
         html += '<td class="ar-num' + (b.credit ? '' : ' zero') + '">' + (hide ? '—' : moneyHtml(b.credit)) + '</td>';
@@ -378,7 +388,6 @@ function renderAccountReview() {
 
     bindAccountReviewEvents(accounts, box);
 
-    // ★ فعال‌سازی نمایش/عدم نمایش ستون + ذره‌بین + فشرده‌سازی
     setTimeout(function() {
         if (typeof buildHeaderButtons === 'function') buildHeaderButtons();
         if (typeof applyColVisibility === 'function') applyColVisibility('ra-acc-table');
@@ -387,17 +396,14 @@ function renderAccountReview() {
 }
 
 /* =====================================================================
-   ★ تعیین وضعیت هر سطح در سایدبار
+   ★ وضعیت سطح
    ===================================================================== */
 function _arLevelState(lvl) {
     if (lvl === _AR.activeLevel) return 'active';
-    // سطح بعدی اگر سطر انتخاب شده
     if (lvl === _AR.activeLevel + 1 && _AR.selectedId) return 'next';
-    // بازگشت به عقب
     if (lvl < _AR.activeLevel) {
-        // شرط: path باید به اندازه کافی پر باشد
         if (lvl === 1) return 'clickable';
-        if (lvl === 2) return 'clickable'; // همیشه می‌توان به سطح کل رفت
+        if (lvl === 2) return 'clickable';
         if (lvl === 3) return _AR.path.length >= 1 ? 'clickable' : 'disabled';
         if (lvl === 4) return _AR.path.length >= 2 ? 'clickable' : 'disabled';
     }
@@ -408,7 +414,7 @@ function _arLevelState(lvl) {
    ★ رویدادها
    ===================================================================== */
 function bindAccountReviewEvents(accounts, box) {
-    // ----- کلیک روی سطوح سایدبار -----
+    // سطوح سایدبار
     box.querySelectorAll('.ar-lvl').forEach(function(el) {
         el.addEventListener('click', function() {
             if (this.classList.contains('disabled')) return;
@@ -416,10 +422,8 @@ function bindAccountReviewEvents(accounts, box) {
             if (lvl === _AR.activeLevel) return;
 
             if (lvl < _AR.activeLevel) {
-                // برگشت
                 _AR.path = _AR.path.slice(0, lvl - 1);
             } else if (lvl === _AR.activeLevel + 1 && _AR.selectedId) {
-                // رفتن به سطح بعد (ذره‌بین)
                 _AR.path[_AR.activeLevel - 1] = _AR.selectedId;
                 _AR.path = _AR.path.slice(0, _AR.activeLevel);
             } else {
@@ -431,7 +435,7 @@ function bindAccountReviewEvents(accounts, box) {
         });
     });
 
-    // ----- breadcrumb -----
+    // breadcrumb
     box.querySelectorAll('[data-goto]').forEach(function(a) {
         a.addEventListener('click', function() {
             var id = this.getAttribute('data-goto');
@@ -454,69 +458,49 @@ function bindAccountReviewEvents(accounts, box) {
         });
     });
 
-    // ----- کلیک روی سطرها با مدیریت single/double-click -----
-    var clickTimer = null;
-    var clickRowId = null;
+    // ★ دکمه‌های گردش (کلیک → باز کردن مودال گردش)
+    box.querySelectorAll('.ar-turnover-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var accId = this.getAttribute('data-turnover-acc');
+            var detId = this.getAttribute('data-turnover-detail');
+            var link = this.getAttribute('data-turnover-link');
+            if (detId && link) {
+                _openTurnoverSafe(accId, { linkType: link, detailId: detId });
+            } else {
+                _openTurnoverSafe(accId, null);
+            }
+        });
+    });
 
+    // ★ کلیک روی سطر → انتخاب (بدون دبل‌کلیک)
     box.querySelectorAll('.ar-row').forEach(function(tr) {
         tr.addEventListener('click', function(e) {
-            if (e.target.closest('[data-tog]')) return;
-            var el = this;
-            var id = el.getAttribute('data-id') || el.getAttribute('data-detail-id') || '';
-
-            // ★ تشخیص double-click
-            if (clickTimer && clickRowId === id) {
-                clearTimeout(clickTimer);
-                clickTimer = null;
-                clickRowId = null;
-                _handleRowDoubleClick(el, accounts);
-                return;
+            // اگر روی دکمه گردش کلیک شد، کاری نکن
+            if (e.target.closest('.ar-turnover-btn')) return;
+            var id = tr.getAttribute('data-id') || tr.getAttribute('data-detail-id');
+            var isDetail = tr.hasAttribute('data-detail-id');
+            _AR.selectedId = id;
+            if (isDetail) {
+                _AR.path[3] = id;
+                _AR.path = _AR.path.slice(0, 4);
+            } else {
+                _AR.path[_AR.activeLevel - 1] = id;
+                _AR.path = _AR.path.slice(0, _AR.activeLevel);
             }
-            if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; clickRowId = null; }
-
-            clickRowId = id;
-            clickTimer = setTimeout(function() {
-                clickTimer = null;
-                clickRowId = null;
-                _handleRowSingleClick(el, accounts);
-            }, 280);
+            renderAccountReview();
         });
     });
 }
 
-/* ----- single click ----- */
-function _handleRowSingleClick(tr, accounts) {
-    var id = tr.getAttribute('data-id') || tr.getAttribute('data-detail-id');
-    var isDetail = tr.hasAttribute('data-detail-id');
-    _AR.selectedId = id;
-    if (isDetail) {
-        _AR.path[3] = id;
-        _AR.path = _AR.path.slice(0, 4);
-    } else {
-        _AR.path[_AR.activeLevel - 1] = id;
-        _AR.path = _AR.path.slice(0, _AR.activeLevel);
-    }
-    renderAccountReview();
-}
-
-/* ----- double click ----- */
-function _handleRowDoubleClick(tr, accounts) {
-    var id = tr.getAttribute('data-id');
-    var did = tr.getAttribute('data-detail-id');
-    var pid = tr.getAttribute('data-parent-id');
-    var link = tr.getAttribute('data-link');
-    if (id && !did) {
-        _openTurnoverSafe(id, null);
-    } else if (did && pid) {
-        _openTurnoverSafe(pid, { linkType: link, detailId: did });
-    }
-}
-
 /* =====================================================================
-   ★ باز کردن گردش + دکمه ویرایش سند در هر ردیف
+   ★ باز کردن گردش + افزودن دکمه ویرایش به هر ردیف
    ===================================================================== */
 function _openTurnoverSafe(accountId, detailInfo) {
-    if (typeof openAccountTurnover !== 'function') return;
+    if (typeof openAccountTurnover !== 'function') {
+        alert('تابع گردش حساب در دسترس نیست.');
+        return;
+    }
     openAccountTurnover(accountId, detailInfo);
     setTimeout(function() {
         var body = document.getElementById('turnover-body');
@@ -525,7 +509,7 @@ function _openTurnoverSafe(accountId, detailInfo) {
         var tbody = body.querySelector('tbody');
         if (!thead || !tbody) return;
 
-        // اضافه کردن ستون «عملیات» به هدر
+        // ستون عملیات در هدر
         if (!thead.querySelector('[data-action-col]')) {
             var th = document.createElement('th');
             th.setAttribute('data-action-col', '1');
@@ -534,7 +518,7 @@ function _openTurnoverSafe(accountId, detailInfo) {
             thead.appendChild(th);
         }
 
-        // اضافه کردن دکمه ویرایش به هر ردیف
+        // دکمه ویرایش در هر ردیف
         tbody.querySelectorAll('tr').forEach(function(tr) {
             if (tr.dataset.editAdded === '1') return;
             tr.dataset.editAdded = '1';
@@ -565,16 +549,6 @@ function _openTurnoverSafe(accountId, detailInfo) {
             editCell.appendChild(btn);
             tr.appendChild(editCell);
         });
-
-        // دبل‌کلیک روی خود ردیف هم ویرایش را باز کند
-        tbody.querySelectorAll('tr').forEach(function(tr) {
-            if (tr.dataset.dblBound === '1') return;
-            tr.dataset.dblBound = '1';
-            tr.addEventListener('dblclick', function() {
-                var btn = tr.querySelector('.row-btn.edit');
-                if (btn) btn.click();
-            });
-        });
     }, 180);
 }
 
@@ -591,13 +565,11 @@ function _openTurnoverSafe(accountId, detailInfo) {
         };
         window._renderAccountReportTree = renderAccountReview;
 
-        // مخفی کردن فیلدهای قدیمی
         ['ra-period', 'ra-level'].forEach(function(id) {
             var el = document.getElementById(id);
             if (el) { var f = el.closest('.field'); if (f) f.style.display = 'none'; }
         });
 
-        // رندر خودکار در هنگام ورود به صفحه
         var page = document.getElementById('page-report-account');
         if (page) {
             var observer = new MutationObserver(function() {
@@ -613,4 +585,4 @@ function _openTurnoverSafe(accountId, detailInfo) {
     else setTimeout(apply, 2500);
 })();
 
-console.log('✅ گزارش مرور حساب‌ها v33 — نسخه اصلاح‌شده');
+console.log('✅ گزارش مرور حساب‌ها v34 — آیکن گردش');
