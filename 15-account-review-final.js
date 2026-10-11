@@ -1,12 +1,12 @@
 /* =====================================================================
-   پارسیس v35 — 15-account-review-final.js
-   گزارش مرور حساب‌ها — نسخه کامل با آیکن گردش
+   پارسیس v36 — 15-account-review-final.js
+   گزارش مرور حساب‌ها — نسخه نهایی با آیکن گردش
 
-   تغییرات v35:
-   ✔ دکمه 📊 گردش کنار کد هر ردیف با onclick مستقیم
-   ✔ تابع جهانی window._AR_openTurnover
-   ✔ اضافه شدن ستون «عملیات» به مودال گردش با دکمه ویرایش
-   ✔ single-click فقط برای انتخاب سطر و فعال‌سازی ذره‌بین سطوح
+   تغییرات v36:
+   ✔ رفع خطای «Cannot read properties of null» در گردش
+   ✔ ساخت خودکار المان‌های ra-period و ra-level
+   ✔ دکمه 📊 گردش با onclick مستقیم
+   ✔ ستون «عملیات» با دکمه ویرایش در مودال گردش
    ===================================================================== */
 'use strict';
 
@@ -132,6 +132,22 @@ function rebuildAccountFilterPanel() {
     };
 
     firstCard.innerHTML = '';
+
+    // ★ اطمینان از وجود ra-period و ra-level (مخفی) برای openAccountTurnover
+    if (!document.getElementById('ra-period')) {
+        var hp = document.createElement('input');
+        hp.type = 'hidden';
+        hp.id = 'ra-period';
+        hp.value = '';
+        document.body.appendChild(hp);
+    }
+    if (!document.getElementById('ra-level')) {
+        var hl = document.createElement('input');
+        hl.type = 'hidden';
+        hl.id = 'ra-level';
+        hl.value = '3';
+        document.body.appendChild(hl);
+    }
 
     var panel = document.createElement('div');
     panel.id = 'ra-clean-panel';
@@ -344,7 +360,6 @@ function renderAccountReview() {
         var badgeCls = 'b' + Math.min(_AR.activeLevel, 4);
         var lvlName = _AR_LEVELS[_AR.activeLevel];
 
-        // ★ شناسه‌های مورد نیاز برای گردش
         var turnoverAcc = a.isDetail ? a.parentId : a.id;
         var turnoverDetailAttr = a.isDetail
             ? ' data-turnover-detail="' + a.id + '" data-turnover-link="' + a.linkType + '"'
@@ -355,7 +370,6 @@ function renderAccountReview() {
              +  (a.isDetail ? 'data-detail-id="' + a.id + '" data-parent-id="' + a.parentId + '" data-link="' + a.linkType + '"' : '')
              +  '>';
 
-        // ★ ستون کد + دکمه گردش با onclick مستقیم
         html += '<td class="ar-code">';
         html += '<button type="button" class="ar-turnover-btn" '
              +  'data-turnover-acc="' + turnoverAcc + '"'
@@ -468,10 +482,9 @@ function bindAccountReviewEvents(accounts, box) {
         });
     });
 
-    // کلیک روی سطر → انتخاب (دکمه گردش با onclick کار می‌کند)
+    // کلیک روی سطر → انتخاب
     box.querySelectorAll('.ar-row').forEach(function(tr) {
         tr.addEventListener('click', function(e) {
-            // اگر روی دکمه گردش کلیک شده، ردیف را انتخاب نکن
             if (e.target.closest && e.target.closest('.ar-turnover-btn')) return;
             if (e.target.classList && e.target.classList.contains('ar-turnover-btn')) return;
 
@@ -530,6 +543,44 @@ window._AR_openTurnover = function(btn) {
    ★ باز کردن گردش + افزودن دکمه ویرایش به هر ردیف
    ===================================================================== */
 function _openTurnoverSafe(accountId, detailInfo) {
+    // ★ رفع خطای null — اطمینان از وجود المان‌های مورد نیاز openAccountTurnover
+    if (!document.getElementById('ra-period')) {
+        var tp = document.createElement('input');
+        tp.type = 'hidden';
+        tp.id = 'ra-period';
+        tp.value = '';
+        document.body.appendChild(tp);
+    }
+    if (!document.getElementById('ra-level')) {
+        var tl = document.createElement('input');
+        tl.type = 'hidden';
+        tl.id = 'ra-level';
+        tl.value = '3';
+        document.body.appendChild(tl);
+    }
+    // ★ همچنین ra-from، ra-to، ra-vtype مورد نیازند
+    if (!document.getElementById('ra-from')) {
+        var tf = document.createElement('input');
+        tf.type = 'hidden';
+        tf.id = 'ra-from';
+        tf.value = '';
+        document.body.appendChild(tf);
+    }
+    if (!document.getElementById('ra-to')) {
+        var tt = document.createElement('input');
+        tt.type = 'hidden';
+        tt.id = 'ra-to';
+        tt.value = '';
+        document.body.appendChild(tt);
+    }
+    if (!document.getElementById('ra-vtype')) {
+        var tv = document.createElement('input');
+        tv.type = 'hidden';
+        tv.id = 'ra-vtype';
+        tv.value = '';
+        document.body.appendChild(tv);
+    }
+
     console.log('🔍 _openTurnoverSafe:', accountId, detailInfo);
 
     if (typeof openAccountTurnover !== 'function') {
@@ -608,11 +659,6 @@ function _openTurnoverSafe(accountId, detailInfo) {
         };
         window._renderAccountReportTree = renderAccountReview;
 
-        ['ra-period', 'ra-level'].forEach(function(id) {
-            var el = document.getElementById(id);
-            if (el) { var f = el.closest('.field'); if (f) f.style.display = 'none'; }
-        });
-
         var page = document.getElementById('page-report-account');
         if (page) {
             var observer = new MutationObserver(function() {
@@ -628,4 +674,4 @@ function _openTurnoverSafe(accountId, detailInfo) {
     else setTimeout(apply, 2500);
 })();
 
-console.log('✅ گزارش مرور حساب‌ها v35 — با onclick مستقیم');
+console.log('✅ گزارش مرور حساب‌ها v36 — رفع خطای null');
