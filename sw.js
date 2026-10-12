@@ -1,5 +1,5 @@
 // Service Worker پارسیس — v42
-var CACHE_NAME = 'parsis-v45';
+var CACHE_NAME = 'parsis-v46';
 
 var ASSETS = [
   './index.html',
@@ -22,6 +22,7 @@ var ASSETS = [
   './18-calendar-v40.js',
   './16-fixes-v37.js',
   './16-fixes-v38.js',
+  './17-scan-improved.js',
 ];
 
 self.addEventListener('install', function(event) {
