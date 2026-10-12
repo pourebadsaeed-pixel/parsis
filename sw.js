@@ -19,6 +19,7 @@ var ASSETS = [
   './14-calendar-google.js',
   './15-account-review-final.js',
   './16-calendar-v37.js',
+  './18-calendar-v40.js',
 ];
 
 self.addEventListener('install', function(event) {
