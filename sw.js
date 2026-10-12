@@ -20,6 +20,7 @@ var ASSETS = [
   './15-account-review-final.js',
   './16-calendar-v37.js',
   './18-calendar-v40.js',
+  './16-fixes-v37.js',
 ];
 
 self.addEventListener('install', function(event) {
