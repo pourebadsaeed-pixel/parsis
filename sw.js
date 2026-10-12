@@ -22,7 +22,8 @@ var ASSETS = [
   './18-calendar-v40.js',
   './16-fixes-v38.js',
   './17-scan-improved.js',
-  './19-final-v41.js'
+  './19-final-v41.js',
+  './20-voucher-fix.js'
 ];
 
 self.addEventListener('install', function(event) {
