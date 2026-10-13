@@ -1533,7 +1533,7 @@ window.payInstallment = payInstallment;
         // جمع‌بندی اطلاع‌رسانی
         setTimeout(function() {
             if (typeof showToast === 'function') {
-                showToast('✨ نسخه v28 با ۱۵ بهبود نصب شد.');
+                showToast('✨ پارسیس نسخه ۴۴ آماده است.');
             }
         }, 2000);
     }
