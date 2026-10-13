@@ -25,7 +25,7 @@ var ASSETS = [
   './19-final-v41.js',
   './20-voucher-fix.js',
   './21-share-image.js,
-  './22-share-hq.js'
+  './23-share-width-fix.js
 ];
 
 self.addEventListener('install', function(event) {
