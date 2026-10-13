@@ -23,7 +23,8 @@ var ASSETS = [
   './16-fixes-v38.js',
   './17-scan-improved.js',
   './19-final-v41.js',
-  './20-voucher-fix.js'
+  './20-voucher-fix.js',
+  './21-share-image.js'
 ];
 
 self.addEventListener('install', function(event) {
