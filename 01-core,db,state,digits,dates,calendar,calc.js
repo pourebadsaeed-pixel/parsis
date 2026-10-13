@@ -5,7 +5,7 @@
 'use strict';
 
 var APP_NAME = 'پارسیس';
-var APP_VERSION = '27.01.01';
+var APP_VERSION = '44.01.01';
 var LS_PREFIX = 'parsis.';
 
 /* ==================== DB ==================== */
