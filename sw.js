@@ -1,5 +1,5 @@
 // Service Worker پارسیس — v47
-var CACHE_NAME = 'parsis-v48';
+var CACHE_NAME = 'parsis-v49';
 
 var ASSETS = [
   './index.html',
